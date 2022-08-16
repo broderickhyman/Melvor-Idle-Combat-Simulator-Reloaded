@@ -20,17 +20,20 @@
 
 (() => {
 
-    const reqs = [];
+    const reqs: any = [];
 
     const setup = () => {
 
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * SimEnemy class, allows creation of a functional Enemy object without affecting the game
          */
+        // @ts-expect-error TS(2304): Cannot find name 'Enemy'.
         MICSR.SimEnemy = class extends Enemy {
-            constructor(data, simManager) {
+            effectRenderer: any;
+            splashManager: any;
+            constructor(data: any, simManager: any) {
                 super(data, simManager);
                 this.detachGlobals();
             }
@@ -68,10 +71,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -80,19 +85,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -101,10 +107,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'SimEnemy');
 

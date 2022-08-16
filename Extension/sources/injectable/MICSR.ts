@@ -15,20 +15,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 // set global variable
-window.MICSR = {
+(window as any).MICSR = {
     isDev: false,
     /////////////
     // logging //
     /////////////
-    debug: (...args) => console.debug('MICSR:', ...args),
-    log: (...args) => console.log('MICSR:', ...args),
-    warn: (...args) => console.warn('MICSR:', ...args),
-    error: (...args) => console.error('MICSR:', ...args),
-
+    debug: (...args: any[]) => console.debug('MICSR:', ...args),
+    log: (...args: any[]) => console.log('MICSR:', ...args),
+    warn: (...args: any[]) => console.warn('MICSR:', ...args),
+    error: (...args: any[]) => console.error('MICSR:', ...args),
     /////////////
     // loading //
     /////////////
     loadedFiles: {},
-}
+};

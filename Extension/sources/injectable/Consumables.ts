@@ -20,23 +20,31 @@
 
 (() => {
 
-    const reqs = [];
+    const reqs: any = [];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * Class to handle consumables
          */
         MICSR.Consumables = class {
-            constructor(app) {
+            app: any;
+            applyRates: any;
+            card: any;
+            consumables: any;
+            player: any;
+            runesInUse: any;
+            showAll: any;
+            simulator: any;
+            constructor(app: any) {
                 this.app = app;
                 this.card = this.app.consumablesCard;
                 this.player = this.app.player;
                 this.simulator = this.app.simulator;
                 // add export and import
                 this.card.addButton('Export Rates', () => this.exportConsumableData());
-                this.card.addTextInput('Import Rates:', '', event => this.importConsumableData(event));
+                this.card.addTextInput('Import Rates:', '', (event: any) => this.importConsumableData(event));
                 // toggles
                 this.applyRates = false;
                 this.card.addToggleRadio(
@@ -67,34 +75,40 @@
                 this.consumables = {};
                 // global costs
                 this.card.addSectionTitle('Seconds per Consumable');
+                // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
                 this.addConsumableInput(this.card, 'pp', 'Prayer Points', () => false);
+                // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
                 this.addConsumableInput(this.card, 'potion', 'Potion', () => false);
+                // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
                 this.addConsumableInput(this.card, 'food', 'Food', () => false);
+                // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
                 this.addConsumableInput(this.card, 'rune', 'Runes', () => false);
                 this.addConsumableInput(this.card, 'combination', 'Combination Runes', () => false, 'rune');
+                // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
                 this.addConsumableInput(this.card, 'ammo', 'Ammo', () => false);
+                // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
                 this.addConsumableInput(this.card, 'summon', 'Familiar Tablets', () => false);
                 // tab
                 this.card.addTabMenu();
                 // potions
                 const potionCard = new MICSR.Card(this.card.container, '', '100px');
-                Herblore.potions.filter(data => data.category === 0).map(data => data.potionIDs[0]).forEach(potionID =>
-                    this.addConsumableInput(potionCard, potionID, items[potionID].name.replace('Potion I', 'Potion'), () => this.player.potionID !== -1 && potionID === Herblore.potions[this.player.potionID].potionIDs[0], 'potion')
+                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
+                Herblore.potions.filter((data: any) => data.category === 0).map((data: any) => data.potionIDs[0]).forEach((potionID: any) => this.addConsumableInput(potionCard, potionID, items[potionID].name.replace('Potion I', 'Potion'), () => this.player.potionID !== -1 && potionID === Herblore.potions[this.player.potionID].potionIDs[0], 'potion')
                 );
                 // food
                 const foodCard = new MICSR.Card(this.card.container, '', '100px');
-                items.filter(item => this.app.filterIfHasKey('healsFor', item)).map(food => food.id).forEach(foodID =>
-                    this.addItemInput(foodCard, foodID, () => foodID === this.player.food.currentSlot.item.id, 'food')
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                items.filter((item: any) => this.app.filterIfHasKey('healsFor', item)).map((food: any) => food.id).forEach((foodID: any) => this.addItemInput(foodCard, foodID, () => foodID === this.player.food.currentSlot.item.id, 'food')
                 );
                 // runes
                 const runesCard = new MICSR.Card(this.card.container, '', '100px');
-                items.filter(x => x.type === 'Rune' && x.masteryID[0] === 15 && !x.providesRune).map(rune => rune.id).forEach(runeID =>
-                    this.addItemInput(runesCard, runeID, () => this.runesInUse[runeID], 'rune')
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                items.filter((x: any) => x.type === 'Rune' && x.masteryID[0] === 15 && !x.providesRune).map((rune: any) => rune.id).forEach((runeID: any) => this.addItemInput(runesCard, runeID, () => this.runesInUse[runeID], 'rune')
                 );
                 // combination runes
                 const combinationCard = new MICSR.Card(this.card.container, '', '100px');
-                items.filter(x => x.type === 'Rune' && x.providesRune).forEach(combinationRune =>
-                    this.addItemInput(combinationCard, combinationRune.id, () => this.runesInUse[combinationRune.id], 'combination')
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                items.filter((x: any) => x.type === 'Rune' && x.providesRune).forEach((combinationRune: any) => this.addItemInput(combinationCard, combinationRune.id, () => this.runesInUse[combinationRune.id], 'combination')
                 );
                 // ammo
                 const ammoCard = new MICSR.Card(this.card.container, '', '100px');
@@ -121,19 +135,19 @@
                     },
                 ].forEach(ammoInfo => {
                     this.addConsumableInput(ammoCard, ammoInfo.id, ammoInfo.name, () => false, 'ammo');
-                    items.filter(x => x.ammoType === ammoInfo.ammoType).map(ammo => ammo.id).forEach(ammoID =>
-                        this.addItemInput(ammoCard, ammoID, () => ammoID === this.player.equipmentID(equipmentSlotData.Quiver.id), ammoInfo.id)
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
+                    items.filter((x: any) => x.ammoType === ammoInfo.ammoType).map((ammo: any) => ammo.id).forEach((ammoID: any) => this.addItemInput(ammoCard, ammoID, () => ammoID === this.player.equipmentID(equipmentSlotData.Quiver.id), ammoInfo.id)
                     );
                 });
                 // other quiver items
                 this.addConsumableInput(ammoCard, 'otherQuiver', 'Other Quiver Items', () => false, 'ammo');
-                items.filter(x => x.validSlots && x.validSlots.includes('Quiver') && x.ammoType === undefined).map(x => x.id).forEach(quiverID =>
-                    this.addItemInput(ammoCard, quiverID, () => quiverID === this.player.equipmentID(equipmentSlotData.Quiver.id), 'otherQuiver')
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                items.filter((x: any) => x.validSlots && x.validSlots.includes('Quiver') && x.ammoType === undefined).map((x: any) => x.id).forEach((quiverID: any) => this.addItemInput(ammoCard, quiverID, () => quiverID === this.player.equipmentID(equipmentSlotData.Quiver.id), 'otherQuiver')
                 );
                 // summons
                 const summonCard = new MICSR.Card(this.card.container, '', '100px');
-                items.filter(x => x.equipmentStats && x.equipmentStats.find(y => y.key === 'summoningMaxhit')).map(x => x.id).forEach(summonID =>
-                    this.addItemInput(summonCard, summonID, () => this.player.equipmentIDs().includes(summonID), 'summon')
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                items.filter((x: any) => x.equipmentStats && x.equipmentStats.find((y: any) => y.key === 'summoningMaxhit')).map((x: any) => x.id).forEach((summonID: any) => this.addItemInput(summonCard, summonID, () => this.player.equipmentIDs().includes(summonID), 'summon')
                 );
                 // add the tab cards
                 [
@@ -152,12 +166,13 @@
                 )
             }
 
-            addItemInput(card, itemID, check, override) {
+            addItemInput(card: any, itemID: any, check: any, override: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 const item = items[itemID];
                 this.addConsumableInput(card, itemID, item.name, check, override);
             }
 
-            addConsumableInput(card, id, name, check, override) {
+            addConsumableInput(card: any, id: any, name: any, check: any, override: any) {
                 this.consumables[id] = {
                     check: check,
                     name: name,
@@ -170,14 +185,14 @@
                     '',
                     0,
                     Infinity,
-                    event => this.setConsumableSecondsFromEvent(event, id),
+                    (event: any) => this.setConsumableSecondsFromEvent(event, id),
                 );
                 if (override !== undefined) {
                     this.consumables[override].children.push(id);
                 }
             }
 
-            genericCheck(id) {
+            genericCheck(id: any) {
                 const consumable = this.consumables[id];
                 for (const childID of consumable.children) {
                     if (this.genericCheck(childID)) {
@@ -191,21 +206,24 @@
                 this.setRunesInUse();
                 for (const id in this.consumables) {
                     const consumable = this.consumables[id];
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     const element = document.getElementById(`MCS ${consumable.name} Input`).parentElement;
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     element.style.display = this.showAll || this.genericCheck(id) ? '' : 'none';
                 }
             }
 
-            setConsumableSecondsFromEvent(event, id) {
+            setConsumableSecondsFromEvent(event: any, id: any) {
                 let seconds = parseFloat(event.currentTarget.value);
                 if (isNaN(seconds)) {
+                    // @ts-expect-error TS(2322): Type 'undefined' is not assignable to type 'number... Remove this comment to see the full error message
                     seconds = undefined;
                 }
                 this.setConsumableSeconds(id, seconds);
                 this.saveRates();
             }
 
-            setConsumableSeconds(id, seconds) {
+            setConsumableSeconds(id: any, seconds: any) {
                 if (this.consumables[id] === undefined) {
                     MICSR.warn(`Unknown consumable id ${id} in Consumables.setConsumableSeconds`);
                     return;
@@ -230,6 +248,7 @@
             getExportData() {
                 const settings = {};
                 for (const id in this.consumables) {
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     settings[id] = this.consumables[id].seconds;
                 }
                 return JSON.stringify(settings, null, 1);
@@ -239,7 +258,7 @@
                 this.app.popExport(this.getExportData());
             }
 
-            importConsumableData(event) {
+            importConsumableData(event: any) {
                 this.importFromJSON(event.currentTarget.value);
                 this.saveRates();
             }
@@ -256,7 +275,7 @@
                 this.importFromJSON(json);
             }
 
-            importFromJSON(json) {
+            importFromJSON(json: any) {
                 let settings;
                 try {
                     settings = JSON.parse(json)
@@ -267,11 +286,12 @@
                 // wipes everything by setting unimported values to undefined
                 for (const id in this.consumables) {
                     this.consumables[id].seconds = settings[id];
-                    document.getElementById(`MCS ${this.consumables[id].name} Input`).value = settings[id] ?? '';
+                    (document.getElementById(`MCS ${this.consumables[id].name} Input`) as any).value = settings[id] ?? '';
                 }
             }
 
-            getConsumableCostInSeconds(id) {
+            // @ts-expect-error TS(7023): 'getConsumableCostInSeconds' implicitly has return... Remove this comment to see the full error message
+            getConsumableCostInSeconds(id: any) {
                 if (id === undefined || id === -1) {
                     return 0;
                 }
@@ -297,7 +317,7 @@
                         continue;
                     }
                     const spell = this.app.combatData.spells[spellType][spellSelection];
-                    const costs = this.player.getRuneCosts(spell).map(x => x.itemID);
+                    const costs = this.player.getRuneCosts(spell).map((x: any) => x.itemID);
                     for (const runeID of costs) {
                         this.runesInUse[runeID] = true;
                     }
@@ -311,14 +331,14 @@
                 for (const dData of this.simulator.dungeonSimData) {
                     this.updateSingleResult(dData);
                 }
-                this.simulator.slayerSimData.forEach((sData, slayerTaskID) => {
+                this.simulator.slayerSimData.forEach((sData: any, slayerTaskID: any) => {
                     this.updateSingleResult(sData);
                     // correct average kill time for auto slayer
                     sData.adjustedRates.killTimeS /= this.simulator.slayerTaskMonsters[slayerTaskID].length;
                 });
             }
 
-            updateSingleResult(data) {
+            updateSingleResult(data: any) {
                 const factor = this.computeFactor(data);
                 data.adjustedRates = {};
                 [
@@ -341,7 +361,7 @@
                 data.adjustedRates.killsPerSecond = 1 / data.adjustedRates.killTimeS;
             }
 
-            computeFactor(data) {
+            computeFactor(data: any) {
                 // compute factor
                 let factor = 1;
                 // pp
@@ -350,7 +370,9 @@
                 }
                 // potion
                 if (data.potionsUsedPerSecond > 0) {
+                    // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                     if (Herblore.potions[this.player.potionID]) {
+                        // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                         const potionID = Herblore.potions[this.player.potionID].potionIDs[0];
                         factor += data.potionsUsedPerSecond * this.getConsumableCostInSeconds(potionID);
                     } else {
@@ -370,13 +392,16 @@
                 }
                 // ammo
                 if (data.ammoUsedPerSecond > 0) {
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     const ammoID = this.player.equipmentID(equipmentSlotData.Quiver.id);
                     factor += data.ammoUsedPerSecond * this.getConsumableCostInSeconds(ammoID);
                 }
                 // familiars
                 if (data.tabletsUsedPerSecond > 0) {
                     [
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         MICSR.melvorCombatSim.player.equipmentID(EquipmentSlots.Summon1),
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         MICSR.melvorCombatSim.player.equipmentID(EquipmentSlots.Summon2),
                     ].forEach(summonID => {
                         if (this.consumables[summonID]) {
@@ -390,10 +415,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -402,19 +429,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -423,10 +451,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Consumables');
 

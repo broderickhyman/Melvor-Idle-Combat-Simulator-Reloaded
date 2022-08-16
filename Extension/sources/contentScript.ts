@@ -29,7 +29,9 @@ window.addEventListener('message', (event) => {
             case 'REQUEST_URLS':
                 // Send URLS of web accessible resources to page
                 const urls = {
+                    // @ts-expect-error TS(2304): Cannot find name 'chrome'.
                     crossedOut: chrome.runtime.getURL('icons/crossedOut.svg'),
+                    // @ts-expect-error TS(2304): Cannot find name 'chrome'.
                     simulationWorker: chrome.runtime.getURL('sources/workers/simulator.js'),
                 };
                 window.postMessage({type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls});
@@ -43,14 +45,16 @@ window.addEventListener('message', (event) => {
  * Injects a script onto the page of the
  * @param {string} scriptName
  */
-function injectScript(scriptName) {
+function injectScript(scriptName: any) {
     const scriptID = `mcs-${scriptName}`;
     // Check if script already exists, if so delete it
     if (document.getElementById(scriptID)) {
         window.postMessage({type: 'MCS_FROM_CONTENT', action: 'UNLOAD'});
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
         document.getElementById(scriptID).remove();
     }
     // Inject script
+    // @ts-expect-error TS(2304): Cannot find name 'chrome'.
     const scriptPath = chrome.runtime.getURL(`sources/injectable/${scriptName}.js`);
     const newScript = document.createElement('script');
     newScript.setAttribute('id', scriptID);

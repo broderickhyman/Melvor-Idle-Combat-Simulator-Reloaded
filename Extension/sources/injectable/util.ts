@@ -20,12 +20,12 @@
 
 (() => {
 
-    const reqs = [];
+    const reqs: any = [];
 
     const setup = () => {
 
         // global combat simulator object
-        const MICSR = window.MICSR;
+const MICSR = (window as any).MICSR;
 
         // combat sim name
         MICSR.name = 'Melvor Idle Combat Simulator Reloaded';
@@ -44,7 +44,7 @@
             MICSR.version = `${MICSR.version}-${MICSR.preReleaseVersion}`;
         }
 
-        MICSR.versionCheck = (exact, major, minor, patch, prerelease) => {
+        MICSR.versionCheck = (exact: any, major: any, minor: any, patch: any, prerelease: any) => {
             // check exact version match
             if (major === MICSR.majorVersion
                 && minor === MICSR.minorVersion
@@ -83,7 +83,7 @@
         MICSR.maxTicks = 1e3;
 
         // empty items
-        const makeEmptyItem = (img, slot) => {
+        const makeEmptyItem = (img: any, slot: any) => {
             return {
                 name: 'None',
                 id: -1,
@@ -113,16 +113,20 @@
             Food: makeEmptyItem('assets/media/skills/combat/food_empty.svg', 'Food'),
         };
 
-        MICSR.getItem = (itemID, slotName) => {
+        MICSR.getItem = (itemID: any, slotName: any) => {
             if (itemID === -1) {
                 return MICSR.emptyItems[slotName];
             }
+            // @ts-expect-error TS(2304): Cannot find name 'items'.
             return items[itemID];
         }
 
         MICSR.dungeons = [];
-        DUNGEONS.forEach(dungeon => MICSR.dungeons.push({...dungeon}));
-        MICSR.dungeons = MICSR.dungeons.filter(dungeon => dungeon.id !== Dungeons.Impending_Darkness);
+        // @ts-expect-error TS(2304): Cannot find name 'DUNGEONS'.
+        DUNGEONS.forEach((dungeon: any) => MICSR.dungeons.push({...dungeon}));
+        // @ts-expect-error TS(2552): Cannot find name 'Dungeons'. Did you mean 'dungeon... Remove this comment to see the full error message
+        MICSR.dungeons = MICSR.dungeons.filter((dungeon: any) => dungeon.id !== Dungeons.Impending_Darkness);
+        // @ts-expect-error TS(2304): Cannot find name 'Dungeons'.
         MICSR.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
 
         /**
@@ -132,7 +136,7 @@
          * @param {number} digits Number of significant digits
          * @return {string}
          */
-        MICSR.mcsFormatNum = (number, digits) => {
+        MICSR.mcsFormatNum = (number: any, digits: any) => {
             let output = number.toPrecision(digits);
             let end = '';
             if (output.includes('e+')) {
@@ -146,6 +150,7 @@
                     end = `e${powerCount * 3}`;
                 }
             }
+            // @ts-expect-error TS(2554): Expected 0 arguments, but got 2.
             return `${+parseFloat(output).toFixed(6).toLocaleString(undefined, {minimumSignificantDigits: digits})}${end}`;
         }
 
@@ -154,11 +159,11 @@
          * @param {string} name The name describing the element
          * @returns An id starting with 'mcs-' and ending with the name in lowercase with spaces replaced by '-'
          */
-        MICSR.toId = (name) => {
+        MICSR.toId = (name: any) => {
             return `mcs-${name.toLowerCase().replace(/ /g, '-')}`;
         }
 
-        MICSR.checkImplemented = (stats, tag) => {
+        MICSR.checkImplemented = (stats: any, tag: any) => {
             if (!MICSR.isDev) {
                 return;
             }
@@ -175,13 +180,13 @@
             })
         }
 
-        MICSR.checkUnknown = (set, tag, elementType, knownSets, broken) => {
+        MICSR.checkUnknown = (set: any, tag: any, elementType: any, knownSets: any, broken: any) => {
             if (!MICSR.isDev) {
                 return;
             }
             // construct a list of stats that are not in any of the previous categories
             const unknownStatNames = {};
-            set.forEach(element => {
+            set.forEach((element: any) => {
                 Object.getOwnPropertyNames(element).forEach(stat => {
                     // check if any bugged stats are still present
                     if (broken[stat] !== undefined) {
@@ -195,14 +200,18 @@
                         }
                     }
                     // unknown stat found !
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     if (unknownStatNames[stat] === undefined) {
+                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                         unknownStatNames[stat] = [];
                     }
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     unknownStatNames[stat].push(element.name);
                 })
             })
 
             Object.getOwnPropertyNames(unknownStatNames).forEach(stat => {
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 MICSR.warn('Unknown stat ' + stat + ' for ' + elementType + ': ', unknownStatNames[stat]);
             });
         }
@@ -210,21 +219,21 @@
         /**
          * Get the combined modifier value
          */
-        MICSR.getModifierValue = (...args) => {
+        MICSR.getModifierValue = (...args: any[]) => {
             return MICSR.showModifiersInstance.getModifierValue(...args);
         }
 
         /**
          * Apply modifier without rounding
          */
-        MICSR.averageDoubleMultiplier = (modifier) => {
+        MICSR.averageDoubleMultiplier = (modifier: any) => {
             return 1 + modifier / 100;
         }
 
         /**
          * Add agility course modifiers to `modifiers` object
          */
-        MICSR.addAgilityModifiers = (course, courseMastery, pillar, modifiers) => {
+        MICSR.addAgilityModifiers = (course: any, courseMastery: any, pillar: any, modifiers: any) => {
             let fullCourse = true
             for (let i = 0; i < course.length; i++) {
                 if (course[i] < 0) {
@@ -232,22 +241,27 @@
                     break;
                 }
                 if (courseMastery[i]) {
+                    // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                     modifiers.addModifiers(Agility.obstacles[course[i]].modifiers, 0.5);
                 } else {
+                    // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                     modifiers.addModifiers(Agility.obstacles[course[i]].modifiers);
                 }
             }
             if (fullCourse && pillar > -1) {
+                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 modifiers.addModifiers(Agility.passivePillars[pillar].modifiers);
             }
         }
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -256,19 +270,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -277,10 +292,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'util');
 

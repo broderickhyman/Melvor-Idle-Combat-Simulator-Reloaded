@@ -26,24 +26,37 @@
 
     const setup = () => {
 
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * CombatData class, stores all the combat data of a simulation
          */
         MICSR.CombatData = class {
+            combatStats: any;
+            decreasedAttackSpeed: any;
+            dropSelected: any;
+            equipmentStats: any;
+            luckyHerb: any;
+            manager: any;
+            modifiers: any;
+            player: any;
+            spells: any;
             /**
              *
              */
-            constructor(manager) {
+            constructor(manager: any) {
                 this.manager = manager;
                 this.player = this.manager.player;
                 this.modifiers = this.player.modifiers;
                 // Spell Selection
                 this.spells = {
+                    // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
                     standard: SPELLS,
+                    // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
                     curse: CURSES,
+                    // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
                     aurora: AURORAS,
+                    // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
                     ancient: ANCIENT,
                 };
                 // Combat Stats
@@ -138,6 +151,7 @@
             computePotionBonus() {
                 this.luckyHerb = 0;
                 if (this.player.potionSelected) {
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     const potion = items[Herblore.potions[this.player.potionID].potionIDs[this.player.potionTier]];
                     if (potion.potionBonusID === 11) {
                         this.luckyHerb = potion.potionBonus;
@@ -152,13 +166,19 @@
             }
 
             getSummoningXP() {
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 const summ1 = this.player.equipmentID(equipmentSlotData.Summon1.id);
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 const summ2 = this.player.equipmentID(equipmentSlotData.Summon2.id);
                 let xp = 0;
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 if (summ1 >= 0 && items[summ1].summoningMaxHit) {
+                    // @ts-expect-error TS(2304): Cannot find name 'getBaseSummoningXP'.
                     xp += getBaseSummoningXP(items[summ1].summoningID, true, 3000);
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 if (summ2 >= 0 && items[summ2].summoningMaxHit) {
+                    // @ts-expect-error TS(2304): Cannot find name 'getBaseSummoningXP'.
                     xp += getBaseSummoningXP(items[summ2].summoningID, true, 3000);
                 }
                 return xp;
@@ -167,10 +187,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -179,19 +201,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -200,10 +223,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'CombatData');
 

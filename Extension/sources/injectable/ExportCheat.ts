@@ -25,15 +25,22 @@
     ];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
         /**
          * Class to handle exporting to the game, this cheats the current character in a destructive irreversible manner!
          */
         MICSR.ExportCheat = class extends MICSR.Import {
+            actualApp: any;
+            app: any;
+            autoEatTiers: any;
+            document: any;
+            importSettings: any;
+            player: any;
 
-            constructor(app) {
+            constructor(app: any) {
                 super(app);
                 this.actualApp = app;
+                // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
                 this.player = player;
                 this.document = {
                     getElementById: () => {
@@ -43,9 +50,12 @@
                 this.app = {
                     setEquipmentImage: () => {
                     },
-                    equipItem: (slotID, itemID) => {
+                    equipItem: (slotID: any, itemID: any) => {
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         const qty = [EquipmentSlots.Quiver, EquipmentSlots.Summon1, EquipmentSlots.Summon2].includes(slotID) ? 1e9 : 1;
+                        // @ts-expect-error TS(2304): Cannot find name 'addItemToBank'.
                         addItemToBank(itemID, qty, true, false, true);
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         this.player.equipItem(itemID, 0, EquipmentSlots[slotID], qty)
                     },
                     updateStyleDropdowns: () => {
@@ -56,18 +66,22 @@
                     },
                     getPrayerName: () => {
                     },
-                    notify: (...args) => this.actualApp.notify(...args),
+                    notify: (...args: any[]) => this.actualApp.notify(...args),
                 };
             }
 
             cheat() {
                 // add some bank space
+                // @ts-expect-error TS(2304): Cannot find name 'addShopPurchase'.
                 addShopPurchase('General', 0, 1e3);
                 this.player.computeAllStats();
                 // add some runes, in case we need them
-                items.filter(x => x.type === 'Rune').forEach(x => addItemToBank(x.id, 1e9, true, false, true));
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                items.filter((x: any) => x.type === 'Rune').forEach((x: any) => addItemToBank(x.id, 1e9, true, false, true));
                 // set levels and completion to 100%
+                // @ts-expect-error TS(2304): Cannot find name 'skillLevel'.
                 skillLevel.fill(99)
+                // @ts-expect-error TS(2304): Cannot find name 'completionStats'.
                 completionStats = 100;
                 // export settings
                 const settings = this.actualApp.import.exportSettings();
@@ -81,16 +95,19 @@
                 // do nothing
             }
 
-            importLevels(levels) {
+            importLevels(levels: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'skillLevel'.
                 skillLevel = [...levels];
             }
 
-            importSpells(spellSelection) {
+            importSpells(spellSelection: any) {
                 this.player.spellSelection = spellSelection;
             }
 
-            importPotion(potionID, potionTier) {
+            importPotion(potionID: any, potionTier: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                 if (Herblore.potions[potionID] === undefined) {
+                    // @ts-expect-error TS(2304): Cannot find name 'herbloreBonuses'.
                     herbloreBonuses[13] = {
                         bonus: [null, null],
                         charges: 0,
@@ -98,97 +115,117 @@
                     };
                     return;
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                 const id = (Herblore.potions[potionID].potionIDs[potionTier]);
+                // @ts-expect-error TS(2304): Cannot find name 'addItemToBank'.
                 addItemToBank(id, 1000000, true, false, true)
+                // @ts-expect-error TS(2304): Cannot find name 'usePotion'.
                 usePotion(id, false, true);
             }
 
-            importPets(petUnlocked) {
-                window.petUnlocked = petUnlocked;
+            importPets(petUnlocked: any) {
+                (window as any).petUnlocked = petUnlocked;
             }
 
-            importAutoEat(autoEatTier, foodSelected, cookingPool, cookingMastery) {
+            importAutoEat(autoEatTier: any, foodSelected: any, cookingPool: any, cookingMastery: any) {
                 // clear AE purchases
-                this.autoEatTiers.forEach(aet => shopItemsPurchased.delete(`General:${aet}`));
+                // @ts-expect-error TS(2304): Cannot find name 'shopItemsPurchased'.
+                this.autoEatTiers.forEach((aet: any) => shopItemsPurchased.delete(`General:${aet}`));
                 // add AE purchases
                 for (let i = 0; i < autoEatTier; i++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'addShopPurchase'.
                     addShopPurchase('General', this.autoEatTiers[i]);
                 }
                 // equip food
                 this.player.food.selectedIndex = 0;
                 this.player.food.unequipSelected();
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 if (items[foodSelected] !== undefined) {
+                    // @ts-expect-error TS(2304): Cannot find name 'addItemToBank'.
                     addItemToBank(foodSelected, 1e9);
                     this.player.equipFood(foodSelected, 1e9);
                 }
                 // set cooking pool
+                // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
                 MASTERY[Skills.Cooking].pool = cookingPool * 95 * getMasteryPoolTotalXP(Skills.Cooking) / 100 + 1;
                 // set cooking mastery
+                // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
                 MASTERY[Skills.Cooking].xp.fill(cookingMastery * 14e6)
             }
 
-            importManualEating(isManualEating) {
+            importManualEating(isManualEating: any) {
                 // TODO?
             }
 
-            importHealAfterDeath(healAfterDeath) {
+            importHealAfterDeath(healAfterDeath: any) {
                 // TODO?
             }
 
-            importSlayerTask(isSlayerTask) {
+            importSlayerTask(isSlayerTask: any) {
                 if (isSlayerTask && !MICSR.melvorCombatSim.barSelected || !this.actualApp.barIsMonster(this.actualApp.selectedBar)) {
                     this.actualApp.notify('No monster selected, not setting slayer task !', 'danger');
                     isSlayerTask = false;
                 }
                 // set slayer task to currently selected monster
+                // @ts-expect-error TS(2304): Cannot find name 'combatManager'.
                 combatManager.slayerTask.active = isSlayerTask;
                 if (isSlayerTask) {
+                    // @ts-expect-error TS(2304): Cannot find name 'combatManager'.
                     combatManager.slayerTask.monster = MONSTERS[this.actualApp.barMonsterIDs[this.actualApp.selectedBar]];
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'combatManager'.
                 combatManager.slayerTask.killsLeft = isSlayerTask * 1e9;
             }
 
-            importGameMode(currentGamemode) {
-                if (window.currentGamemode !== currentGamemode) {
+            importGameMode(currentGamemode: any) {
+                if ((window as any).currentGamemode !== currentGamemode) {
                     this.actualApp.notify('Game mode changed, SAVE AND RELOAD !', 'danger');
-                    window.currentGamemode = currentGamemode;
+                    (window as any).currentGamemode = currentGamemode;
                 }
             }
 
-            importSummoningSynergy(summoningSynergy) {
+            importSummoningSynergy(summoningSynergy: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'summoningData'.
                 summoningData.MarksDiscovered[this.player.equipment.slots.Summon1.item.summoningID] = 3 * summoningSynergy;
+                // @ts-expect-error TS(2304): Cannot find name 'summoningData'.
                 summoningData.MarksDiscovered[this.player.equipment.slots.Summon2.item.summoningID] = 3 * summoningSynergy;
             }
 
-            importUseCombinationRunes(useCombinationRunes) {
-                window.useCombinationRunes = useCombinationRunes;
+            importUseCombinationRunes(useCombinationRunes: any) {
+                (window as any).useCombinationRunes = useCombinationRunes;
             }
 
-            importAgilityCourse(course, masteries, pillar) {
+            importAgilityCourse(course: any, masteries: any, pillar: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'chosenAgilityObstacles'.
                 chosenAgilityObstacles = course;
-                MASTERY[Skills.Agility].xp = MASTERY[Skills.Agility].xp.map((_, i) => masteries[i] * 14e6);
+                // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
+                MASTERY[Skills.Agility].xp = MASTERY[Skills.Agility].xp.map((_: any, i: any) => masteries[i] * 14e6);
+                // @ts-expect-error TS(2304): Cannot find name 'agilityPassivePillarActive'.
                 agilityPassivePillarActive = pillar;
             }
 
-            importAstrology(astrologyModifiers) {
-                activeAstrologyModifiers = astrologyModifiers.map(x => {
+            importAstrology(astrologyModifiers: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'activeAstrologyModifiers'.
+                activeAstrologyModifiers = astrologyModifiers.map((x: any) => {
                     return Object.getOwnPropertyNames(x).map(m => {
                         return {[m]: x[m]}
                     });
                 });
             }
 
-            checkRadio(baseID, check) {
+            checkRadio(baseID: any, check: any) {
                 // do nothing
             }
         }
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -197,19 +234,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -218,10 +256,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Import');
 

@@ -40,20 +40,94 @@
 
     const setup = () => {
 
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * Container Class for the Combat Simulator.
          * A single instance of this is initiated on load.
          */
         MICSR.App = class {
+            agilityCourse: any;
+            agilitySelectCard: any;
+            astrologySelectCard: any;
+            astrologySelected: any;
+            barMonsterIDs: any;
+            barSelected: any;
+            barType: any;
+            barTypes: any;
+            botContent: any;
+            combatData: any;
+            combatPotionIDs: any;
+            combatStatCard: any;
+            combatStatKeys: any;
+            compareCard: any;
+            constellationContainers: any;
+            constellationModifierContainers: any;
+            consumables: any;
+            consumablesCard: any;
+            dataExport: any;
+            dropListFilters: any;
+            dungeonBarIDs: any;
+            dungeonToggleState: any;
+            equipmentSelectCard: any;
+            equipmentSubsets: any;
+            failureLabel: any;
+            foodCCContainer: any;
+            foodItems: any;
+            force: any;
+            import: any;
+            importedSettings: any;
+            infoPlaceholder: any;
+            initialTimeUnitIndex: any;
+            isViewingDungeon: any;
+            levelSelectCard: any;
+            loot: any;
+            lootSelectCard: any;
+            mainTabCard: any;
+            manager: any;
+            media: any;
+            menuItemId: any;
+            modalID: any;
+            monsterIDs: any;
+            monsterToggleState: any;
+            petIDs: any;
+            petSelectCard: any;
+            player: any;
+            plotTypes: any;
+            plotter: any;
+            potionSelectCard: any;
+            prayerSelectCard: any;
+            savedSimulations: any;
+            selectedBar: any;
+            selectedTime: any;
+            selectedTimeShorthand: any;
+            simOptionsCard: any;
+            simulator: any;
+            skillKeys: any;
+            skipConstellations: any;
+            slayerToggleState: any;
+            spellSelectCard: any;
+            subInfoCard: any;
+            timeMultiplier: any;
+            timeMultipliers: any;
+            timeOptions: any;
+            timeShorthand: any;
+            tippyInstances: any;
+            tippyNoSingletonInstances: any;
+            tippyOptions: any;
+            tippySingleton: any;
+            topContent: any;
+            trackHistory: any;
+            uniqueModifiers: any;
+            viewedDungeonID: any;
+            zoneInfoCard: any;
             /**
              * Constructs an instance of mcsApp
              * @param {Object} urls URLs from content script
              * @param {string} urls.simulationWorker URL for simulator script
              * @param {string} urls.crossedOut URL for crossed out svg
              */
-            constructor(urls) {
+            constructor(urls: any) {
                 // Combat Data Object
                 this.manager = new MICSR.SimManager()
                 this.manager.initialize();
@@ -64,7 +138,7 @@
                 this.tippyNoSingletonInstances = [];
                 // Plot Type Options
                 this.plotTypes = [];
-                const addPlotOption = (option, isTime, value, info, scale = true) => {
+                const addPlotOption = (option: any, isTime: any, value: any, info: any, scale = true) => {
                     this.plotTypes.push({
                         option: option,
                         isTime: isTime,
@@ -139,7 +213,9 @@
                     synergyLock: 'assets/media/skills/summoning/synergy_locked.svg',
                     stamina: 'assets/media/main/stamina.png',
                     question: 'assets/media/main/question.svg',
+                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
                     airRune: getItemMedia(Items.Air_Rune),
+                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
                     mistRune: getItemMedia(Items.Mist_Rune),
                     bank: 'assets/media/main/bank_header.svg',
                     herblore: 'assets/media/skills/herblore/herblore.svg',
@@ -153,9 +229,11 @@
                 // monster IDs
                 const bardID = 139;
                 this.monsterIDs = [
-                    ...combatAreas.map(area => area.monsters).reduce((a, b) => a.concat(b), []),
+                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
+                    ...combatAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
                     bardID,
-                    ...slayerAreas.map(area => area.monsters).reduce((a, b) => a.concat(b), []),
+                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
+                    ...slayerAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
                 ]
 
                 // combat pet IDs
@@ -170,44 +248,66 @@
 
                 // Forced equipment sorting
                 this.force = {
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     [Skills.Defence]: [Items.Slayer_Helmet_Basic, Items.Slayer_Platebody_Basic],
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     [Skills.Ranged]: [Items.Slayer_Cowl_Basic, Items.Slayer_Leather_Body_Basic],
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     [Skills.Magic]: [Items.Slayer_Wizard_Hat_Basic, Items.Slayer_Wizard_Robes_Basic, Items.Enchanted_Shield],
                 };
 
                 // Generate equipment subsets
                 this.equipmentSubsets = [];
                 /** @type {number[]} */
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 for (const slot in equipmentSlotData) {
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     const slotId = equipmentSlotData[slot].id;
                     this.equipmentSubsets.push([MICSR.emptyItems[slot]]);
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     for (let i = 0; i < items.length; i++) {
+                        // @ts-expect-error TS(2304): Cannot find name 'items'.
                         if (items[i].validSlots === undefined) {
                             continue;
                         }
+                        // @ts-expect-error TS(2304): Cannot find name 'items'.
                         if (items[i].validSlots.includes(slot)
+                            // @ts-expect-error TS(2304): Cannot find name 'items'.
                             || (items[i].validSlots.includes('Summon')
+                                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                                 && slotId === equipmentSlotData.Summon2.id)) {
+                            // @ts-expect-error TS(2304): Cannot find name 'items'.
                             this.equipmentSubsets[slotId].push(items[i]);
                         }
                     }
                 }
-                this.equipmentSubsets[equipmentSlotData.Passive.id].push(...items.filter(x => x.isPassiveItem));
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
+                this.equipmentSubsets[equipmentSlotData.Passive.id].push(...items.filter((x: any) => x.isPassiveItem));
                 // Add ammoType 2 and 3 to weapon subsets
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 for (let i = 0; i < items.length; i++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     if (items[i].validSlots && items[i].validSlots.includes('Quiver') && (items[i].ammoType === 2 || items[i].ammoType === 3)) {
+                        // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                         this.equipmentSubsets[equipmentSlotData.Weapon.id].push(items[i]);
                     }
                 }
                 // Sort equipment subsets
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 for (const slot in equipmentSlotData) {
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     const slotId = equipmentSlotData[slot].id;
-                    this.equipmentSubsets[slotId].sort((a, b) => this.getItemLevelReq(a, Skills.Attack) - this.getItemLevelReq(b, Skills.Attack));
-                    this.equipmentSubsets[slotId].sort((a, b) => this.getItemLevelReq(a, Skills.Defence) - this.getItemLevelReq(b, Skills.Defence));
-                    this.equipmentSubsets[slotId].sort((a, b) => this.getItemLevelReq(a, Skills.Ranged) - this.getItemLevelReq(b, Skills.Ranged));
-                    this.equipmentSubsets[slotId].sort((a, b) => this.getItemLevelReq(a, Skills.Magic) - this.getItemLevelReq(b, Skills.Magic));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Attack) - this.getItemLevelReq(b, Skills.Attack));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Defence) - this.getItemLevelReq(b, Skills.Defence));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Ranged) - this.getItemLevelReq(b, Skills.Ranged));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Magic) - this.getItemLevelReq(b, Skills.Magic));
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     if (slotId === equipmentSlotData.Quiver.id) {
-                        this.equipmentSubsets[slotId].sort((a, b) => (a.ammoType || 0) - (b.ammoType || 0));
+                        this.equipmentSubsets[slotId].sort((a: any, b: any) => (a.ammoType || 0) - (b.ammoType || 0));
                     }
                 }
                 this.skillKeys = ['Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer', 'Slayer'];
@@ -280,16 +380,18 @@
                     task: 2,
                 }
 
-                combatAreas.forEach((area) => {
-                    area.monsters.forEach((monster) => {
+                // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
+                combatAreas.forEach((area: any) => {
+                    area.monsters.forEach((monster: any) => {
                         this.barMonsterIDs.push(monster);
                         this.barType.push(this.barTypes.monster);
                     });
                 });
                 this.barMonsterIDs.push(bardID);
                 this.barType.push(this.barTypes.monster);
-                slayerAreas.forEach((area) => {
-                    area.monsters.forEach((monster) => {
+                // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
+                slayerAreas.forEach((area: any) => {
+                    area.monsters.forEach((monster: any) => {
                         this.barMonsterIDs.push(monster);
                         this.barType.push(this.barTypes.monster);
                     });
@@ -301,6 +403,7 @@
                     this.barMonsterIDs.push(i);
                     this.barType.push(this.barTypes.dungeon);
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 for (let i = 0; i < SlayerTask.data.length; i++) {
                     this.dungeonBarIDs.push(this.barMonsterIDs.length);
                     this.barMonsterIDs.push(MICSR.dungeons.length + i);
@@ -318,7 +421,9 @@
                 MICSR.addMenuItem(MICSR.shortName, this.media.combat, this.menuItemId, this.modalID);
 
                 // Finalize tooltips
+                // @ts-expect-error TS(2304): Cannot find name 'tippy'.
                 this.tippyInstances = tippy('#mcsModal [data-tippy-content]', this.tippyOptions);
+                // @ts-expect-error TS(2304): Cannot find name 'tippy'.
                 this.tippySingleton = tippy.createSingleton(this.tippyInstances, {delay: [0, 200], ...this.tippyOptions});
                 for (const bar of this.plotter.bars) {
                     this.addNoSingletonTippy(bar, {triggerTarget: bar.parentElement});
@@ -328,6 +433,7 @@
                 this.plotter.timeDropdown.selectedIndex = this.initialTimeUnitIndex;
                 this.subInfoCard.container.style.display = 'none';
                 this.plotter.petSkillDropdown.style.display = 'none';
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
                 this.updateSpellOptions();
                 this.updatePrayerOptions();
@@ -341,29 +447,29 @@
                 this.consumables.loadRates();
             }
 
-            printRelevantModifiers(modifiers, options = {}) {
+            printRelevantModifiers(modifiers: any, options = {}) {
                 let header = '';
-                if (options.header) {
-                    const headerTag = options.headerTag ? options.headerTag : 'h5';
-                    const headerClassNames = options.headerClassNames ? `class="${options.headerClassNames}"` : '';
-                    header += `<${headerTag} ${headerClassNames}>${options.header}</${headerTag}>`;
+                if ((options as any).header) {
+                    const headerTag = (options as any).headerTag ? (options as any).headerTag : 'h5';
+                    const headerClassNames = (options as any).headerClassNames ? `class="${(options as any).headerClassNames}"` : '';
+                    header += `<${headerTag} ${headerClassNames}>${(options as any).header}</${headerTag}>`;
                 }
                 let passives = '';
-                MICSR.showModifiersInstance.printRelevantModifiers(modifiers, 'combat').forEach(toPrint => {
-                    const tag = options.tag ? options.tag : 'h5';
+                MICSR.showModifiersInstance.printRelevantModifiers(modifiers, 'combat').forEach((toPrint: any) => {
+                    const tag = (options as any).tag ? (options as any).tag : 'h5';
                     let classNames = 'class="';
-                    if (options.classNames) {
-                        classNames += options.classNames;
+                    if ((options as any).classNames) {
+                        classNames += (options as any).classNames;
                         classNames += ' ';
                     }
                     classNames += toPrint[1] + '"';
-                    const style = options.style ? `style="${options.style}"` : '';
+                    const style = (options as any).style ? `style="${(options as any).style}"` : '';
                     passives += `<${tag} ${classNames} ${style}>${toPrint[0]}</${tag}>`;
                 });
                 return {header: header, passives: passives};
             }
 
-            showRelevantModifiers(modifiers, header) {
+            showRelevantModifiers(modifiers: any, header: any) {
                 const options = {
                     header: header,
                     headerTag: 'h5',
@@ -373,7 +479,9 @@
                     style: 'text-align: left;',
                 };
                 const printedModifiers = this.printRelevantModifiers(modifiers, options)
+                // @ts-expect-error TS(2304): Cannot find name 'Swal'.
                 Swal.fire({
+                    // @ts-expect-error TS(2551): Property 'headers' does not exist on type '{ heade... Remove this comment to see the full error message
                     html: printedModifiers.headers + printedModifiers.passives,
                 });
             }
@@ -385,9 +493,9 @@
                     return;
                 }
                 if (this.player.summoningSynergy) {
-                    img.src = this.media.synergy;
+                    (img as any).src = this.media.synergy;
                 } else {
-                    img.src = this.media.synergyLock;
+                    (img as any).src = this.media.synergyLock;
                 }
                 // set text
                 const text = document.getElementById('MCS Summoning Synergy Info');
@@ -409,22 +517,31 @@
             createEquipmentSelectCard() {
                 this.equipmentSelectCard = new MICSR.Card(this.topContent, '', '150px', true);
                 const equipmentRows = [
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     [equipmentSlotData.Passive.id, equipmentSlotData.Helmet.id],
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     [equipmentSlotData.Cape.id, equipmentSlotData.Amulet.id, equipmentSlotData.Quiver.id],
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     [equipmentSlotData.Weapon.id, equipmentSlotData.Platebody.id, equipmentSlotData.Shield.id],
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     [equipmentSlotData.Platelegs.id],
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     [equipmentSlotData.Gloves.id, equipmentSlotData.Boots.id, equipmentSlotData.Ring.id],
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     [equipmentSlotData.Summon1.id, equipmentSlotData.Summon2.id]
                 ];
                 equipmentRows.forEach((row) => {
-                    const rowSources = [];
-                    const rowIDs = [];
-                    const rowPopups = [];
-                    const tooltips = [];
+                    const rowSources: any = [];
+                    const rowIDs: any = [];
+                    const rowPopups: any = [];
+                    const tooltips: any = [];
                     row.forEach((equipmentSlot) => {
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         rowSources.push(MICSR.emptyItems[EquipmentSlots[equipmentSlot]].media);
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         rowIDs.push(`MCS ${EquipmentSlots[equipmentSlot]} Image`);
                         rowPopups.push(this.createEquipmentPopup(equipmentSlot));
+                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         tooltips.push(EquipmentSlots[equipmentSlot]);
                     });
                     this.equipmentSelectCard.addMultiPopupMenu(rowSources, rowIDs, rowPopups, tooltips);
@@ -444,9 +561,9 @@
                 const combatStyleCCContainer = this.equipmentSelectCard.createCCContainer();
                 const combatStyleLabel = this.equipmentSelectCard.createLabel('Combat Style', '');
                 combatStyleLabel.classList.add('mb-1');
-                const meleeStyleDropdown = this.equipmentSelectCard.createDropdown(['Stab', 'Slash', 'Block'], [0, 1, 2], 'MCS melee Style Dropdown', (event) => this.styleDropdownOnChange(event, 'melee'));
-                const rangedStyleDropdown = this.equipmentSelectCard.createDropdown(['Accurate', 'Rapid', 'Longrange'], [0, 1, 2], 'MCS ranged Style Dropdown', (event) => this.styleDropdownOnChange(event, 'ranged'));
-                const magicStyleDropdown = this.equipmentSelectCard.createDropdown(['Magic', 'Defensive'], [0, 1], 'MCS magic Style Dropdown', (event) => this.styleDropdownOnChange(event, 'magic'));
+                const meleeStyleDropdown = this.equipmentSelectCard.createDropdown(['Stab', 'Slash', 'Block'], [0, 1, 2], 'MCS melee Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'melee'));
+                const rangedStyleDropdown = this.equipmentSelectCard.createDropdown(['Accurate', 'Rapid', 'Longrange'], [0, 1, 2], 'MCS ranged Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'ranged'));
+                const magicStyleDropdown = this.equipmentSelectCard.createDropdown(['Magic', 'Defensive'], [0, 1], 'MCS magic Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'magic'));
                 rangedStyleDropdown.style.display = 'none';
                 magicStyleDropdown.style.display = 'none';
                 combatStyleCCContainer.appendChild(combatStyleLabel);
@@ -489,19 +606,21 @@
                     'slayerTask',
                     ['Yes', 'No'],
                     [
-                        (e) => this.slayerTaskRadioOnChange(e, true),
-                        (e) => this.slayerTaskRadioOnChange(e, false),
+                        (e: any) => this.slayerTaskRadioOnChange(e, true),
+                        (e: any) => this.slayerTaskRadioOnChange(e, false),
                     ],
                     1,
                 );
                 // game mode
                 const gameModeNames = [];
                 const gameModeValues = [];
+                // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
                 for (const i in GAMEMODES) {
+                    // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
                     gameModeNames.push(GAMEMODES[i].name);
                     gameModeValues.push(i);
                 }
-                const gameModeDropdown = this.equipmentSelectCard.createDropdown(gameModeNames, gameModeValues, 'MCS Game Mode Dropdown', (event) => {
+                const gameModeDropdown = this.equipmentSelectCard.createDropdown(gameModeNames, gameModeValues, 'MCS Game Mode Dropdown', (event: any) => {
                     this.player.currentGamemode = parseInt(event.currentTarget.selectedOptions[0].value);
                 });
                 const gameModeContainer = this.equipmentSelectCard.createCCContainer();
@@ -513,6 +632,7 @@
                 // only create buttons for purchased equipment sets
                 let importButtonText = [];
                 let importButtonFunc = [];
+                // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
                 for (let i = 0; i < player.equipmentSets.length; i++) {
                     importButtonText.push(`${i + 1}`);
                     importButtonFunc.push(() => this.import.importButtonOnClick(i));
@@ -544,12 +664,13 @@
                     foodSelectPopup.className = 'mcsPopup';
                     const equipmentSelectCard = new MICSR.Card(foodSelectPopup, '', '600px');
                     equipmentSelectCard.addSectionTitle('Food');
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     this.foodItems = [MICSR.emptyItems.Food, ...items].filter((item) => this.filterIfHasKey('healsFor', item));
-                    this.foodItems.sort((a, b) => b.healsFor - a.healsFor);
-                    const buttonMedia = this.foodItems.map((item) => this.getItemMedia(item));
-                    const buttonIds = this.foodItems.map((item) => this.getItemName(item.id));
-                    const buttonCallbacks = this.foodItems.map((item) => () => this.equipFood(item.id));
-                    const tooltips = this.foodItems.map((item) => this.getFoodTooltip(item));
+                    this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
+                    const buttonMedia = this.foodItems.map((item: any) => this.getItemMedia(item));
+                    const buttonIds = this.foodItems.map((item: any) => this.getItemName(item.id));
+                    const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item.id));
+                    const tooltips = this.foodItems.map((item: any) => this.getFoodTooltip(item));
                     equipmentSelectCard.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
                     return foodSelectPopup;
                 })();
@@ -574,10 +695,11 @@
                 let autoEatTierNames = ['No Auto Eat'];
                 let autoEatTierValues = [-1];
                 for (let i = 1; i < 4; i++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
                     autoEatTierNames.push(SHOP.General[i].name.replace(' - Tier', ''));
                     autoEatTierValues.push(i - 1);
                 }
-                const autoEatTierDropdown = this.equipmentSelectCard.createDropdown(autoEatTierNames, autoEatTierValues, 'MCS Auto Eat Tier Dropdown', (event) => {
+                const autoEatTierDropdown = this.equipmentSelectCard.createDropdown(autoEatTierNames, autoEatTierValues, 'MCS Auto Eat Tier Dropdown', (event: any) => {
                     this.player.autoEatTier = parseInt(event.currentTarget.selectedOptions[0].value);
                     this.updateCombatStats();
                 });
@@ -586,21 +708,25 @@
                 this.equipmentSelectCard.container.appendChild(this.foodCCContainer);
             }
 
-            equipFood(itemID) {
+            equipFood(itemID: any) {
                 this.player.equipFood(itemID);
                 const img = document.getElementById('MCS Food Image');
                 if (itemID === -1) {
-                    img.src = 'assets/media/skills/combat/food_empty.svg';
+                    (img as any).src = 'assets/media/skills/combat/food_empty.svg';
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     img.style.border = '1px solid red';
                 } else {
-                    img.src = getItemMedia(itemID);
+                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
+                    (img as any).src = getItemMedia(itemID);
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     img.style.border = '';
                 }
-                img._tippy.setContent(this.getFoodTooltip(items[itemID]));
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                (img as any)._tippy.setContent(this.getFoodTooltip(items[itemID]));
                 this.updateHealing();
             }
 
-            getFoodTooltip(item) {
+            getFoodTooltip(item: any) {
                 if (!item || item.id === -1) {
                     return 'No Food';
                 }
@@ -609,6 +735,7 @@
                     tooltip += `<span class='text-info'>${item.description.replace(/<br>\(/, ' (')}</span><br>`;
                 }
                 if (item.healsFor) {
+                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     const amt = Math.round(item.healsFor * numberMultiplier);
                     tooltip += `<h5 class="font-w400 font-size-sm text-left text-combat-smoke m-1 mb-2">Base healing: <img class="skill-icon-xs mr-1" src="${this.media.hitpoints}"><span class="text-bank-desc">+${amt} HP</span></h5>`;
                 }
@@ -618,6 +745,7 @@
 
             updateHealing() {
                 const amt = this.player.getFoodHealing(this.player.food.currentSlot.item);
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById('MICSR-heal-amount-Label').textContent = `+${amt}`;
             }
 
@@ -708,12 +836,14 @@
                         'MCS gpPerSecond Output',
                         'MCS deathRate Output',
                     ].includes(child.id)) {
+                        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
                         this.addNoSingletonTippy(child);
                     }
                 }
             }
 
-            addNoSingletonTippy(target, options) {
+            addNoSingletonTippy(target: any, options: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'tippy'.
                 this.tippyNoSingletonInstances = this.tippyNoSingletonInstances.concat(tippy(target, {
                     ...this.tippyOptions,
                     ...options,
@@ -723,12 +853,12 @@
             createLevelSelectCard() {
                 this.levelSelectCard = this.mainTabCard.addTab('Levels', this.media.combat, '', '150px');
                 this.levelSelectCard.addSectionTitle('Player Levels');
-                this.skillKeys.forEach((skillName) => {
+                this.skillKeys.forEach((skillName: any) => {
                     let minLevel = 1;
                     if (skillName === 'Hitpoints') {
                         minLevel = 10;
                     }
-                    this.levelSelectCard.addNumberInput(skillName, minLevel, minLevel, Infinity, (event) => this.levelInputOnChange(event, skillName));
+                    this.levelSelectCard.addNumberInput(skillName, minLevel, minLevel, Infinity, (event: any) => this.levelInputOnChange(event, skillName));
                 });
             }
 
@@ -780,28 +910,32 @@
              * @param {string} spellType The type of spells to generate the select menu for
              * @return {Card} The created spell select card
              */
-            createSpellSelectCard(title, spellType) {
+            createSpellSelectCard(title: any, spellType: any) {
                 const newCard = new MICSR.Card(this.spellSelectCard.container, '', '100px');
                 newCard.addSectionTitle(title);
                 const spells = this.combatData.spells[spellType];
-                const spellImages = spells.map((spell) => spell.media);
-                const spellNames = spells.map((spell) => spell.name);
-                const spellCallbacks = spells.map((_, spellID) => (event) => this.spellButtonOnClick(event, spellID, spellType));
-                const tooltips = spells.map((spell) => {
+                const spellImages = spells.map((spell: any) => spell.media);
+                const spellNames = spells.map((spell: any) => spell.name);
+                const spellCallbacks = spells.map((_: any, spellID: any) => (event: any) => this.spellButtonOnClick(event, spellID, spellType));
+                const tooltips = spells.map((spell: any) => {
                     let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
                     switch (spellType) {
                         case 'standard':
+                            // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                             tooltip += `Spell Damage: ${spell.maxHit * numberMultiplier}`;
                             break;
                         case 'aurora':
+                            // @ts-expect-error TS(2304): Cannot find name 'describeAurora'.
                             tooltip += describeAurora(spell);
                             break;
                         case 'ancient':
+                            // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
                             tooltip += describeAttack(spell.specialAttack, youNoun, enemyNoun);
                             break;
                         default:
                             tooltip += spell.description;
                     }
+                    // @ts-expect-error TS(2304): Cannot find name 'combatMenus'.
                     const runes = combatMenus.spells.standard.getRuneHTML(spell);
                     tooltip += `</span><br><span class="text-warning">Requires:</span><br>${runes}</small></div>`;
                     return tooltip;
@@ -813,25 +947,27 @@
             createPrayerSelectCard() {
                 this.prayerSelectCard = this.mainTabCard.addTab('Prayers', this.media.prayer, '', '100px');
                 this.prayerSelectCard.addSectionTitle('Prayers');
-                const prayerSources = [];
-                const prayerNames = [];
-                const prayerCallbacks = [];
-                const tooltips = [];
-                PRAYER.map(x => x).sort((a, b) => a.prayerLevel - b.prayerLevel)
-                    .forEach(prayer => {
+                const prayerSources: any = [];
+                const prayerNames: any = [];
+                const prayerCallbacks: any = [];
+                const tooltips: any = [];
+                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
+                PRAYER.map((x: any) => x).sort((a: any, b: any) => a.prayerLevel - b.prayerLevel)
+                    .forEach((prayer: any) => {
                         prayerSources.push(prayer.media);
                         prayerNames.push(this.getPrayerName(prayer.id));
-                        prayerCallbacks.push(e => this.prayerButtonOnClick(e, prayer.id));
+                        prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer.id));
                         tooltips.push(this.createPrayerTooltip(prayer));
                     });
                 this.prayerSelectCard.addImageButtons(prayerSources, prayerNames, 'Medium', prayerCallbacks, tooltips);
             }
 
-            createPrayerTooltip(prayer) {
+            createPrayerTooltip(prayer: any) {
                 let tooltip = `<div class="text-center">${prayer.name}<br><small><span class='text-info'>`;
                 tooltip += prayer.description;
                 tooltip += '<br></span>';
                 if (prayer.pointsPerPlayer > 0) {
+                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     tooltip += `<span class='text-success'>+${(prayer.pointsPerPlayer / 3 / numberMultiplier).toFixed(3)} Prayer XP per damage dealt to enemy</span><br>`;
                 }
                 tooltip += '<span class="text-warning">Prayer Point Cost:</span><br><span class="text-info">';
@@ -851,19 +987,23 @@
             createPotionSelectCard() {
                 this.potionSelectCard = this.mainTabCard.addTab('Potions', this.media.emptyPotion, '', '100px');
                 this.potionSelectCard.addSectionTitle('Potions');
-                this.potionSelectCard.addDropdown('Potion Tier', ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'], [0, 1, 2, 3], (e) => this.potionTierDropDownOnChange(e));
+                this.potionSelectCard.addDropdown('Potion Tier', ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'], [0, 1, 2, 3], (e: any) => this.potionTierDropDownOnChange(e));
                 const potionSources = [];
                 const potionNames = [];
                 const potionCallbacks = [];
                 const tooltips = [];
                 /** @type {number[]} */
                 this.combatPotionIDs = [];
+                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                 for (let i = 0; i < Herblore.potions.length; i++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                     if (Herblore.potions[i].category === 0) {
+                        // @ts-expect-error TS(2304): Cannot find name 'items'.
                         const potion = items[Herblore.potions[i].potionIDs[0]];
+                        // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
                         potionSources.push(getItemMedia(potion.id));
                         potionNames.push(this.getPotionName(i));
-                        potionCallbacks.push((e) => this.potionImageButtonOnClick(e, i));
+                        potionCallbacks.push((e: any) => this.potionImageButtonOnClick(e, i));
                         tooltips.push(this.getPotionTooltip(potion));
                         this.combatPotionIDs.push(i);
                     }
@@ -872,18 +1012,21 @@
             }
 
             createPetSelectCard() {
-                const combatPets = this.petIDs.map(id => PETS[id]);
+                // @ts-expect-error TS(2304): Cannot find name 'PETS'.
+                const combatPets = this.petIDs.map((id: any) => PETS[id]);
                 this.petSelectCard = this.mainTabCard.addTab('Pets', this.media.pet, '', '100px');
                 this.petSelectCard.addSectionTitle('Pets');
-                const petImageSources = combatPets.map((pet) => pet.media);
-                const petNames = combatPets.map((pet) => pet.name);
-                const petButtonCallbacks = this.petIDs.map((petId) => (e) => this.petButtonOnClick(e, petId));
-                const tooltips = combatPets.map((pet) => `<div class="text-center">${pet.name}<br><small class='text-info'>${pet.description.replace(/\.$/, '')}</small></div>`);
+                const petImageSources = combatPets.map((pet: any) => pet.media);
+                const petNames = combatPets.map((pet: any) => pet.name);
+                const petButtonCallbacks = this.petIDs.map((petId: any) => (e: any) => this.petButtonOnClick(e, petId));
+                const tooltips = combatPets.map((pet: any) => `<div class="text-center">${pet.name}<br><small class='text-info'>${pet.description.replace(/\.$/, '')}</small></div>`);
                 this.petSelectCard.addImageButtons(petImageSources, petNames, 'Medium', petButtonCallbacks, tooltips);
                 this.petSelectCard.addButton("Clear All Pets", () => {
+                    // @ts-expect-error TS(2304): Cannot find name 'PETS'.
                     this.import.importPets(Array(PETS.length).fill(false));
                     this.updateCombatStats();
                 });
+                // @ts-expect-error TS(2304): Cannot find name 'PETS'.
                 this.petSelectCard.addImage(PETS[4].media, 100, 'MCS Rock').style.display = 'none';
             }
 
@@ -913,10 +1056,12 @@
                     this.skipConstellations = [0, 2, 7];
                     initial = true;
                     this.uniqueModifiers = [];
+                    // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
                     for (const constellation of Astrology.constellations) {
                         const uniques = {};
                         for (const modifiers of constellation.uniqueModifiers) {
                             for (const modifier of modifiers) {
+                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                                 uniques[modifier] = true;
                             }
                         }
@@ -930,6 +1075,7 @@
                 this.constellationModifierContainers = [];
                 const card = this.astrologySelectCard;
                 let index = 0;
+                // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
                 for (const constellation of Astrology.constellations) {
                     const constellationIndex = index;
                     index += 1;
@@ -957,7 +1103,9 @@
                     );
                     cc.appendChild(card.createLabel(`${constellation.name} (${constellation.level})`));
                     cc.appendChild(constellationImage);
+                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
                     cc.appendChild(card.createImage(SKILLS[constellation.skills[0]].media, 20));
+                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
                     cc.appendChild(card.createImage(SKILLS[constellation.skills[1]].media, 20));
                     const standardLabel = card.createLabel(`+0%`)
                     standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
@@ -969,9 +1117,10 @@
                     cc.appendChild(card.container.appendChild(card.createImage(this.media.uniqueStar, 20)));
                     // add constellation to astrology card
                     card.container.appendChild(cc);
+                    // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
                     constellationImage.parentElement.onclick = () => this.toggleAstrologySelectCard(constellationIndex);
                     // image buttons to open modifier selection
-                    let elementList = [];
+                    let elementList: any = [];
                     const standardStar = card.createImage(this.media.standardStar, 40);
                     standardStar.id = `MICSR-${constellation.name}-Standard-Image`;
                     card.container.appendChild(standardStar);
@@ -987,14 +1136,13 @@
 
             clearAstrology() {
                 // set modifiers to 0
-                this.player.activeAstrologyModifiers.forEach((constellation, idx) => {
+                this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
                     if (this.skipConstellations.includes(idx)) {
                         return;
                     }
                     for (const modifier in constellation) {
                         if (constellation[modifier].push) {
-                            constellation[modifier].forEach(x =>
-                                x[1] = 0
+                            constellation[modifier].forEach((x: any) => x[1] = 0
                             );
                         } else {
                             constellation[modifier] = 0;
@@ -1002,9 +1150,7 @@
                     }
                 });
                 // set UI to 0
-                this.constellationModifierContainers.forEach(containers => containers.forEach(x =>
-                    document.getElementById(x).value = 0
-                ));
+this.constellationModifierContainers.forEach((containers: any) => containers.forEach((x: any) => (document.getElementById(x) as any).value = 0));
                 // update summary
                 this.updateAstrologySummary();
                 // update stats
@@ -1014,11 +1160,14 @@
             toggleAstrologySelectCard(selected = undefined) {
                 this.astrologySelected = this.astrologySelected === selected ? undefined : selected;
                 if (this.astrologySelected === undefined) {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS Clear All Star Modifiers Button').style.display = 'block';
                 } else {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS Clear All Star Modifiers Button').style.display = 'none';
                 }
-                Astrology.constellations.forEach((constellation, index) => {
+                // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
+                Astrology.constellations.forEach((constellation: any, index: any) => {
                     if (this.skipConstellations.includes(index)) {
                         return;
                     }
@@ -1032,62 +1181,70 @@
                         document.getElementById(`MICSR-${constellation.name}-Unique-Image`),
                     ]
                     for (const id of this.constellationModifierContainers[index]) {
+                        // @ts-expect-error TS(2531): Object is possibly 'null'.
                         const el = document.getElementById(id).parentElement;
                         els.push(el);
                     }
                     for (const el of els) {
                         if (this.astrologySelected !== index) {
+                            // @ts-expect-error TS(2531): Object is possibly 'null'.
                             el.style.display = 'none';
                         } else {
+                            // @ts-expect-error TS(2531): Object is possibly 'null'.
                             el.style.display = 'flex';
                         }
                     }
                 });
             }
 
-            createStandardAstrologyModifiers(card, elementList, constellation, activeConstellationModifiers) {
-                const stdMod = [];
-                constellation.skills.forEach((skillID, idx) => {
+            createStandardAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
+                const stdMod: any = [];
+                constellation.skills.forEach((skillID: any, idx: any) => {
                     if (!MICSR.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(skillID)) {
                         return;
                     }
                     // summoning has no relevant modifiers other than increasedSkillXP
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     if (Skills.Summoning === skillID) {
                         stdMod.push([skillID, 'increasedSkillXP']);
                         return;
                     }
                     // for other combat skills all modifiers are relevant
-                    constellation.standardModifiers[idx].forEach(modifier =>
-                        stdMod.push([modifierData[modifier].isSkill ? skillID : undefined, modifier])
+                    // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
+                    constellation.standardModifiers[idx].forEach((modifier: any) => stdMod.push([modifierData[modifier].isSkill ? skillID : undefined, modifier])
                     );
                 });
-                const alreadyAdded = [];
+                const alreadyAdded: any = [];
+                // @ts-expect-error TS(7006): Parameter 'x' implicitly has an 'any' type.
                 stdMod.forEach(x => {
                     const skillID = x[0];
                     const modifier = x[1];
                     if (skillID !== undefined) {
-                        card.addNumberInput(`${constellation.name}-${Skills[skillID]}-${modifier}`, 0, 0, 15, (event) => {
-                            activeConstellationModifiers[modifier] = activeConstellationModifiers[modifier].map(y => {
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        card.addNumberInput(`${constellation.name}-${Skills[skillID]}-${modifier}`, 0, 0, 15, (event: any) => {
+                            activeConstellationModifiers[modifier] = activeConstellationModifiers[modifier].map((y: any) => {
                                 if (y[0] !== skillID) {
                                     return y;
                                 }
                                 return [skillID, parseInt(event.currentTarget.value)];
                             });
-                            if (activeConstellationModifiers[modifier].find(x => x[0] === skillID) === undefined) {
+                            if (activeConstellationModifiers[modifier].find((x: any) => x[0] === skillID) === undefined) {
                                 activeConstellationModifiers[modifier].push([skillID, parseInt(event.currentTarget.value)]);
                             }
                             this.updateAstrologySummary();
                             this.updateCombatStats();
                         });
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         const id = `MCS ${constellation.name}-${Skills[skillID]}-${modifier} Input`;
                         elementList.push(id);
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         card.container.lastChild.firstChild.textContent = `${Skills[skillID]} ${modifier}`;
                         if (activeConstellationModifiers[modifier] === undefined) {
                             activeConstellationModifiers[modifier] = [];
                         }
                         activeConstellationModifiers[modifier].push([skillID, 0]);
                     } else if (!alreadyAdded.includes(modifier)) {
-                        card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event) => {
+                        card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
                             activeConstellationModifiers[modifier] = parseInt(event.currentTarget.value);
                             this.updateAstrologySummary();
                             this.updateCombatStats();
@@ -1101,14 +1258,13 @@
                 });
             }
 
-            createUniqueAstrologyModifiers(card, elementList, constellation, activeConstellationModifiers) {
+            createUniqueAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
                 // unique modifiers
-                const uniqMod = constellation.uniqueModifiers.reduce((acc, val) => acc.concat(val), []).filter(m =>
-                    MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m)
-                    || MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m.substring(9))
+                const uniqMod = constellation.uniqueModifiers.reduce((acc: any, val: any) => acc.concat(val), []).filter((m: any) => MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m)
+                || MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m.substring(9))
                 );
-                uniqMod.forEach(modifier => {
-                    card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event) => {
+                uniqMod.forEach((modifier: any) => {
+                    card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
                         activeConstellationModifiers[modifier] = parseInt(event.currentTarget.value);
                         this.updateAstrologySummary();
                         this.updateCombatStats();
@@ -1121,7 +1277,7 @@
             }
 
             updateAstrologySummary() {
-                this.player.activeAstrologyModifiers.forEach((constellation, idx) => {
+                this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
                     if (this.skipConstellations.includes(idx)) {
                         return;
                     }
@@ -1130,8 +1286,7 @@
                     for (const modifier in constellation) {
                         let val = 0;
                         if (constellation[modifier].push) {
-                            constellation[modifier].forEach(x =>
-                                val += x[1]
+                            constellation[modifier].forEach((x: any) => val += x[1]
                             );
                         } else {
                             val += constellation[modifier];
@@ -1142,7 +1297,9 @@
                             standard += val;
                         }
                     }
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById(`MICSR-${Astrology.constellations[idx].name}-standard-percentage`).textContent = `+${standard}%`;
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById(`MICSR-${Astrology.constellations[idx].name}-unique-percentage`).textContent = `+${unique}%`;
                 });
             }
@@ -1190,7 +1347,7 @@
                     'Choose Item',
                     droppedItems.map((itemID) => this.getItemName(itemID)),
                     droppedItems,
-                    (event) => this.dropChanceOnChange(event),
+                    (event: any) => this.dropChanceOnChange(event),
                 );
                 dropdown.selectedIndex = index;
 
@@ -1203,8 +1360,8 @@
                     'sellBones',
                     ['Yes', 'No'],
                     [
-                        (e) => this.sellBonesRadioOnChange(e, true),
-                        (e) => this.sellBonesRadioOnChange(e, false),
+                        (e: any) => this.sellBonesRadioOnChange(e, true),
+                        (e: any) => this.sellBonesRadioOnChange(e, false),
                     ],
                     this.loot.sellBones ? 0 : 1,
                 );
@@ -1214,8 +1371,8 @@
                     'convertShards',
                     ['Yes', 'No'],
                     [
-                        (e) => this.convertShardsRadioOnChange(e, true),
-                        (e) => this.convertShardsRadioOnChange(e, false),
+                        (e: any) => this.convertShardsRadioOnChange(e, true),
+                        (e: any) => this.convertShardsRadioOnChange(e, false),
                     ],
                     this.loot.convertShards ? 0 : 1,
                 );
@@ -1225,8 +1382,8 @@
                     'alchHighValueItems',
                     ['Yes', 'No'],
                     [
-                        (e) => this.alchHighValueItemsRadioOnChange(e, true),
-                        (e) => this.alchHighValueItemsRadioOnChange(e, false),
+                        (e: any) => this.alchHighValueItemsRadioOnChange(e, true),
+                        (e: any) => this.alchHighValueItemsRadioOnChange(e, false),
                     ],
                     this.loot.alchHighValueItems ? 0 : 1,
                 );
@@ -1235,32 +1392,40 @@
                     this.loot.alchemyCutoff,
                     0,
                     Infinity,
-                    (event) => this.alchemyCutoffInputOnChange(event),
+                    (event: any) => this.alchemyCutoffInputOnChange(event),
                 );
             }
 
             buildItemDropList() {
                 // construct map
                 const lootMap = {};
-                const addToLootMap = (monster) => {
+                const addToLootMap = (monster: any) => {
                     if (monster.lootTable) {
-                        monster.lootTable.forEach(entry => {
+                        monster.lootTable.forEach((entry: any) => {
                             const itemID = entry[0];
+                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                             lootMap[itemID] = true;
+                            // @ts-expect-error TS(2304): Cannot find name 'items'.
                             const dropTable = items[itemID].dropTable;
                             if (dropTable) {
-                                dropTable.forEach(x => lootMap[x[0]] = true);
+                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                                dropTable.forEach((x: any) => lootMap[x[0]] = true);
                             }
                         });
                     }
                     if (monster.bones > -1) {
+                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                         lootMap[monster.bones] = true;
+                        // @ts-expect-error TS(2304): Cannot find name 'items'.
                         const upgradeID = items[monster.bones].trimmedItemID;
                         if (upgradeID) {
+                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                             lootMap[upgradeID] = true;
+                            // @ts-expect-error TS(2304): Cannot find name 'items'.
                             const dropTable = items[upgradeID].dropTable;
                             if (dropTable) {
-                                dropTable.forEach(x => lootMap[x[0]] = true);
+                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                                dropTable.forEach((x: any) => lootMap[x[0]] = true);
                             }
                         }
                     }
@@ -1271,34 +1436,41 @@
                             const dungeonID = this.barMonsterIDs[this.selectedBar];
                             const monsters = MICSR.dungeons[dungeonID].monsters;
                             const bossID = monsters[monsters.length - 1];
+                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                             addToLootMap(MONSTERS[bossID]);
                         } else if (this.barIsTask(this.selectedBar)) {
                             const taskID = this.barMonsterIDs[this.selectedBar] - MICSR.dungeons.length;
                             const monsters = this.simulator.slayerTaskMonsters[taskID];
-                            monsters.map(id => MONSTERS[id]).forEach(monster => addToLootMap(monster));
+                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
+                            monsters.map((id: any) => MONSTERS[id]).forEach((monster: any) => addToLootMap(monster));
                         } else {
+                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                             addToLootMap(MONSTERS[this.barMonsterIDs[this.selectedBar]]);
                         }
                     } else if (this.loot.godDungeonIDs.includes(this.viewedDungeonID)) {
                         const monsterID = this.getSelectedDungeonMonsterID();
+                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                         addToLootMap(MONSTERS[monsterID]);
                     }
                 } else {
-                    MONSTERS.forEach(monster => addToLootMap(monster));
+                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
+                    MONSTERS.forEach((monster: any) => addToLootMap(monster));
                 }
                 // construct list
                 let lootList = Object.getOwnPropertyNames(lootMap).map(x => parseInt(x));
                 // apply undiscovered filter
                 if (this.dropListFilters.onlyUndiscovered) {
                     lootList = lootList.filter(itemID => {
+                        // @ts-expect-error TS(2304): Cannot find name 'game'.
                         return game.stats.Items.get(itemID, ItemStats.TimesFound) === 0;
                     });
                 }
                 // sort by name
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 return [-1, ...lootList.sort((a, b) => items[a].name > items[b].name ? 1 : -1)];
             }
 
-            dropChanceOnChange(event) {
+            dropChanceOnChange(event: any) {
                 this.combatData.dropSelected = parseInt(event.currentTarget.selectedOptions[0].value);
                 this.updatePlotForLoot();
             }
@@ -1314,8 +1486,8 @@
                 this.simOptionsCard = this.mainTabCard.addTab('Simulation Options', this.media.settings, '', '150px');
                 // advanced options
                 this.simOptionsCard.addSectionTitle('Advanced Options');
-                this.simOptionsCard.addNumberInput('# Trials', MICSR.trials, 1, 1e5, (event) => this.numTrialsInputOnChange(event));
-                this.simOptionsCard.addNumberInput('Max tick/trial', MICSR.maxTicks, 1, 1e8, (event) => this.maxTicksInputOnChange(event));
+                this.simOptionsCard.addNumberInput('# Trials', MICSR.trials, 1, 1e5, (event: any) => this.numTrialsInputOnChange(event));
+                this.simOptionsCard.addNumberInput('Max tick/trial', MICSR.maxTicks, 1, 1e8, (event: any) => this.maxTicksInputOnChange(event));
                 this.simOptionsCard.addToggleRadio(
                     'Heal After Death',
                     'healAfterDeath',
@@ -1335,7 +1507,7 @@
                 this.simOptionsCard.addSectionTitle('Settings Export - Import');
                 this.simOptionsCard.addButton('Export Settings', () => this.exportSettingButtonOnClick());
                 this.importedSettings = {};
-                this.simOptionsCard.addTextInput('Settings JSON:', '', (event) => {
+                this.simOptionsCard.addTextInput('Settings JSON:', '', (event: any) => {
                     try {
                         this.importedSettings = JSON.parse(event.currentTarget.value)
                     } catch {
@@ -1389,12 +1561,12 @@
                 ], this.trackHistory ? 0 : 1);
 
                 this.compareCard.addSectionTitle('Saved Simulations');
-                this.savedSimulations.forEach((_, i) => {
+                this.savedSimulations.forEach((_: any, i: any) => {
                     this.compareCard.addButton(`Load simulation ${i}`, () => this.loadSavedSimulation(i));
                 });
             }
 
-            loadSavedSimulation(idx) {
+            loadSavedSimulation(idx: any) {
                 const simulation = this.savedSimulations[idx];
                 if (!simulation) {
                     MICSR.error(`Unable to load simulation with index ${idx}`);
@@ -1426,17 +1598,17 @@
              * @param {Function} filterFunction Filter equipment with this function
              * @param {Function} sortFunction Sort equipment by this key
              */
-            addEquipmentMultiButton(card, equipmentSlot, filterFunction, sortFunction = item => item.id, golbinRaid = false) {
-                const menuItems = this.equipmentSubsets[equipmentSlot].filter(filterFunction).filter(x => !!x.golbinRaidExclusive === golbinRaid);
-                const sortKey = item => {
+            addEquipmentMultiButton(card: any, equipmentSlot: any, filterFunction: any, sortFunction = (item: any) => item.id, golbinRaid = false) {
+                const menuItems = this.equipmentSubsets[equipmentSlot].filter(filterFunction).filter((x: any) => !!x.golbinRaidExclusive === golbinRaid);
+                const sortKey = (item: any) => {
                     const x = sortFunction(item);
                     return x ? x : 0;
                 }
-                menuItems.sort((a, b) => sortKey(a) - sortKey(b));
-                const buttonMedia = menuItems.map((item) => this.getItemMedia(item));
-                const buttonIds = menuItems.map((item) => this.getItemName(item.id));
-                const buttonCallbacks = menuItems.map((item) => () => this.equipItem(equipmentSlot, item.id));
-                const tooltips = menuItems.map((item) => this.getEquipmentTooltip(equipmentSlot, item));
+                menuItems.sort((a: any, b: any) => sortKey(a) - sortKey(b));
+                const buttonMedia = menuItems.map((item: any) => this.getItemMedia(item));
+                const buttonIds = menuItems.map((item: any) => this.getItemName(item.id));
+                const buttonCallbacks = menuItems.map((item: any) => () => this.equipItem(equipmentSlot, item.id));
+                const tooltips = menuItems.map((item: any) => this.getEquipmentTooltip(equipmentSlot, item));
                 card.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
             }
 
@@ -1446,11 +1618,11 @@
              * @param {Object} item
              * @return {boolean}
              */
-            filterIfHasKey(key, item) {
+            filterIfHasKey(key: any, item: any) {
                 return key in item || item.id === -1;
             }
 
-            filterIfHasLevelReq(item, skillID) {
+            filterIfHasLevelReq(item: any, skillID: any) {
                 if (item.id === -1) {
                     return true;
                 }
@@ -1460,7 +1632,8 @@
                 return this.getItemLevelReq(item, skillID) > 0;
             }
 
-            getItemLevelReq(item, skillID) {
+            getItemLevelReq(item: any, skillID: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 if (skillID === Skills.Summoning) {
                     return item.summoningLevel | 0;
                 }
@@ -1469,9 +1642,9 @@
                     return req;
                 }
                 const levelReqs = item.equipRequirements
-                    .filter(x => x.type === 'Level')
-                    .map(x => x.levels)
-                    .reduce((a, b) => [...a, ...b], []);
+                    .filter((x: any) => x.type === 'Level')
+                    .map((x: any) => x.levels)
+                    .reduce((a: any, b: any) => [...a, ...b], []);
                 for (let levelReq of levelReqs) {
                     if (levelReq.skill === skillID) {
                         req = Math.max(req, levelReq.level);
@@ -1485,13 +1658,16 @@
              * @param {Object} item
              * @return {boolean}
              */
-            filterIfHasNoLevelReq(item) {
+            filterIfHasNoLevelReq(item: any) {
                 if (item.id === -1) {
                     return true;
                 }
                 const skillIDs = [
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     Skills.Defence,
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     Skills.Ranged,
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     Skills.Magic,
                 ]
                 for (let skillID of skillIDs) {
@@ -1508,11 +1684,11 @@
              * @param {Object} item
              * @return {boolean}
              */
-            filterByAmmoType(type, item) {
+            filterByAmmoType(type: any, item: any) {
                 return item.ammoType === type || item.id === -1;
             }
 
-            filterNoAmmoType(item) {
+            filterNoAmmoType(item: any) {
                 return item.ammoType === undefined || item.id === -1;
             }
 
@@ -1522,7 +1698,7 @@
              * @param {Object} item
              * @return {boolean}
              */
-            filterByAmmoReq(type, item) {
+            filterByAmmoReq(type: any, item: any) {
                 return item.ammoTypeRequired === type || item.id === -1;
             }
 
@@ -1532,18 +1708,18 @@
              * @param {Object} item
              * @return {boolean}
              */
-            filterByTwoHanded(is2H, item) {
+            filterByTwoHanded(is2H: any, item: any) {
                 if (item.id === -1) {
                     return true;
                 }
                 return this.isTwoHanded(item) === is2H;
             }
 
-            isTwoHanded(item) {
+            isTwoHanded(item: any) {
                 return item.occupiesSlots && item.occupiesSlots.includes('Shield');
             }
 
-            filterMagicDamage(item) {
+            filterMagicDamage(item: any) {
                 if (item.id === -1) {
                     return true;
                 }
@@ -1556,14 +1732,15 @@
                     || item.modifiers.increasedMinWaterSpellDmg > 0
             }
 
-            filterSlayer(item) {
+            filterSlayer(item: any) {
                 if (item.id === -1) {
                     return true;
                 }
                 if (item.modifiers === undefined) {
                     return false;
                 }
-                if (item.modifiers.increasedSkillXP && item.modifiers.increasedSkillXP.filter(x => x[0] === Skills.Slayer).length > 0) {
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                if (item.modifiers.increasedSkillXP && item.modifiers.increasedSkillXP.filter((x: any) => x[0] === Skills.Slayer).length > 0) {
                     return true;
                 }
                 return item.modifiers.increasedSlayerAreaEffectNegationFlat > 0
@@ -1573,7 +1750,7 @@
                     || item.modifiers.increasedSlayerCoins > 0
             }
 
-            filterRemainingPassive(item) {
+            filterRemainingPassive(item: any) {
                 if (item.id === -1) {
                     return true;
                 }
@@ -1586,7 +1763,7 @@
              * @param {Object} item
              * @return {boolean}
              */
-            filterByWeaponType(attackType, item) {
+            filterByWeaponType(attackType: any, item: any) {
                 if (item.id === -1) {
                     return true;
                 }
@@ -1597,13 +1774,13 @@
              * Filter by combat summon
              * @return {boolean}
              */
-            filterCombatSummon(item, combat) {
+            filterCombatSummon(item: any, combat: any) {
                 if (item.id === -1) {
                     return true;
                 }
                 let maxhit = 0;
                 if (item.equipmentStats) {
-                    const maxhitList = item.equipmentStats.filter(x => x.key === 'summoningMaxhit');
+                    const maxhitList = item.equipmentStats.filter((x: any) => x.key === 'summoningMaxhit');
                     if (maxhitList.length > 0) {
                         maxhit = maxhitList[0].value;
                     }
@@ -1623,7 +1800,7 @@
              * Change a button's classes to show that it is selected
              * @param {HTMLButtonElement} button
              */
-            selectButton(button) {
+            selectButton(button: any) {
                 button.classList.add('btn-primary');
                 button.classList.remove('btn-outline-dark');
             }
@@ -1632,7 +1809,7 @@
              * Change a button's classes to show that it is not selected
              * @param {HTMLButtonElement} button
              */
-            unselectButton(button) {
+            unselectButton(button: any) {
                 button.classList.remove('btn-primary');
                 button.classList.add('btn-outline-dark');
             }
@@ -1642,7 +1819,7 @@
              * @param {number} equipmentSlot
              * @return {HTMLDivElement}
              */
-            createEquipmentPopup(equipmentSlot) {
+            createEquipmentPopup(equipmentSlot: any) {
                 const equipmentSelectPopup = document.createElement('div');
                 equipmentSelectPopup.className = 'mcsPopup';
                 const equipmentSelectCard = new MICSR.Card(equipmentSelectPopup, '', '600px');
@@ -1651,74 +1828,95 @@
                 if (triSplit.includes(equipmentSlot)) {
                     equipmentSelectCard.addSectionTitle('Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        item => this.filterIfHasLevelReq(item, Skills.Defence),
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        (item: any) => this.filterIfHasLevelReq(item, Skills.Defence),
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         x => this.filterIfHasLevelReq(x, Skills.Defence)
                     );
                     equipmentSelectCard.addSectionTitle('Ranged');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        item => this.filterIfHasLevelReq(item, Skills.Ranged),
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        (item: any) => this.filterIfHasLevelReq(item, Skills.Ranged),
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         x => this.filterIfHasLevelReq(x, Skills.Ranged)
                     );
                     equipmentSelectCard.addSectionTitle('Magic');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        item => this.filterIfHasLevelReq(item, Skills.Magic),
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        (item: any) => this.filterIfHasLevelReq(item, Skills.Magic),
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         x => this.filterIfHasLevelReq(x, Skills.Magic)
                     );
-                    if (this.equipmentSubsets[equipmentSlot].filter((item) => this.filterIfHasNoLevelReq(item)).length > 1) {
+                    if (this.equipmentSubsets[equipmentSlot].filter((item: any) => this.filterIfHasNoLevelReq(item)).length > 1) {
                         equipmentSelectCard.addSectionTitle('Other');
-                        this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterIfHasNoLevelReq(item), x => x.name);
+                        this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterIfHasNoLevelReq(item), x => x.name);
                     }
                 } else if (noSplit.includes(equipmentSlot)) {
+                    // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                     equipmentSelectCard.addSectionTitle(EquipmentSlots[equipmentSlot]);
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, () => this.returnTrue());
                 } else if (equipmentSlot === 4) {
                     equipmentSelectCard.addSectionTitle('1H Melee');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => {
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('melee', item);
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Attack));
                     equipmentSelectCard.addSectionTitle('2H Melee');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => {
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('melee', item);
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Attack));
                     equipmentSelectCard.addSectionTitle('1H Ranged');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => {
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('ranged', item);
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('2H Ranged');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => {
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('ranged', item);
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('1H Magic');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => {
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('magic', item);
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Magic));
                     equipmentSelectCard.addSectionTitle('2H Magic');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => {
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('magic', item);
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Magic));
                 } else if (equipmentSlot === 9) {
                     equipmentSelectCard.addSectionTitle('Arrows');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('Bolts');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterByAmmoType(1, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(1, item), x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('Javelins');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterByAmmoType(2, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(2, item), x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('Throwing Knives');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('Other');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterNoAmmoType(item), x => x.name);
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterNoAmmoType(item), x => x.name);
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 } else if (equipmentSlot === equipmentSlotData.Passive.id) {
                     equipmentSelectCard.addSectionTitle('Magic Damage');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterMagicDamage(item), x => x.name);
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterMagicDamage(item), x => x.name);
                     equipmentSelectCard.addSectionTitle('Slayer');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterSlayer(item), x => x.name);
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterSlayer(item), x => x.name);
                     equipmentSelectCard.addSectionTitle('Other');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterRemainingPassive(item), x => x.name);
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterRemainingPassive(item), x => x.name);
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 } else if (equipmentSlot === equipmentSlotData.Summon1.id || equipmentSlot === equipmentSlotData.Summon2.id) {
                     equipmentSelectCard.addSectionTitle('Combat Familiars')
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, Skills.Summoning));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, Skills.Summoning));
                     equipmentSelectCard.addSectionTitle('Non-Combat Familiars')
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item) => this.filterCombatSummon(item, false), x => this.getItemLevelReq(x, Skills.Summoning));
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, false), x => this.getItemLevelReq(x, Skills.Summoning));
                 } else {
                     throw Error(`Invalid equipmentSlot: ${equipmentSlot}`);
                 }
@@ -1734,12 +1932,14 @@
              * @param {number} itemId
              * @memberof McsApp
              */
-            equipItem(slotID, itemId) {
+            equipItem(slotID: any, itemId: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                 let slot = EquipmentSlots[slotID];
                 const item = MICSR.getItem(itemId, slot);
                 // determine equipment slot
                 if (item.occupiesSlots && item.occupiesSlots.includes(slot)) {
                     slot = item.validSlots[0];
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     slotID = equipmentSlotData[slot].id;
                 }
                 // clear previous item
@@ -1753,10 +1953,12 @@
                 slots.forEach(slotToOccupy => {
                     const equipment = this.player.equipment;
                     const prevSlot = equipment.getRootSlot(slotToOccupy);
-                    equipment.slots[prevSlot].occupies.forEach(occupied => {
+                    equipment.slots[prevSlot].occupies.forEach((occupied: any) => {
+                        // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                         this.setEquipmentImage(equipmentSlotData[occupied].id, -1);
                     });
                     this.player.unequipItem(0, prevSlot);
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     this.setEquipmentImage(equipmentSlotData[prevSlot].id, -1);
                 });
                 // equip new item
@@ -1774,14 +1976,16 @@
              * @param {number} itemId
              * @param {boolean} occupy
              */
-            setEquipmentImage(equipmentSlot, itemId, occupy = true) {
+            setEquipmentImage(equipmentSlot: any, itemId: any, occupy = true) {
+                // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                 const slotKey = EquipmentSlots[equipmentSlot];
                 const img = document.getElementById(`MCS ${slotKey} Image`);
                 const item = MICSR.getItem(itemId, slotKey);
-                img.src = this.getItemMedia(item);
-                img._tippy.setContent(this.getEquipmentTooltip(equipmentSlot, item));
+                (img as any).src = this.getItemMedia(item);
+                (img as any)._tippy.setContent(this.getEquipmentTooltip(equipmentSlot, item));
                 if (occupy && item.occupiesSlots) {
-                    item.occupiesSlots.forEach(slot => this.setEquipmentImage(equipmentSlotData[slot].id, itemId, false));
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
+                    item.occupiesSlots.forEach((slot: any) => this.setEquipmentImage(equipmentSlotData[slot].id, itemId, false));
                 }
             }
 
@@ -1792,8 +1996,9 @@
              * @param item The item to get the tooltip for
              * @returns {string} The tooltip content
              */
-            getEquipmentTooltip(equipmentSlot, item) {
+            getEquipmentTooltip(equipmentSlot: any, item: any) {
                 if (!item) {
+                    // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                     return EquipmentSlots[equipmentSlot];
                 }
 
@@ -1801,20 +2006,21 @@
 
                 if (item.hasSpecialAttack) {
                     for (let special of item.specialAttacks) {
+                        // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
                         tooltip += `<span class='text-danger'>${special.name} (${special.defaultChance}%): </span><span class='text-warning'>${describeAttack(special, youNoun, enemyNoun)}</span><br>`;
                     }
                 }
 
-                const pushBonus = (list, header = '', footer = '') => {
-                    const statBonuses = [];
+                const pushBonus = (list: any, header = '', footer = '') => {
+                    const statBonuses: any = [];
                     if (item.equipmentStats === undefined) {
                         return;
                     }
-                    list.forEach(bonusInfo => {
+                    list.forEach((bonusInfo: any) => {
                         const name = bonusInfo[0];
                         const tag = bonusInfo[1];
                         const suffix = bonusInfo[2] === undefined ? '' : bonusInfo[2];
-                        const value = item.equipmentStats.filter(y => y.key === tag).reduce((a, b) => a + b.value, 0);
+                        const value = item.equipmentStats.filter((y: any) => y.key === tag).reduce((a: any, b: any) => a + b.value, 0);
                         if (value !== 0) {
                             statBonuses.push(this.getTooltipStatBonus(name, value, suffix));
                         }
@@ -1866,11 +2072,12 @@
                 }
 
                 if (item.equipRequirements) {
-                    const requirements = [];
-                    const levelReqs = item.equipRequirements.find(x => x.type === 'Level');
+                    const requirements: any = [];
+                    const levelReqs = item.equipRequirements.find((x: any) => x.type === 'Level');
                     if (levelReqs) {
-                        this.skillKeys.forEach(skill => {
-                            const levelReq = levelReqs.levels.find(x => x.skill === Skills[skill]);
+                        this.skillKeys.forEach((skill: any) => {
+                            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                            const levelReq = levelReqs.levels.find((x: any) => x.skill === Skills[skill]);
                             if (levelReq) {
                                 requirements.push(`${skill} Level ${levelReq.level}`);
                             }
@@ -1892,7 +2099,7 @@
              * @param {string} suffix A suffix to add after the bonus
              * @returns {HTMLSpanElement}
              */
-            getTooltipStatBonus(stat, bonus, suffix = '') {
+            getTooltipStatBonus(stat: any, bonus: any, suffix = '') {
                 return `<span style="white-space: nowrap;" class="text-${bonus > 0 ? 'success">+' : 'danger">'}${bonus}${suffix} ${stat}</span>`;
             }
 
@@ -1901,7 +2108,7 @@
              * @param {string} icon The source of the icon
              * @returns {HTMLImageElement} The image element
              */
-            getTooltipIcon(icon) {
+            getTooltipIcon(icon: any) {
                 return `<img class="tooltip-icon" src="${icon}">`;
             }
 
@@ -1910,6 +2117,7 @@
              * @memberof McsApp
              */
             updateStyleDropdowns() {
+                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 const itemID = this.player.equipmentID(equipmentSlotData.Weapon.id);
                 const item = MICSR.getItem(itemID, 'Weapon');
                 this.disableStyleDropdown('melee');
@@ -1923,9 +2131,10 @@
              * @param {Event} event The change event for an input
              * @param {string} skillName The key of playerLevels to Change
              */
-            levelInputOnChange(event, skillName) {
+            levelInputOnChange(event: any, skillName: any) {
                 const newLevel = parseInt(event.currentTarget.value);
                 if (newLevel >= 1) {
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     this.player.skillLevel[Skills[skillName]] = newLevel;
                     // Update Spell and Prayer Button UIS, and deselect things if they become invalid
                     if (skillName === 'Magic') {
@@ -1943,7 +2152,7 @@
              * @param {Event} event The change event for a dropdown
              * @param {string} combatType The key of styles to change
              */
-            styleDropdownOnChange(event, combatType) {
+            styleDropdownOnChange(event: any, combatType: any) {
                 let idx = parseInt(event.currentTarget.selectedOptions[0].value);
                 if (this.player.attackType === 'ranged') {
                     idx += 3;
@@ -1951,6 +2160,7 @@
                 if (this.player.attackType === 'magic') {
                     idx += 6;
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'AttackStyles'.
                 this.player.setAttackStyle(combatType, AttackStyles[idx]);
                 this.updateCombatStats();
             }
@@ -1961,10 +2171,13 @@
              * @param {MouseEvent} event The onclick event for a button
              * @param {number} prayerID Index of PRAYERS
              */
-            prayerButtonOnClick(event, prayerID) {
+            prayerButtonOnClick(event: any, prayerID: any) {
                 // Escape if prayer level is not reached
+                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
                 const prayer = PRAYER[prayerID];
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 if (!this.player.activePrayers.has(prayerID) && this.player.skillLevel[Skills.Prayer] < prayer.prayerLevel) {
+                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                     notifyPlayer(Skills.Prayer, `${this.getPrayerName(prayerID)} requires level ${prayer.prayerLevel} Prayer.`, 'danger');
                     return;
                 }
@@ -1979,6 +2192,7 @@
                         this.selectButton(event.currentTarget);
                         prayerChanged = true;
                     } else {
+                        // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                         notifyPlayer(Skills.Prayer, 'You can only have 2 prayers active at once.', 'danger');
                     }
                 }
@@ -1991,7 +2205,7 @@
              * Callback for when the potion tier is changed
              * @param {Event} event The change event for a dropdown
              */
-            potionTierDropDownOnChange(event) {
+            potionTierDropDownOnChange(event: any) {
                 const potionTier = parseInt(event.currentTarget.selectedOptions[0].value);
                 this.player.potionTier = potionTier;
                 this.updateCombatStats();
@@ -2003,7 +2217,7 @@
              * @param {MouseEvent} event The onclick event for a button
              * @param {number} potionID The ID of the potion
              */
-            potionImageButtonOnClick(event, potionID) {
+            potionImageButtonOnClick(event: any, potionID: any) {
                 if (this.player.potionSelected) {
                     if (this.player.potionID === potionID) { // Deselect Potion
                         this.player.potionSelected = false;
@@ -2029,11 +2243,13 @@
              * @param {number} spellID
              * @param {string} spellType
              */
-            spellButtonOnClick(event, spellID, spellType) {
+            spellButtonOnClick(event: any, spellID: any, spellType: any) {
                 const selectedID = this.player.spellSelection[spellType];
                 if (selectedID === spellID) {
+                    // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
                     this.disableSpell(spellType, spellID);
                 } else {
+                    // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
                     this.enableSpell(spellType, spellID);
                 }
                 // Clean up invalid configurations
@@ -2042,7 +2258,7 @@
                 this.updateCombatStats();
             }
 
-            disableSpell(spellType, spellID, message) {
+            disableSpell(spellType: any, spellID: any, message: any) {
                 // do nothing
                 if (spellID === -1 || this.player.spellSelection[spellType] !== spellID) {
                     return;
@@ -2054,11 +2270,12 @@
                 this.player.spellSelection[spellType] = -1;
                 // send message if required
                 if (message) {
+                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                     notifyPlayer(Skills.Magic, message, 'danger');
                 }
             }
 
-            enableSpell(spellType, spellID, message) {
+            enableSpell(spellType: any, spellID: any, message: any) {
                 // do nothing
                 if (spellID === -1) {
                     return;
@@ -2066,15 +2283,19 @@
                 // get spell
                 const spell = this.combatData.spells[spellType][spellID];
                 // Escape for not meeting the level/item requirement
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 if (this.player.skillLevel[Skills.Magic] < spell.level) {
+                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                     notifyPlayer(Skills.Magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
                     return;
                 }
                 if (this.checkRequiredItem(spell)) {
+                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                     notifyPlayer(Skills.Magic, `${spell.name} requires ${this.getItemName(spell.requiredItem)}.`, 'danger');
                     return;
                 }
                 // remove previous selection
+                // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
                 this.disableSpell(spellType, this.player.spellSelection[spellType]);
                 if (spellType === 'ancient') {
                     this.disableSpell('standard', this.player.spellSelection.standard, 'Disabled standard magic spell.');
@@ -2087,6 +2308,7 @@
                 this.player.spellSelection[spellType] = spellID;
                 // send message if required
                 if (message) {
+                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                     notifyPlayer(Skills.Magic, message, 'danger');
                 }
             }
@@ -2113,6 +2335,7 @@
                     }
                     if (this.combatData.spells[spellType][spellSelection[spellType]] === undefined) {
                         this.player.spellSelection[spellType] = -1;
+                        // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                         notifyPlayer(Skills.Magic, `disabled invalid ${spellType} ${spellSelection[spellType]}`, 'danger');
                     }
                 });
@@ -2136,7 +2359,7 @@
              * @param {MouseEvent} event
              * @param {number} petID
              */
-            petButtonOnClick(event, petID) {
+            petButtonOnClick(event: any, petID: any) {
                 if (this.player.petUnlocked[petID]) {
                     this.player.petUnlocked[petID] = false;
                     this.unselectButton(event.currentTarget);
@@ -2152,7 +2375,7 @@
              * Callback for when the max actions input is changed
              * @param {Event} event The change event for an input
              */
-            maxActionsInputOnChange(event) {
+            maxActionsInputOnChange(event: any) {
                 const newMaxActions = parseInt(event.currentTarget.value);
                 if (newMaxActions > 0) {
                     MICSR.maxActions = newMaxActions;
@@ -2163,7 +2386,7 @@
              * Callback for when the number of trials input is changed
              * @param {Event} event The change event for an input
              */
-            numTrialsInputOnChange(event) {
+            numTrialsInputOnChange(event: any) {
                 const newNumTrials = parseInt(event.currentTarget.value);
                 if (newNumTrials > 0) {
                     MICSR.trials = newNumTrials;
@@ -2174,7 +2397,7 @@
              * Callback for when the number of ticks input is changed
              * @param {Event} event The change event for an input
              */
-            maxTicksInputOnChange(event) {
+            maxTicksInputOnChange(event: any) {
                 const maxTicks = parseInt(event.currentTarget.value);
                 if (maxTicks > 0) {
                     MICSR.maxTicks = maxTicks;
@@ -2185,7 +2408,7 @@
              * Callback for when the alchemyCutoff input is changed
              * @param {Event} event The change event for an input
              */
-            alchemyCutoffInputOnChange(event) {
+            alchemyCutoffInputOnChange(event: any) {
                 const alchemyCutoff = parseInt(event.currentTarget.value);
                 this.loot.alchemyCutoff = alchemyCutoff;
                 this.updatePlotForGP();
@@ -2195,7 +2418,7 @@
              * Callback for when the plot type is changed
              * @param {Event} event The change event for a dropdown
              */
-            plottypeDropdownOnChange(event) {
+            plottypeDropdownOnChange(event: any) {
                 this.plotter.plotType = event.currentTarget.value;
                 this.plotter.plotID = event.currentTarget.selectedIndex;
                 this.simulator.selectedPlotIsTime = this.plotTypes[event.currentTarget.selectedIndex].isTime;
@@ -2217,12 +2440,13 @@
              * Callback for when the pet skill type is changed
              * @param {Event} event The change event for a dropdown
              */
-            petSkillDropdownOnChange(event) {
+            petSkillDropdownOnChange(event: any) {
                 this.loot.petSkill = event.currentTarget.value;
                 this.loot.updatePetChance();
                 if (this.plotter.plotType === 'petChance') {
                     this.updatePlotData();
                 }
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
                 this.updateZoneInfoCard();
             }
@@ -2231,14 +2455,16 @@
              * Callback for when the simulate button is clicked
              * @param {boolean} single
              */
-            simulateButtonOnClick(single) {
+            simulateButtonOnClick(single: any) {
                 if (this.simulator.simInProgress) {
                     this.simulator.cancelSimulation();
                     const simButton = document.getElementById('MCS Simulate All Button');
-                    simButton.disabled = true;
+                    (simButton as any).disabled = true;
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     simButton.textContent = 'Cancelling...';
                 }
                 if (!this.simulator.simInProgress && this.simulator.simulationWorkers.length === this.simulator.maxThreads) {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS Simulate Selected Button').style.display = 'none';
                     this.simulator.simulateCombat(single);
                 }
@@ -2249,7 +2475,7 @@
                 // queue the desired monsters
                 this.simulator.setupCurrentSim(true);
                 const ids = this.simulator.currentSim.ids;
-                this.simulator.simulationQueue.forEach(queueItem => {
+                this.simulator.simulationQueue.forEach((queueItem: any) => {
                     const simResult = this.manager.runTrials(queueItem.monsterID, ids.dungeonID, MICSR.trials, MICSR.maxTicks, true);
                     const simID = this.simulator.simID(queueItem.monsterID, ids.dungeonID);
                     this.simulator.monsterSimData[simID] = this.manager.convertSlowSimToResult(simResult, MICSR.trials);
@@ -2271,7 +2497,7 @@
              * @param {Event} event The change event for a radio
              * @param {boolean} newState The new value for the option
              */
-            sellBonesRadioOnChange(event, newState) {
+            sellBonesRadioOnChange(event: any, newState: any) {
                 this.loot.sellBones = newState;
                 this.updatePlotForGP();
             }
@@ -2281,7 +2507,7 @@
              * @param {Event} event The change event for a radio
              * @param {boolean} newState The new value for the option
              */
-            convertShardsRadioOnChange(event, newState) {
+            convertShardsRadioOnChange(event: any, newState: any) {
                 this.loot.convertShards = newState;
                 this.updatePlotForGP();
             }
@@ -2291,7 +2517,7 @@
              * @param {Event} event The change event for a radio
              * @param {boolean} newState The new value for the option
              */
-            alchHighValueItemsRadioOnChange(event, newState) {
+            alchHighValueItemsRadioOnChange(event: any, newState: any) {
                 this.loot.alchHighValueItems = newState;
                 this.updatePlotForGP();
             }
@@ -2301,7 +2527,7 @@
              * @param {Event} event The change event for a radio
              * @param {boolean} newState The new value for the option
              */
-            slayerTaskRadioOnChange(event, newState) {
+            slayerTaskRadioOnChange(event: any, newState: any) {
                 this.player.isSlayerTask = newState;
                 this.slayerTaskSimsToggle();
             }
@@ -2321,7 +2547,7 @@
              * The callback for when the time unit dropdown is changed
              * @param {Event} event The change event for a dropdown
              */
-            timeUnitDropdownOnChange(event) {
+            timeUnitDropdownOnChange(event: any) {
                 this.timeMultiplier = this.timeMultipliers[event.currentTarget.selectedIndex];
                 this.simulator.selectedPlotIsTime = this.plotTypes[this.plotter.plotID].isTime;
                 this.simulator.selectedPlotScales = this.plotTypes[this.plotter.plotID].scale;
@@ -2344,6 +2570,7 @@
                         newName = name + this.selectedTimeShorthand;
                     }
                     if (newName) {
+                        // @ts-expect-error TS(2531): Object is possibly 'null'.
                         document.getElementById(`MCS ${name}h Label`).textContent = newName;
                     }
                 }
@@ -2353,8 +2580,9 @@
                 this.updateZoneInfoCard();
             }
 
-            notify(message, type = 'success') {
+            notify(message: any, type = 'success') {
                 let img = this.media.combat;
+                // @ts-expect-error TS(2304): Cannot find name 'Toastify'.
                 Toastify({
                     text: `<div class=text-center><img class="notification-img" src="${img}"><span class="badge badge-${type}">${message}</span></div>`,
                     duration: 2000,
@@ -2365,10 +2593,11 @@
                 }).showToast();
             }
 
-            popExport(data) {
+            popExport(data: any) {
                 navigator.clipboard.writeText(data).then(() => {
                     this.notify('Exported to clipboard!');
                 }, () => {
+                    // @ts-expect-error TS(2304): Cannot find name 'Swal'.
                     Swal.fire({
                         title: 'Clipboard API error!',
                         html: `<h5 class="font-w600 text-combat-smoke mb-1">Manually copy the data below, e.g. with ctrl-A ctrl-C.</h5><textarea class="mcsLabel mb-1">${data}</textarea>`,
@@ -2387,15 +2616,15 @@
                 this.popExport(data);
             }
 
-            barIsMonster(idx) {
+            barIsMonster(idx: any) {
                 return this.barType[idx] === this.barTypes.monster;
             }
 
-            barIsDungeon(idx) {
+            barIsDungeon(idx: any) {
                 return this.barType[idx] === this.barTypes.dungeon;
             }
 
-            barIsTask(idx) {
+            barIsTask(idx: any) {
                 return this.barType[idx] === this.barTypes.task;
             }
 
@@ -2422,7 +2651,7 @@
              * The callback for when a plotter bar is clicked
              * @param {number} barID The id of the bar
              */
-            barOnClick(barID) {
+            barOnClick(barID: any) {
                 if (this.barSelected) {
                     if (this.selectedBar === barID) {
                         this.barSelected = false;
@@ -2450,7 +2679,7 @@
              * Turns on the border for a bar
              * @param {number} barID The id of the bar
              */
-            setBarHighlight(barID) {
+            setBarHighlight(barID: any) {
                 if (this.plotter.bars[barID].className === 'mcsBar') {
                     this.plotter.bars[barID].style.border = 'thin solid red';
                 } else {
@@ -2462,7 +2691,7 @@
              * Turns off the border for a bar
              * @param {number} barID The id of the bar
              */
-            removeBarhighlight(barID) {
+            removeBarhighlight(barID: any) {
                 this.plotter.bars[barID].style.border = 'none';
             }
 
@@ -2470,7 +2699,7 @@
              * Callback for when a monster/dungeon image below a bar is clicked
              * @param {number} imageID The id of the image that was clicked
              */
-            barImageOnClick(imageID) {
+            barImageOnClick(imageID: any) {
                 if (this.isViewingDungeon) {
                     return;
                 }
@@ -2512,7 +2741,7 @@
             /**
              * Callback to toggle the simulation of dungeons
              */
-            toggleDungeonSims(newState, silent) {
+            toggleDungeonSims(newState: any, silent: any) {
                 if (newState && this.player.isSlayerTask) {
                     if (!silent) {
                         this.notify('no dungeon simulation on slayer task', 'danger')
@@ -2530,7 +2759,7 @@
             /**
              * Callback to toggle the simulation of dungeons
              */
-            toggleSlayerSims(newState, silent) {
+            toggleSlayerSims(newState: any, silent: any) {
                 if (newState && !this.player.isSlayerTask) {
                     if (!silent) {
                         this.notify('no auto slayer simulation off slayer task', 'danger');
@@ -2538,6 +2767,7 @@
                     newState = false;
                 }
                 this.slayerToggleState = newState;
+                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 for (let i = 0; i < SlayerTask.data.length; i++) {
                     this.simulator.slayerSimFilter[i] = newState;
                 }
@@ -2552,7 +2782,7 @@
                 const newState = !this.monsterToggleState;
                 this.monsterToggleState = newState;
                 // Set all non-dungeon monsters to newState
-                this.monsterIDs.forEach((monsterID) => {
+                this.monsterIDs.forEach((monsterID: any) => {
                     this.simulator.monsterSimFilter[monsterID] = newState;
                 });
                 this.updatePlotData();
@@ -2566,7 +2796,7 @@
                 this.plotter.updateBarData(this.simulator.getDataSet(this.plotter.plotType), this.simulator.getRawData());
             }
 
-            getSimFailureText(data) {
+            getSimFailureText(data: any) {
                 const prefix = 'No valid simulation data';
                 if (data.reason) {
                     if (data.tickCount >= MICSR.maxTicks * MICSR.trials) {
@@ -2580,28 +2810,36 @@
                 return '';
             }
 
-            setZoneInfoCard(title, id, media, data) {
+            setZoneInfoCard(title: any, id: any, media: any, data: any) {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById('MCS Zone Info Title').textContent = `${title} (id ${id})`;
-                document.getElementById('MCS Info Image').src = media;
+                (document.getElementById('MCS Info Image') as any).src = media;
                 this.failureLabel.textContent = this.getSimFailureText(data);
                 const updateInfo = data.simSuccess;
                 for (let i = 0; i < this.plotTypes.length; i++) {
                     const dataKey = this.plotTypes[i].value;
                     const outElem = document.getElementById(`MCS ${dataKey} Output`);
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     outElem.textContent = updateInfo && !isNaN(data[dataKey])
                         ? MICSR.mcsFormatNum(this.simulator.getValue(true, data, dataKey, this.plotTypes[i].scale), 4)
                         : 'N/A';
                 }
                 if (data.highestDamageTaken >= data.lowestHitpoints) {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS highestDamageTaken Output').style.color = 'orange';
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS lowestHitpoints Output').style.color = 'orange';
                 } else {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS highestDamageTaken Output').style.color = '';
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS lowestHitpoints Output').style.color = '';
                 }
                 if (data.deathRate > 0) {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS deathRate Output').style.color = 'red';
                 } else {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS deathRate Output').style.color = '';
                 }
                 this.setDeathRateTooltip(data.deathRate, data.killTimeS);
@@ -2610,50 +2848,53 @@
                 this.setPrayerTooltip(data.prayerXpPerSecond, data.ppConsumedPerSecond);
             }
 
-            setDeathRateTooltip(deathRate, killTimeS) {
+            setDeathRateTooltip(deathRate: any, killTimeS: any) {
                 let dataMultiplier = this.timeMultiplier;
                 if (dataMultiplier === -1) {
                     dataMultiplier = killTimeS;
                 }
                 let tooltip = `<span>${Math.floor(deathRate / killTimeS * dataMultiplier * 10000) / 10000} Est. Deaths/${this.selectedTimeShorthand}</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
-                document.getElementById(`MCS deathRate Output`)._tippy.setContent(tooltip);
+                (document.getElementById(`MCS deathRate Output`) as any)._tippy.setContent(tooltip);
             }
 
-            setGPTooltip(baseGpPerSecond, killTimeS) {
+            setGPTooltip(baseGpPerSecond: any, killTimeS: any) {
                 let dataMultiplier = this.timeMultiplier;
                 if (dataMultiplier === -1) {
                     dataMultiplier = killTimeS;
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'formatNumber'.
                 let tooltip = `<span>${formatNumber(Math.floor(baseGpPerSecond * dataMultiplier))} Raw GP/${this.selectedTimeShorthand}</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
-                document.getElementById(`MCS gpPerSecond Output`)._tippy.setContent(tooltip);
+                (document.getElementById(`MCS gpPerSecond Output`) as any)._tippy.setContent(tooltip);
             }
 
-            setPrayerTooltip(prayerXpPerSecond, ppConsumedPerSecond) {
+            setPrayerTooltip(prayerXpPerSecond: any, ppConsumedPerSecond: any) {
                 let xpPerPP = prayerXpPerSecond / ppConsumedPerSecond;
                 if (prayerXpPerSecond === 0) {
                     xpPerPP = 0;
                 }
                 let tooltip = `<span>${(xpPerPP).toFixed(3)} Prayer XP/Point</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
-                document.getElementById(`MCS prayerXpPerSecond Output`)._tippy.setContent(tooltip);
+                (document.getElementById(`MCS prayerXpPerSecond Output`) as any)._tippy.setContent(tooltip);
             }
 
-            setRuneTooltip(runesUsed, killTimeS) {
+            setRuneTooltip(runesUsed: any, killTimeS: any) {
                 let dataMultiplier = this.timeMultiplier;
                 if (dataMultiplier === -1) {
                     dataMultiplier = killTimeS;
                 }
                 let tooltip = '';
                 for (const id in runesUsed) {
+                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
                     tooltip += `<img class="skill-icon-xs" src="${getItemMedia(id)}"><span>${(runesUsed[id] * dataMultiplier).toFixed(2)}</span><br/>`
                 }
                 if (tooltip.length > 0) {
+                    // @ts-expect-error TS(2349): This expression is not callable.
                     tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`
-                    document.getElementById(`MCS runesUsedPerSecond Output`)._tippy.setContent(tooltip);
+                    (document.getElementById(`MCS runesUsedPerSecond Output`) as any)._tippy.setContent(tooltip);
                 } else {
-                    document.getElementById(`MCS runesUsedPerSecond Output`)._tippy.setContent(`No runes used.`);
+                    (document.getElementById(`MCS runesUsedPerSecond Output`) as any)._tippy.setContent(`No runes used.`);
                 }
             }
 
@@ -2675,8 +2916,10 @@
                     } else if (!this.isViewingDungeon && this.barIsTask(this.selectedBar)) {
                         const taskID = this.barMonsterIDs[this.selectedBar] - MICSR.dungeons.length;
                         this.setZoneInfoCard(
+                            // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                             SlayerTask.data[taskID].display,
                             taskID,
+                            // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
                             SKILLS[Skills.Slayer].media,
                             this.simulator.slayerSimData[taskID],
                         );
@@ -2692,6 +2935,7 @@
                         this.setZoneInfoCard(
                             this.getMonsterName(monsterID),
                             monsterID,
+                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                             MONSTERS[monsterID].media,
                             this.simulator.monsterSimData[this.simulator.simID(
                                 monsterID,
@@ -2700,6 +2944,7 @@
                         );
                     }
                 } else {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
                     document.getElementById('MCS Zone Info Title').textContent = 'Monster/Dungeon Info.';
                     this.subInfoCard.container.style.display = 'none';
                     this.infoPlaceholder.style.display = '';
@@ -2714,7 +2959,7 @@
             /**
              * get list of monsters for dungeon (or slayer task, where task IDs start at MICSR.dungeons.length)
              */
-            getMonsterList(dungeonID) {
+            getMonsterList(dungeonID: any) {
                 if (dungeonID < MICSR.dungeons.length) {
                     return MICSR.dungeons[this.viewedDungeonID].monsters;
                 }
@@ -2727,7 +2972,8 @@
              * Toggles the display of a style dropdown, and the spell selection dropdown off
              * @param {string} combatType The combat type to disable
              */
-            disableStyleDropdown(combatType) {
+            disableStyleDropdown(combatType: any) {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(`MCS ${combatType} Style Dropdown`).style.display = 'none';
             }
 
@@ -2735,7 +2981,8 @@
              * Toggles the display of a style dropdown, and the spell selection dropdown on
              * @param {string} combatType The combat type to enable
              */
-            enableStyleDropdown(combatType) {
+            enableStyleDropdown(combatType: any) {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(`MCS ${combatType} Style Dropdown`).style.display = 'inline';
             }
 
@@ -2754,22 +3001,27 @@
              * Checks if magic level required for spell is met
              */
             checkForSpellLevel() {
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 const magicLevel = this.player.skillLevel[Skills.Magic];
-                const setSpellsPerLevel = (spell, spellID, spellType) => {
+                const setSpellsPerLevel = (spell: any, spellID: any, spellType: any) => {
                     if (magicLevel < spell.level) {
-                        document.getElementById(`MCS ${spell.name} Button Image`).src = this.media.question;
+                        (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = this.media.question;
                         this.disableSpell(spellType, spellID, `${spell.name} has been de-selected. It requires level ${spell.level} Magic.`);
                     } else {
-                        document.getElementById(`MCS ${spell.name} Button Image`).src = spell.media;
+                        (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = spell.media;
                     }
                 };
-                SPELLS.forEach((spell, index) => setSpellsPerLevel(spell, index, 'standard'));
-                AURORAS.forEach((spell, index) => setSpellsPerLevel(spell, index, 'aurora'));
-                CURSES.forEach((spell, index) => setSpellsPerLevel(spell, index, 'curse'));
-                ANCIENT.forEach((spell, index) => setSpellsPerLevel(spell, index, 'ancient'));
+                // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
+                SPELLS.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'standard'));
+                // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
+                AURORAS.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'aurora'));
+                // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
+                CURSES.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'curse'));
+                // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
+                ANCIENT.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'ancient'));
             }
 
-            checkRequiredItem(spell) {
+            checkRequiredItem(spell: any) {
                 return spell.requiredItem !== undefined && spell.requiredItem !== -1 && !this.player.equipmentIDs().includes(spell.requiredItem);
             }
 
@@ -2777,33 +3029,40 @@
              * Checks if item required for spell is equipped
              */
             checkForSpellItem() {
-                const disableSpellsForItem = (spell, spellID, spellType) => {
+                const disableSpellsForItem = (spell: any, spellID: any, spellType: any) => {
                     if (this.checkRequiredItem(spell)) {
-                        document.getElementById(`MCS ${spell.name} Button Image`).src = this.media.question;
+                        (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = this.media.question;
                         this.disableSpell(spellType, spellID, `${spell.name} has been de-selected. It requires ${this.getItemName(spell.requiredItem)}.`);
                     }
                 };
-                SPELLS.forEach((spell, index) => disableSpellsForItem(spell, index, 'standard'));
-                AURORAS.forEach((spell, index) => disableSpellsForItem(spell, index, 'aurora'));
-                CURSES.forEach((spell, index) => disableSpellsForItem(spell, index, 'curse'));
-                ANCIENT.forEach((spell, index) => disableSpellsForItem(spell, index, 'ancient'));
+                // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
+                SPELLS.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'standard'));
+                // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
+                AURORAS.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'aurora'));
+                // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
+                CURSES.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'curse'));
+                // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
+                ANCIENT.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'ancient'));
             }
 
             /**
              * Updates the prayers that display in the prayer selection card, based on if the player can use it
              */
             updatePrayerOptions() {
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 const prayerLevel = this.player.skillLevel[Skills.Prayer];
-                PRAYER.forEach(prayer => {
+                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
+                PRAYER.forEach((prayer: any) => {
                     const prayerName = this.getPrayerName(prayer.id);
                     if (prayer.prayerLevel > prayerLevel) {
-                        document.getElementById(`MCS ${prayerName} Button Image`).src = this.media.question;
+                        (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = this.media.question;
                         if (this.player.activePrayers.has(prayer.id)) {
                             this.prayerButtonOnClick({currentTarget: document.getElementById(`MCS ${prayerName} Button`)}, prayer.id);
+                            // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
                             notifyPlayer(Skills.Prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
                         }
                     } else {
-                        document.getElementById(`MCS ${prayerName} Button Image`).src = prayer.media;
+                        (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = prayer.media;
                     }
                 });
             }
@@ -2815,11 +3074,13 @@
                 // first update the values
                 this.combatData.updateCombatStats();
                 // second update the view
-                this.combatStatKeys.forEach((key) => {
+                this.combatStatKeys.forEach((key: any) => {
                     if (key === 'attackSpeed') {
                         const attackSpeed = this.combatData.playerAttackSpeed();
+                        // @ts-expect-error TS(2531): Object is possibly 'null'.
                         document.getElementById(`MCS ${key} CS Output`).textContent = attackSpeed.toLocaleString();
                     } else {
+                        // @ts-expect-error TS(2531): Object is possibly 'null'.
                         document.getElementById(`MCS ${key} CS Output`).textContent = this.combatData.combatStats[key].toLocaleString();
                     }
                 });
@@ -2842,6 +3103,7 @@
              * Updates the simulator display for when a loot option is changed
              */
             updatePlotForLoot() {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById('MCS Drops/h Label').textContent = this.getSelectedDropLabel();
                 this.loot.updateDropChance();
                 this.consumables.update();
@@ -2855,12 +3117,15 @@
              * Updates the images and tooltips for potions when the potion tier is changed
              * @param {number} potionTier The new potion tier
              */
-            updatePotionTier(potionTier) {
-                this.combatPotionIDs.forEach((potionId) => {
+            updatePotionTier(potionTier: any) {
+                this.combatPotionIDs.forEach((potionId: any) => {
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     const potion = items[Herblore.potions[potionId].potionIDs[potionTier]];
                     const img = document.getElementById(`MCS ${this.getPotionName(potionId)} Button Image`);
-                    img.src = getItemMedia(potion.id);
-                    img.parentElement._tippy.setContent(this.getPotionTooltip(potion));
+                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
+                    (img as any).src = getItemMedia(potion.id);
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
+                    (img.parentElement as any)._tippy.setContent(this.getPotionTooltip(potion));
                 });
             }
 
@@ -2869,7 +3134,7 @@
              * @param potion The potion object to get the tooltip for
              * @returns {string} The tooltip content
              */
-            getPotionTooltip(potion) {
+            getPotionTooltip(potion: any) {
                 return `<div class="text-center">${potion.name}<small>`
                     + `<br><span class='text-info'>${potion.description.replace(/\.$/, '')}</span>`
                     + `<br><span class='text-warning'>${potion.potionCharges} Potion Charges</span>`
@@ -2881,7 +3146,7 @@
              * Changes the simulator to display an individual dungeon
              * @param {number} dungeonID the index of the dungeon in MICSR.dungeons
              */
-            setPlotToDungeon(dungeonID) {
+            setPlotToDungeon(dungeonID: any) {
                 this.isViewingDungeon = true;
                 this.viewedDungeonID = dungeonID;
                 this.loot.update();
@@ -2920,7 +3185,7 @@
              * @param {number} dungeonID The index of Dungeons
              * @return {string} The name of a dungeon
              */
-            getDungeonName(dungeonID) {
+            getDungeonName(dungeonID: any) {
                 return this.replaceApostrophe(MICSR.dungeons[dungeonID].name);
             }
 
@@ -2929,7 +3194,8 @@
              * @param {number} potionID The index of Herblore.potions
              * @return {string} The name of a potion
              */
-            getPotionName(potionID) {
+            getPotionName(potionID: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                 return this.replaceApostrophe(Herblore.potions[potionID].name);
             }
 
@@ -2938,7 +3204,8 @@
              * @param {number} prayerID The index of PRAYER
              * @return {string} the name of a prayer
              */
-            getPrayerName(prayerID) {
+            getPrayerName(prayerID: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
                 return this.replaceApostrophe(PRAYER[prayerID].name);
             }
 
@@ -2947,21 +3214,24 @@
              * @param {number} itemID The index of items
              * @return {string} The name of an item
              */
-            getItemName(itemID) {
+            getItemName(itemID: any) {
                 if (itemID === -1) {
                     return 'None';
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 } else if (!items[itemID]) {
                     MICSR.warn(`Invalid itemID ${itemID} in getItemName`);
                     return 'None';
                 } else {
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     return this.replaceApostrophe(items[itemID].name);
                 }
             }
 
-            getItemMedia(item) {
+            getItemMedia(item: any) {
                 if (item.id === -1) {
                     return item.media;
                 }
+                // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
                 return getItemMedia(item.id);
             }
 
@@ -2970,7 +3240,8 @@
              * @param {number} monsterID The index of MONSTERS
              * @return {string} the name of a monster
              */
-            getMonsterName(monsterID) {
+            getMonsterName(monsterID: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                 return this.replaceApostrophe(MONSTERS[monsterID].name);
             }
 
@@ -2979,7 +3250,7 @@
              * @param {string} stringToFix The string to replace
              * @return {string} the fixed string
              */
-            replaceApostrophe(stringToFix) {
+            replaceApostrophe(stringToFix: any) {
                 return stringToFix.replace(/&apos;/g, '\'');
             }
 
@@ -2992,18 +3263,20 @@
                     this.setPlotToGeneral();
                     this.setPlotToDungeon(this.barMonsterIDs[this.selectedBar]);
                 }
-                document.getElementById('MCS Simulate All Button').disabled = false;
+                (document.getElementById('MCS Simulate All Button') as any).disabled = false;
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById('MCS Simulate All Button').textContent = 'Simulate All';
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById('MCS Simulate Selected Button').style.display = 'block';
             }
 
             destroy() {
                 // terminate any workers
-                this.simulator.simulationWorkers.forEach((worker) => worker.worker.terminate());
+                this.simulator.simulationWorkers.forEach((worker: any) => worker.worker.terminate());
                 // remove all tool tips
                 this.tippySingleton.destroy();
-                this.tippyInstances.forEach(instance => instance.destroy());
-                this.tippyNoSingletonInstances.forEach(instance => instance.destroy());
+                this.tippyInstances.forEach((instance: any) => instance.destroy());
+                this.tippyNoSingletonInstances.forEach((instance: any) => instance.destroy());
                 // remove the interface
                 MICSR.destroyMenu(this.menuItemId, this.modalID);
             }
@@ -3011,10 +3284,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -3023,19 +3298,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -3044,10 +3320,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'App');
 

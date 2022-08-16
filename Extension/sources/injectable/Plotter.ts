@@ -26,18 +26,50 @@
 
     const setup = () => {
 
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * A Card Class that creates a bar plot
          */
         MICSR.Plotter = class {
+            barBottomBrackets: any;
+            barBottomDivs: any;
+            barBottomLength: any;
+            barBottomNames: any;
+            barGap: any;
+            barImageSrc: any;
+            barNames: any;
+            barTooltips: any;
+            barWidth: any;
+            bars: any;
+            gridLine: any;
+            inspectButton: any;
+            maskImageFile: any;
+            parent: any;
+            petSkillDropdown: any;
+            plotBox: any;
+            plotContainer: any;
+            plotHeader: any;
+            plotID: any;
+            plotTopContainer: any;
+            plotType: any;
+            stopInspectButton: any;
+            tickText: any;
+            timeDropdown: any;
+            toggleDungeonButton: any;
+            toggleMonsterButton: any;
+            toggleSlayerButton: any;
+            xAxis: any;
+            xAxisContainers: any;
+            xAxisCrosses: any;
+            xAxisImages: any;
+            yAxis: any;
             /**
              * Consctructs an instance of the plotting class
              * @param {McsApp} parent Reference to container class
              * @param {string} crossedOutURL URL from content script
              */
-            constructor(parent, crossedOutURL) {
+            constructor(parent: any, crossedOutURL: any) {
                 this.parent = parent;
                 this.barWidth = 20;
                 this.barGap = 1;
@@ -52,12 +84,19 @@
 
                 let totBars = 0;
 
+                // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
                 for (let i = 0; i < combatAreas.length; i++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
                     totBars += combatAreas[i].monsters.length;
+                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
                     this.barBottomNames.push(combatAreas[i].name);
+                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
                     this.barBottomLength.push(combatAreas[i].monsters.length);
+                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
                     for (let j = 0; j < combatAreas[i].monsters.length; j++) {
+                        // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
                         this.barNames.push(this.parent.getMonsterName(combatAreas[i].monsters[j]));
+                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                         this.barImageSrc.push(MONSTERS[combatAreas[i].monsters[j]].media);
                     }
                 }
@@ -66,13 +105,21 @@
                 this.barBottomNames.push('');
                 this.barBottomLength.push(1);
                 this.barNames.push(this.parent.getMonsterName(bardID));
+                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                 this.barImageSrc.push(MONSTERS[bardID].media);
+                // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
                 for (let i = 0; i < slayerAreas.length; i++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
                     totBars += slayerAreas[i].monsters.length;
+                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
                     this.barBottomNames.push(slayerAreas[i].name);
+                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
                     this.barBottomLength.push(slayerAreas[i].monsters.length);
+                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
                     for (let j = 0; j < slayerAreas[i].monsters.length; j++) {
+                        // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
                         this.barNames.push(this.parent.getMonsterName(slayerAreas[i].monsters[j]));
+                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                         this.barImageSrc.push(MONSTERS[slayerAreas[i].monsters[j]].media);
                     }
                 }
@@ -86,10 +133,14 @@
                 }
 
                 this.barBottomNames.push('Auto Slayer');
+                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 this.barBottomLength.push(SlayerTask.data.length);
+                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 totBars += SlayerTask.data.length;
+                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 for (const slayerTask of SlayerTask.data) {
                     this.barNames.push(slayerTask.display);
+                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
                     this.barImageSrc.push(SKILLS[Skills.Slayer].media);
                 }
 
@@ -108,7 +159,7 @@
                 // Use a dropdown menu for the plot title
                 const skillTypeSelect = document.createElement('select');
                 skillTypeSelect.className = 'form-control';
-                this.parent.skillKeys.forEach((skillName, index) => {
+                this.parent.skillKeys.forEach((skillName: any, index: any) => {
                     const newOption = document.createElement('option');
                     newOption.textContent = skillName;
                     newOption.value = skillName;
@@ -121,7 +172,7 @@
 
                 const plotTypeSelect = document.createElement('select');
                 plotTypeSelect.className = 'form-control';
-                this.parent.plotTypes.forEach(plotType => {
+                this.parent.plotTypes.forEach((plotType: any) => {
                     const newOption = document.createElement('option');
                     newOption.textContent = plotType.option;
                     newOption.value = plotType.value;
@@ -132,13 +183,13 @@
 
                 this.timeDropdown = document.createElement('select');
                 this.timeDropdown.className = 'form-control';
-                this.parent.timeOptions.forEach((value, index) => {
+                this.parent.timeOptions.forEach((value: any, index: any) => {
                     const newOption = document.createElement('option');
                     newOption.textContent = value;
                     newOption.value = this.parent.timeMultipliers[index];
                     this.timeDropdown.appendChild(newOption);
                 });
-                this.timeDropdown.onchange = (event) => this.parent.timeUnitDropdownOnChange(event);
+                this.timeDropdown.onchange = (event: any) => this.parent.timeUnitDropdownOnChange(event);
                 plotHeaderSelects.appendChild(this.timeDropdown);
 
                 this.plotTopContainer = document.createElement('div');
@@ -177,6 +228,7 @@
                 for (let i = 0; i < totBars; i++) {
                     const bar = document.createElement('div');
                     bar.className = 'mcsBar';
+                    // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
                     bar.style.height = 0;
                     const barContainer = document.createElement('div');
                     barContainer.className = 'mcs-bar-container';
@@ -241,7 +293,7 @@
             }
 
             // Add plot buttons
-            addToggles(card) {
+            addToggles(card: any) {
                 // Add inspection buttons
                 this.inspectButton = card.addButton('Inspect Dungeon', () => {
                     this.parent.inspectDungeonOnClick();
@@ -267,7 +319,7 @@
              * Toggles the display of a bar tooltip on
              * @param {number} id The ID of the bar
              */
-            barOnMouseOver(id) {
+            barOnMouseOver(id: any) {
                 this.barTooltips[id].style.display = 'block';
             }
 
@@ -275,11 +327,11 @@
              * Toggles the display of a bar tooltip off
              * @param {number} id The ID of the bar
              */
-            barOnMouseOut(id) {
+            barOnMouseOut(id: any) {
                 this.barTooltips[id].style.display = 'none';
             }
 
-            colourGradient(x, base = [70, 130, 180], death = [220, 20, 60]) {
+            colourGradient(x: any, base = [70, 130, 180], death = [220, 20, 60]) {
                 return base.map((_, i) => (1 - x) * base[i] + x * death[i]);
             }
 
@@ -287,7 +339,7 @@
              * Changes the displayed data
              * @param {number[]} barData The new data to diplay
              */
-            updateBarData(barData, rawData) {
+            updateBarData(barData: any, rawData: any) {
                 const enterSet = this.parent.simulator.getEnterSet();
                 let barMax = 0;
                 for (let i = 0; i < this.bars.length; i++) {
@@ -326,6 +378,7 @@
                         closestRatio = 0.1;
                     }
                     divPower = Math.floor(Math.log10(barMax));
+                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     const division = closestRatio * Math.pow(10, divPower);
                     Ndivs = Math.ceil(barMax / division);
                     divMax = Ndivs * division;
@@ -353,13 +406,16 @@
                     if (this.parent.isViewingDungeon) {
                         const selection = this.parent.getMonsterList(this.parent.viewedDungeonID);
                         const monsterID = selection[barIndex + selection.length - this.bars.length];
+                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                         barName = MONSTERS[monsterID].name;
                     } else {
                         if (this.parent.barIsDungeon(barIndex)) {
                             barName = MICSR.dungeons[this.parent.barMonsterIDs[barIndex]].name;
                         } else if (this.parent.barIsTask(barIndex)) {
+                            // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                             barName = SlayerTask.data[this.parent.barMonsterIDs[barIndex] - MICSR.dungeons.length].display;
                         } else {
+                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                             barName = MONSTERS[this.parent.barMonsterIDs[barIndex]].name;
                         }
                     }
@@ -398,8 +454,10 @@
                 }
                 if (divPower >= 0) {
                     const powerLeft = divPower % 3;
+                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     closestRatio *= Math.pow(10, powerLeft);
                 } else {
+                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     closestRatio *= Math.pow(10, divPower);
                     divDecimals -= divPower;
                 }
@@ -408,6 +466,7 @@
                     if (i < (Ndivs + 1)) {
                         this.tickText[i].style.display = 'block';
                         this.tickText[i].style.bottom = `${i * 100 / Ndivs - 2.5}%`;
+                        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                         this.tickText[i].textContent = `${(i * closestRatio).toLocaleString(undefined, {
                             maximumFractionDigits: divDecimals,
                             minimumFractionDigits: divDecimals
@@ -440,7 +499,7 @@
              * Changes the plot display to individual dungeon monsters
              * @param {number} dungeonID The index of MICSR.dungeons
              */
-            displayDungeon(dungeonID) {
+            displayDungeon(dungeonID: any) {
                 // Loop through each bar and enable/disable as required
                 // Change Images at bottom
                 // Toggle Zone Labels
@@ -451,6 +510,7 @@
                     if (i < monsters.length) {
                         // Change image source
                         this.xAxisContainers[i].style.display = '';
+                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
                         this.xAxisImages[i].setAttribute('src', MONSTERS[monsters[i]].media);
                         this.bars[this.bars.length - i - 1].style.display = '';
                     } else {
@@ -472,7 +532,7 @@
              * Turns the crossout overlay on for a monster/dungeon image
              * @param {number} imageID the index of the cross
              */
-            crossOutBarImage(imageID) {
+            crossOutBarImage(imageID: any) {
                 this.xAxisCrosses[imageID].style.display = '';
             }
 
@@ -480,7 +540,7 @@
              * Turns the crossout overlay off for a monster/dungeon image
              * @param {number} imageID The index of the cross
              */
-            unCrossOutBarImage(imageID) {
+            unCrossOutBarImage(imageID: any) {
                 this.xAxisCrosses[imageID].style.display = 'none';
             }
 
@@ -488,10 +548,10 @@
              * Toggles the display of the area/dungeon labels off
              */
             hideZoneLabels() {
-                this.barBottomDivs.forEach((bottomDiv) => {
+                this.barBottomDivs.forEach((bottomDiv: any) => {
                     bottomDiv.style.display = 'none';
                 });
-                this.barBottomBrackets.forEach((bracket) => {
+                this.barBottomBrackets.forEach((bracket: any) => {
                     bracket.style.display = 'none';
                 });
             }
@@ -500,10 +560,10 @@
              * Toggles the display of the area/dungeon labels on
              */
             showZoneLabels() {
-                this.barBottomDivs.forEach((bottomDiv) => {
+                this.barBottomDivs.forEach((bottomDiv: any) => {
                     bottomDiv.style.display = '';
                 });
-                this.barBottomBrackets.forEach((bracket) => {
+                this.barBottomBrackets.forEach((bracket: any) => {
                     bracket.style.display = '';
                 });
             }
@@ -512,7 +572,7 @@
              * Toggles the crossout overlay off for all images
              */
             unCrossAllImages() {
-                this.xAxisCrosses.forEach((cross) => {
+                this.xAxisCrosses.forEach((cross: any) => {
                     cross.style.display = 'none';
                 });
             }
@@ -538,10 +598,12 @@
     };
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -550,19 +612,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -571,10 +634,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Plotter');
 

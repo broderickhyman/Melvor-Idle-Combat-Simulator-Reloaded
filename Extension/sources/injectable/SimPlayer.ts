@@ -20,17 +20,91 @@
 
 (() => {
 
-    const reqs = [];
+    const reqs: any = [];
 
     const setup = () => {
 
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * SimPlayer class, allows creation of a functional Player object without affecting the game
          */
+        // @ts-expect-error TS(2304): Cannot find name 'Player'.
         MICSR.SimPlayer = class extends Player {
-            constructor(simManager) {
+            _slayercoins: any;
+            activeAstrologyModifiers: any;
+            activeDOTs: any;
+            activeItemSynergies: any;
+            activePrayers: any;
+            activeSummonSlots: any;
+            applyModifiersToPrayerCost: any;
+            attackBar: any;
+            attackStyle: any;
+            attackType: any;
+            autoEatEfficiency: any;
+            autoEatThreshold: any;
+            autoEatTier: any;
+            canAurora: any;
+            canCurse: any;
+            chargesUsed: any;
+            combinations: any;
+            computeAllStats: any;
+            conditionalListeners: any;
+            conditionalModifiers: any;
+            cookingMastery: any;
+            cookingPool: any;
+            course: any;
+            courseMastery: any;
+            currentGamemode: any;
+            dataNames: any;
+            eatFood: any;
+            effectRenderer: any;
+            emptyAutoHeal: any;
+            equipment: any;
+            equipmentSets: any;
+            food: any;
+            getFoodHealing: any;
+            gp: any;
+            hasRunes: any;
+            heal: any;
+            healAfterDeath: any;
+            highestDamageTaken: any;
+            hitpoints: any;
+            interruptAttack: any;
+            isManualEating: any;
+            isSlayerTask: any;
+            lowestHitpoints: any;
+            manager: any;
+            modifiers: any;
+            petRolls: any;
+            petUnlocked: any;
+            pillar: any;
+            potionID: any;
+            potionSelected: any;
+            potionTier: any;
+            registerConditionalListeners: any;
+            removeAllEffects: any;
+            runesProvided: any;
+            skillLevel: any;
+            skillXP: any;
+            slayercoins: any;
+            spellSelection: any;
+            splashManager: any;
+            statElements: any;
+            stats: any;
+            summonBar: any;
+            summoningSynergy: any;
+            target: any;
+            timers: any;
+            updateHPConditionals: any;
+            useCombinationRunesFlag: any;
+            usedAmmo: any;
+            usedFood: any;
+            usedPotionCharges: any;
+            usedPrayerPoints: any;
+            usedRunes: any;
+            usingAncient: any;
+            constructor(simManager: any) {
                 super(simManager);
                 this.detachGlobals();
                 this.replaceGlobals();
@@ -74,7 +148,9 @@
             }
 
             initForWebWorker() {
+                // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
                 currentGamemode = this.currentGamemode;
+                // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                 numberMultiplier = combatTriangle[GAMEMODES[this.currentGamemode].numberMultiplier];
                 // recompute stats
                 this.updateForEquipmentChange();
@@ -116,20 +192,22 @@
 
             // get grandparent addHitpoints
             get characterAddHitpoints() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
                 return Character.prototype.addHitpoints;
             }
 
             // get grandparent setHitpoints
             get characterSetHitpoints() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
                 return Character.prototype.setHitpoints;
             }
 
-            addHitpoints(amount) {
+            addHitpoints(amount: any) {
                 this.characterAddHitpoints(amount);
                 this.updateHPConditionals();
             }
 
-            setHitpoints(value) {
+            setHitpoints(value: any) {
                 this.characterSetHitpoints(value);
             }
 
@@ -157,12 +235,16 @@
             // replace globals with properties
             replaceGlobals() {
                 // skillLevel
-                this.skillLevel = skillLevel.map(_ => 1);
+                // @ts-expect-error TS(2663): Cannot find name 'skillLevel'. Did you mean the in... Remove this comment to see the full error message
+                this.skillLevel = skillLevel.map((_: any) => 1);
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 this.skillLevel[Skills.Hitpoints] = 10;
                 // currentGamemode, numberMultiplier
+                // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
                 this.currentGamemode = currentGamemode;
                 // petUnlocked
-                this.petUnlocked = petUnlocked.map(x => false);
+                // @ts-expect-error TS(2663): Cannot find name 'petUnlocked'. Did you mean the i... Remove this comment to see the full error message
+                this.petUnlocked = petUnlocked.map((x: any) => false);
                 // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
                 this.course = Array(10).fill(-1);
                 this.courseMastery = Array(10).fill(false);
@@ -180,7 +262,8 @@
                 this.cookingMastery = false;
                 // useCombinationRunes
                 this.useCombinationRunesFlag = false;
-                this.combinations = items.filter(x => x.type === 'Rune' && x.providesRune).map(x => x.id);
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                this.combinations = items.filter((x: any) => x.type === 'Rune' && x.providesRune).map((x: any) => x.id);
                 // other
                 this.healAfterDeath = true;
                 this.isSlayerTask = false;
@@ -189,8 +272,9 @@
                 this.resetGains();
                 // conditionalModifiers
                 this.conditionalModifiers = new Map();
-                itemConditionalModifiers.forEach((itemCondition) => {
-                    this.conditionalModifiers.set(itemCondition.itemID, itemCondition.conditionals.map(x => {
+                // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
+                itemConditionalModifiers.forEach((itemCondition: any) => {
+                    this.conditionalModifiers.set(itemCondition.itemID, itemCondition.conditionals.map((x: any) => {
                         return {...x}
                     }));
                 });
@@ -202,6 +286,7 @@
 
             // override getters
             get activeTriangle() {
+                // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
                 return combatTriangle[GAMEMODES[this.currentGamemode].combatTriangle];
             }
 
@@ -214,6 +299,7 @@
             }
 
             get allowRegen() {
+                // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
                 return GAMEMODES[this.currentGamemode].hasRegen;
             }
 
@@ -222,9 +308,10 @@
 
             computeConditionalListeners() {
                 // Reset the listener sets
-                Object.values(this.conditionalListeners).forEach((list) => list.clear());
+                // @ts-expect-error TS(2550): Property 'values' does not exist on type 'ObjectCo... Remove this comment to see the full error message
+                Object.values(this.conditionalListeners).forEach((list: any) => list.clear());
                 // Equipped Items
-                this.equipment.slotArray.forEach((slot) => {
+                this.equipment.slotArray.forEach((slot: any) => {
                     const item = slot.item;
                     if (slot.providesStats) {
                         const conditionals = this.conditionalModifiers.get(item.id);
@@ -238,7 +325,7 @@
                 if ((synergy === null || synergy === void 0 ? void 0 : synergy.conditionalModifiers) !== undefined)
                     this.registerConditionalListeners(synergy.conditionalModifiers);
                 // Equipment Synergy
-                this.activeItemSynergies.forEach((synergy) => {
+                this.activeItemSynergies.forEach((synergy: any) => {
                     if (synergy.conditionalModifiers !== undefined)
                         this.registerConditionalListeners(synergy.conditionalModifiers);
                 });
@@ -246,7 +333,8 @@
 
             resetGains() {
                 this.gp = 0;
-                this.skillXP = skillLevel.map(_ => 0);
+                // @ts-expect-error TS(2663): Cannot find name 'skillLevel'. Did you mean the in... Remove this comment to see the full error message
+                this.skillXP = skillLevel.map((_: any) => 0);
                 this.petRolls = {};
                 this._slayercoins = 0;
                 this.usedAmmo = 0;
@@ -266,13 +354,14 @@
                 this.hitpoints = this.stats.maxHitpoints;
             }
 
-            getGainsPerSecond(ticks) {
+            getGainsPerSecond(ticks: any) {
                 const seconds = ticks / 20;
                 const usedRunesBreakdown = {};
                 let usedRunes = 0;
                 let usedCombinationRunes = 0;
                 for (const id in this.usedRunes) {
                     const amt = this.usedRunes[id] / seconds;
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     usedRunesBreakdown[id] = amt;
                     if (this.combinations.includes(Number(id))) {
                         usedCombinationRunes += amt;
@@ -282,6 +371,7 @@
                 }
                 const petRolls = {};
                 for (const interval in this.petRolls) {
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     petRolls[interval] = this.petRolls[interval] / seconds;
                 }
                 let usedSummoningCharges = (this.chargesUsed.Summon1 + this.chargesUsed.Summon2);
@@ -290,7 +380,7 @@
                 }
                 return {
                     gp: this.gp / seconds,
-                    skillXP: this.skillXP.map(x => x / seconds),
+                    skillXP: this.skillXP.map((x: any) => x / seconds),
                     petRolls: petRolls,
                     slayercoins: this.slayercoins / seconds,
                     usedAmmo: this.usedAmmo / seconds,
@@ -303,7 +393,7 @@
                     usedSummoningCharges: usedSummoningCharges / seconds,
                     highestDamageTaken: this.highestDamageTaken,
                     lowestHitpoints: this.lowestHitpoints,
-                }
+                };
             }
 
             tick() {
@@ -366,7 +456,7 @@
 
             getMaxDotDamage() {
                 let dotDamage = 0;
-                this.activeDOTs.forEach(dot => {
+                this.activeDOTs.forEach((dot: any) => {
                     if (dot.type === 'Regen') {
                         return;
                     }
@@ -375,21 +465,23 @@
                 return dotDamage;
             }
 
-            addSlayerCoins(amount) {
+            addSlayerCoins(amount: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'applyModifier'.
                 amount = applyModifier(amount, this.modifiers.increasedSlayerCoins - this.modifiers.decreasedSlayerCoins, 0);
                 this._slayercoins += amount;
             }
 
-            addGP(amount) {
+            addGP(amount: any) {
                 this.gp += amount;
             }
 
-            addXP(skill, amount) {
+            addXP(skill: any, amount: any) {
                 this.skillXP[skill] += this.getSkillXPToAdd(skill, amount);
             }
 
             addPetModifiers() {
-                PETS.forEach((pet, i) => {
+                // @ts-expect-error TS(2304): Cannot find name 'PETS'.
+                PETS.forEach((pet: any, i: any) => {
                     if (this.petUnlocked[i] && !pet.activeInRaid && pet.modifiers !== undefined) {
                         this.modifiers.addModifiers(pet.modifiers);
                     }
@@ -397,7 +489,8 @@
             }
 
             addConditionalModifiers() {
-                this.conditionalListeners.All.forEach((conditional) => {
+                this.conditionalListeners.All.forEach((conditional: any) => {
+                    // @ts-expect-error TS(2304): Cannot find name 'ModifierTarget'.
                     if (conditional.target === ModifierTarget.Player &&
                         !conditional.hooks.includes('PlayerHitpoints') &&
                         (
@@ -426,6 +519,7 @@
 
             addMiscModifiers() {
                 // Knight's Defender
+                // @ts-expect-error TS(2304): Cannot find name 'Items'.
                 if (this.equipment.checkForItemID(Items.Knights_Defender) && this.attackType === 'melee') {
                     this.modifiers.addModifiers({
                         decreasedAttackInterval: 100,
@@ -442,25 +536,26 @@
             addShopModifiers() {
                 // auto eat modifiers
                 for (let tier = 0; tier <= this.autoEatTier; tier++) {
+                    // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
                     this.modifiers.addModifiers(SHOP.General[1 + tier].contains.modifiers);
                 }
 
                 // other shop modifiers are not relevant for combat sim at this point
             }
 
-            equipmentID(slotID) {
+            equipmentID(slotID: any) {
                 return this.equipment.slotArray[slotID].item.id;
             }
 
             equipmentIDs() {
-                return this.equipment.slotArray.map(x => x.item.id);
+                return this.equipment.slotArray.map((x: any) => x.item.id);
             }
 
-            equipmentOccupiedBy(slotID) {
+            equipmentOccupiedBy(slotID: any) {
                 return this.equipment.slotArray[slotID].occupiedBy;
             }
 
-            getSkillXPToAdd(skill, xp) {
+            getSkillXPToAdd(skill: any, xp: any) {
                 let xpMultiplier = 1;
                 xpMultiplier += this.modifiers.getSkillModifierValue("increasedSkillXP", skill) / 100;
                 xpMultiplier -= this.modifiers.getSkillModifierValue("decreasedSkillXP", skill) / 100;
@@ -468,22 +563,27 @@
                 return xp * xpMultiplier;
             }
 
-            rewardXPAndPetsForDamage(damage) {
+            rewardXPAndPetsForDamage(damage: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                 damage = damage / numberMultiplier;
+                // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
                 const attackInterval = this.timers.act.maxTicks * TICK_INTERVAL;
                 // Combat Style
-                this.attackStyle.experienceGain.forEach((gain) => {
+                this.attackStyle.experienceGain.forEach((gain: any) => {
                     this.addXP(gain.skill, gain.ratio * damage);
                 });
                 // Hitpoints
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 this.addXP(Skills.Hitpoints, damage * 1.33);
                 // Prayer
                 let prayerRatio = 0;
-                this.activePrayers.forEach((pID) => {
+                this.activePrayers.forEach((pID: any) => {
+                    // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
                     return (prayerRatio += PRAYER[pID].pointsPerPlayer);
                 });
                 prayerRatio /= 3;
                 if (prayerRatio > 0) {
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     this.addXP(Skills.Prayer, prayerRatio * damage);
                 }
                 // pets
@@ -491,7 +591,7 @@
             }
 
             // get skill level from property instead of global `skillLevel`
-            getSkillLevel(skillID) {
+            getSkillLevel(skillID: any) {
                 return Math.min(99, this.skillLevel[skillID]);
             }
 
@@ -503,14 +603,17 @@
             }
 
             getPotion() {
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 return items[Herblore.potions[this.potionID].potionIDs[this.potionTier]];
             }
 
             // track potion usage instead of consuming
-            consumePotionCharge(type) {
+            consumePotionCharge(type: any) {
                 if (this.potionSelected) {
                     const item = this.getPotion();
+                    // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                     if (type === Herblore.potions[item.masteryID[1]].consumesOn
+                        // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                         && !rollPercentage(this.modifiers.increasedChanceToPreservePotionCharge - this.modifiers.decreasedChanceToPreservePotionCharge)
                     ) {
                         this.usedPotionCharges++;
@@ -531,7 +634,7 @@
             }
 
             // track prayer point usage instead of consuming
-            consumePrayerPoints(amount) {
+            consumePrayerPoints(amount: any) {
                 if (amount > 0) {
                     amount = this.applyModifiersToPrayerCost(amount);
                     this.consumePotionCharge("PrayerPointCost");
@@ -541,24 +644,25 @@
 
             // track ammo usage instead of consuming
             consumeAmmo() {
+                // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                 if (!rollPercentage(this.modifiers.ammoPreservationChance)) {
                     this.usedAmmo++;
                 }
             }
 
-            consumeQuiver(type) {
+            consumeQuiver(type: any) {
                 if (this.equipment.slots.Quiver.item.consumesOn === type) {
                     this.usedAmmo++;
                 }
             }
 
             //
-            getRuneCosts(spell) {
+            getRuneCosts(spell: any) {
                 let runeCost = spell.runesRequired;
-                const spellCost = [];
+                const spellCost: any = [];
                 if (this.useCombinationRunes && spell.runesRequiredAlt !== undefined)
                     runeCost = spell.runesRequiredAlt;
-                runeCost.forEach((cost) => {
+                runeCost.forEach((cost: any) => {
                     const reducedCost = cost.qty - (this.runesProvided.get(cost.id) | 0);
                     if (reducedCost > 0) {
                         spellCost.push({
@@ -571,9 +675,10 @@
             }
 
             // track rune usage instead of consuming
-            consumeRunes(costs) {
+            consumeRunes(costs: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                 if (!rollPercentage(this.modifiers.runePreservationChance)) {
-                    costs.forEach((cost) => {
+                    costs.forEach((cost: any) => {
                         if (this.usedRunes[cost.itemID] === undefined) {
                             this.usedRunes[cost.itemID] = 0;
                         }
@@ -593,14 +698,15 @@
                 }
             }
 
-            equipItem(itemID, set, slot = "Default", quantity = 1) {
+            equipItem(itemID: any, set: any, slot = "Default", quantity = 1) {
                 const equipment = this.equipmentSets[set];
+                // @ts-expect-error TS(2304): Cannot find name 'emptyItem'.
                 const itemToEquip = itemID === -1 ? emptyItem : items[itemID];
                 if (slot === "Default") {
                     slot = itemToEquip.validSlots[0];
                 }
                 // clear other slots occupied by current slot
-                equipment.slotArray.forEach(x => {
+                equipment.slotArray.forEach((x: any) => {
                     if (x.occupiedBy === slot) {
                         x.occupiedBy = "None";
                     }
@@ -608,12 +714,12 @@
                 equipment.equipItem(itemToEquip, slot, quantity);
             }
 
-            unequipItem(set, slot) {
+            unequipItem(set: any, slot: any) {
                 const equipment = this.equipmentSets[set];
                 equipment.unequipItem(slot);
             }
 
-            equipFood(itemID) {
+            equipFood(itemID: any) {
                 if (itemID === -1) {
                     this.unequipFood();
                     return;
@@ -621,6 +727,7 @@
                 // Unequip previous food
                 this.food.unequipSelected();
                 // Proceed to equip the food
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 this.food.equip(items[itemID], Infinity);
             }
 
@@ -628,7 +735,7 @@
                 this.food.unequipSelected();
             }
 
-            getFoodHealingBonus(item) {
+            getFoodHealingBonus(item: any) {
                 let bonus = this.modifiers.increasedFoodHealingValue - this.modifiers.decreasedFoodHealingValue;
                 if (item.cookingID !== undefined && this.cookingMastery) {
                     bonus += 20;
@@ -642,9 +749,11 @@
             get synergyDescription() {
                 const synergy = this.equippedSummoningSynergy;
                 if (synergy !== undefined) {
+                    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
                     if (this.isSynergyActive(synergy)) {
                         return synergy.langDescription;
                     } else {
+                        // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
                         return getLangString('MENU_TEXT', 'LOCKED');
                     }
                 } else {
@@ -660,12 +769,13 @@
                 return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
             }
 
-            getSynergyData(summon1, summon2) {
+            getSynergyData(summon1: any, summon2: any) {
                 var _a;
+                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
                 return (_a = Summoning.synergiesByItemID.get(summon1)) === null || _a === void 0 ? void 0 : _a.get(summon2);
             }
 
-            getUnlockedSynergyData(summon1, summon2) {
+            getUnlockedSynergyData(summon1: any, summon2: any) {
                 if (!this.summoningSynergy) {
                     return undefined;
                 }
@@ -682,18 +792,21 @@
                 return (this.getUnlockedSynergyData(this.equipment.slots[this.activeSummonSlots[0]].item.id, this.equipment.slots[this.activeSummonSlots[1]].item.id) !== undefined);
             }
 
-            isSynergyActive(summonID1, summonID2) {
+            isSynergyActive(summonID1: any, summonID2: any) {
                 if (!this.summoningSynergy) {
                     return false;
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
                 const itemID1 = Summoning.marks[summonID1].itemID;
+                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
                 const itemID2 = Summoning.marks[summonID2].itemID;
                 return (this.getUnlockedSynergyData(itemID1, itemID2) !== undefined &&
                     this.equipment.checkForItemID(itemID1) &&
                     this.equipment.checkForItemID(itemID2));
             }
 
-            removeSummonCharge(slot, charges = 1) {
+            removeSummonCharge(slot: any, charges = 1) {
+                // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                 if (!rollPercentage(this.modifiers.increasedSummoningChargePreservation - this.modifiers.decreasedSummoningChargePreservation)) {
                     this.chargesUsed[slot] += charges;
                 }
@@ -708,24 +821,27 @@
 
             // get grandparent rollToHit
             get characterRollToHit() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
                 return Character.prototype.rollToHit;
             }
 
-            rollToHit(target, attack) {
+            rollToHit(target: any, attack: any) {
                 return this.checkRequirements(this.manager.areaRequirements) && this.characterRollToHit(target, attack);
             }
 
             // get grandparent damage
             get characterDamage() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
                 return Character.prototype.damage;
             }
 
-            damage(amount, source, thieving = false) {
+            damage(amount: any, source: any, thieving = false) {
                 this.characterDamage(amount, source);
                 this.highestDamageTaken = Math.max(this.highestDamageTaken, amount);
                 if (this.hitpoints > 0) {
                     this.autoEat();
                     if (this.hitpoints < (this.stats.maxHitpoints * this.modifiers.increasedRedemptionThreshold) / 100) {
+                        // @ts-expect-error TS(2304): Cannot find name 'applyModifier'.
                         this.heal(applyModifier(this.stats.maxHitpoints, this.modifiers.increasedRedemptionPercent));
                     }
                     if (this.hitpoints < (this.stats.maxHitpoints * this.modifiers.increasedCombatStoppingThreshold) / 100) {
@@ -743,15 +859,15 @@
                 }
             }
 
-            checkRequirements(reqs, notifyOnFailure = false, failureMessage = 'do that.') {
-                return reqs.every(req => this.checkRequirement(req, notifyOnFailure, failureMessage));
+            checkRequirements(reqs: any, notifyOnFailure = false, failureMessage = 'do that.') {
+                return reqs.every((req: any) => this.checkRequirement(req, notifyOnFailure, failureMessage));
             }
 
-            checkRequirement(requirement, notifyOnFailure = false, failureMessage = 'do that.') {
+            checkRequirement(requirement: any, notifyOnFailure = false, failureMessage = 'do that.') {
                 let met = false;
                 switch (requirement.type) {
                     case 'Level':
-                        met = requirement.levels.every(levelReq => this.skillLevel[levelReq.skill] >= levelReq.level);
+                        met = requirement.levels.every((levelReq: any) => this.skillLevel[levelReq.skill] >= levelReq.level);
                         break;
                     case 'Dungeon':
                         met = true;
@@ -772,26 +888,35 @@
 
             /** Serializes the SimPlayer object */
             serialize() {
+                // @ts-expect-error TS(2304): Cannot find name 'DataWriter'.
                 const writer = new DataWriter();
                 writer.addVariableLengthChunk(super.serialize());
-                this.dataNames.booleanArrays.forEach(x => this[x].forEach(y => writer.addBool(y)));
-                this.dataNames.numberArrays.forEach(x => this[x].forEach(y => writer.addNumber(y)));
-                this.dataNames.booleans.forEach(x => writer.addBool(this[x]));
-                this.dataNames.numbers.forEach(x => writer.addNumber(this[x]));
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                this.dataNames.booleanArrays.forEach((x: any) => this[x].forEach((y: any) => writer.addBool(y)));
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                this.dataNames.numberArrays.forEach((x: any) => this[x].forEach((y: any) => writer.addNumber(y)));
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                this.dataNames.booleans.forEach((x: any) => writer.addBool(this[x]));
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                this.dataNames.numbers.forEach((x: any) => writer.addNumber(this[x]));
                 return writer.data;
             }
 
             /** Deserializes the SimPlayer object */
-            deserialize(reader, version) {
+            deserialize(reader: any, version: any) {
                 super.deserialize(reader.getVariableLengthChunk(), version);
-                this.dataNames.booleanArrays.forEach(x => {
-                    this[x] = this[x].map(_ => reader.getBool());
+                this.dataNames.booleanArrays.forEach((x: any) => {
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                    this[x] = this[x].map((_: any) => reader.getBool());
                 });
-                this.dataNames.numberArrays.forEach(x => {
-                    this[x] = this[x].map(_ => reader.getNumber());
+                this.dataNames.numberArrays.forEach((x: any) => {
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                    this[x] = this[x].map((_: any) => reader.getNumber());
                 });
-                this.dataNames.booleans.forEach(x => this[x] = reader.getBool());
-                this.dataNames.numbers.forEach(x => this[x] = reader.getNumber());
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                this.dataNames.booleans.forEach((x: any) => this[x] = reader.getBool());
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                this.dataNames.numbers.forEach((x: any) => this[x] = reader.getNumber());
                 // after reading the data, recompute stats and reset gains
                 this.computeAllStats();
                 this.resetGains();
@@ -800,10 +925,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -812,19 +939,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -833,10 +961,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'SimPlayer');
 

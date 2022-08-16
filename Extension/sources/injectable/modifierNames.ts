@@ -24,7 +24,7 @@
 
     const setup = () => {
 
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * class ShowModifiers is copied from Melvor Show Modifiers v0.2.10, latest version can be found at:
@@ -33,8 +33,16 @@
          */
         // start of ShowModifiers copy
         MICSR.ShowModifiers = class {
+            creasedModifiers: any;
+            gatheringSkills: any;
+            knownModifiers: any;
+            logName: any;
+            name: any;
+            productionSkills: any;
+            relevantModifiers: any;
+            singletonModifiers: any;
 
-            constructor(name, logName, check = true) {
+            constructor(name: any, logName: any, check = true) {
                 this.name = name;
                 this.logName = logName;
                 // increased - decreased
@@ -505,6 +513,7 @@
                 // all
                 this.relevantModifiers.all = this.getModifierNames(
                     Object.getOwnPropertyNames(this.creasedModifiers),
+                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
                     Object.getOwnPropertyNames(SKILLS).map(x => Number(x)),
                 );
 
@@ -521,14 +530,23 @@
                         'combat',
                     ],
                     [
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Attack,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Strength,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Ranged,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Magic,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Defence,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Hitpoints,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Prayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Slayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Summoning,
                     ],
                 );
@@ -540,12 +558,19 @@
                         'combat',
                     ],
                     [
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Attack,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Strength,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Defence,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Hitpoints,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Prayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Slayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Summoning,
                     ],
                 );
@@ -557,11 +582,17 @@
                         'combat',
                     ],
                     [
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Ranged,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Defence,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Hitpoints,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Prayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Slayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Summoning,
                     ],
                 );
@@ -574,11 +605,17 @@
                         'hitpoints',
                     ],
                     [
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Magic,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Defence,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Hitpoints,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Prayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Slayer,
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Summoning,
                     ],
                 );
@@ -589,13 +626,14 @@
                         'skilling',
                     ],
                     [
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         Skills.Slayer,
                     ],
                 );
 
                 // gathering skills
                 this.gatheringSkills = ['Woodcutting', 'Fishing', 'Mining', 'Thieving', 'Farming', 'Agility', 'Astrology'];
-                this.gatheringSkills.forEach(name => {
+                this.gatheringSkills.forEach((name: any) => {
                     this.relevantModifiers[name] = this.getModifierNames(
                         [
                             'skilling',
@@ -603,6 +641,7 @@
                             'mastery',
                         ],
                         [
+                            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                             Skills[name]
                         ],
                     );
@@ -617,7 +656,7 @@
 
                 // production skills
                 this.productionSkills = ['Firemaking', 'Cooking', 'Smithing', 'Fletching', 'Crafting', 'Runecrafting', 'Herblore', 'Summoning'];
-                this.productionSkills.forEach(name => {
+                this.productionSkills.forEach((name: any) => {
                     const setNames = [
                         'skilling',
                         'nonCombat',
@@ -630,6 +669,7 @@
                     this.relevantModifiers[name] = this.getModifierNames(
                         setNames,
                         [
+                            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                             Skills[name]
                         ],
                     );
@@ -652,7 +692,7 @@
                 );
             }
 
-            log(...args) {
+            log(...args: any[]) {
                 console.log(`${this.logName}:`, ...args);
             }
 
@@ -660,21 +700,23 @@
                 // list of known modifiers
                 this.knownModifiers = {};
                 for (const subset in this.creasedModifiers) {
-                    this.creasedModifiers[subset].forEach(modifier => {
+                    this.creasedModifiers[subset].forEach((modifier: any) => {
                         this.knownModifiers[`increased${modifier}`] = true;
                         this.knownModifiers[`decreased${modifier}`] = true;
                     });
                 }
                 for (const subset in this.singletonModifiers) {
-                    this.singletonModifiers[subset].forEach(modifier => {
+                    this.singletonModifiers[subset].forEach((modifier: any) => {
                         this.knownModifiers[modifier] = true;
                     });
                 }
 
                 // check for unknown modifiers
                 const modifierNames = [
+                    // @ts-expect-error TS(2304): Cannot find name 'player'.
                     ...Object.getOwnPropertyNames(player.modifiers),
                     // player.modifiers.skillModifiers
+                    // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
                     ...Object.getOwnPropertyNames(modifierData).filter(x => modifierData[x].isSkill),
                 ];
                 let hasUnknownModifiers = false;
@@ -705,14 +747,17 @@
                 }
             }
 
-            getModifierNames(setNames, skillIDs) {
+            getModifierNames(setNames: any, skillIDs: any) {
                 // add skill based on skillID
-                skillIDs.forEach(id => {
+                skillIDs.forEach((id: any) => {
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     if (!setNames.includes(Skills[id])) {
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                         setNames.push(Skills[id].toLowerCase());
                     }
                 });
                 // add melee based on att/str skillID
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 if (skillIDs.includes(Skills.Attack) || skillIDs.includes(Skills.Strength)) {
                     if (!setNames.includes('melee')) {
                         setNames.push('melee');
@@ -722,23 +767,24 @@
                 // gather modifiers
                 return {
                     names: [...new Set([
-                        ...setNames.map(name => this.creasedModifiers[name]).reduce((a, x) => [...a, ...x], []),
-                        ...setNames.map(name => this.singletonModifiers[name]).reduce((a, x) => [...a, ...x], []),
+                        ...setNames.map((name: any) => this.creasedModifiers[name]).reduce((a: any, x: any) => [...a, ...x], []),
+                        ...setNames.map((name: any) => this.singletonModifiers[name]).reduce((a: any, x: any) => [...a, ...x], []),
                     ])],
                     skillIDs: skillIDs,
                 };
             }
 
-            printUniqueModifier(modifier, value, skillID) {
+            printUniqueModifier(modifier: any, value: any, skillID: any) {
                 if (!value) {
                     return [];
                 }
                 // convert to array if required
                 const valueToPrint = skillID !== undefined ? [skillID, value] : value;
+                // @ts-expect-error TS(2304): Cannot find name 'printPlayerModifier'.
                 return [printPlayerModifier(modifier, valueToPrint)];
             }
 
-            printDiffModifier(modifier, value, skillID = undefined) {
+            printDiffModifier(modifier: any, value: any, skillID = undefined) {
                 // compute difference
                 if (!value) {
                     return [];
@@ -751,19 +797,21 @@
                 valueToPrint = skillID !== undefined ? [skillID, valueToPrint] : valueToPrint;
                 // print increased or decreased
                 if (positive) {
+                    // @ts-expect-error TS(2304): Cannot find name 'printPlayerModifier'.
                     return [printPlayerModifier('increased' + modifier, valueToPrint)];
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'printPlayerModifier'.
                 return [printPlayerModifier('decreased' + modifier, valueToPrint)];
             }
 
-            getModifierValue(modifiers, modifier, skillID = undefined) {
+            getModifierValue(modifiers: any, modifier: any, skillID = undefined) {
                 if (!this.isSkillModifier(modifier)) {
                     return this.getSimpleModifier(modifiers, modifier);
                 }
                 return this.getSkillModifier(modifiers, modifier, skillID);
             }
 
-            getSimpleModifier(modifiers, modifier) {
+            getSimpleModifier(modifiers: any, modifier: any) {
                 // unique
                 if (this.isUniqueModifier(modifier)) {
                     return modifiers[modifier];
@@ -780,7 +828,7 @@
                 return increased - decreased;
             }
 
-            getSkillModifier(modifiers, modifier, skillID) {
+            getSkillModifier(modifiers: any, modifier: any, skillID: any) {
                 const skillModifiers = modifiers.skillModifiers ? modifiers.skillModifiers : modifiers;
                 // unique
                 if (this.isUniqueModifier(modifier)) {
@@ -793,7 +841,7 @@
                 return this.skillModifierAux(increased, skillID) - this.skillModifierAux(decreased, skillID);
             }
 
-            skillModifierMapAux(map, skillID) {
+            skillModifierMapAux(map: any, skillID: any) {
                 if (!map) {
                     return [];
                 }
@@ -806,7 +854,7 @@
                 return tmp ? tmp : [];
             }
 
-            skillModifierAux(map, skillID) {
+            skillModifierAux(map: any, skillID: any) {
                 if (!map || map.length === 0) {
                     return 0;
                 }
@@ -817,23 +865,24 @@
                     }
                     return value;
                 }
-                return map.filter(x => x[0] === skillID)
-                    .map(x => x[1])
-                    .reduce((a, b) => a + b, 0);
+                return map.filter((x: any) => x[0] === skillID)
+                    .map((x: any) => x[1])
+                    .reduce((a: any, b: any) => a + b, 0);
             }
 
-            printModifier(modifiers, modifier, skillIDs) {
+            printModifier(modifiers: any, modifier: any, skillIDs: any) {
                 if (!this.isSkillModifier(modifier)) {
                     const value = this.getSimpleModifier(modifiers, modifier);
                     if (this.isUniqueModifier(modifier)) {
                         // unique
+                        // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
                         return this.printUniqueModifier(modifier, value);
                     }
                     // creased
                     return this.printDiffModifier(modifier, value);
                 }
                 // skillModifiers
-                return skillIDs.map(skillID => {
+                return skillIDs.map((skillID: any) => {
                     const value = this.getSkillModifier(modifiers, modifier, skillID);
                     if (this.isUniqueModifier(modifier)) {
                         // unique
@@ -841,17 +890,20 @@
                     }
                     // creased
                     return this.printDiffModifier(modifier, value, skillID);
-                }).reduce((a, b) => a.concat(b), []);
+                }).reduce((a: any, b: any) => a.concat(b), []);
             }
 
-            isUniqueModifier(modifier) {
+            isUniqueModifier(modifier: any) {
+                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
                 return modifierData[modifier] !== undefined;
             }
 
-            isSkillModifier(modifier) {
+            isSkillModifier(modifier: any) {
                 if (this.isUniqueModifier(modifier)) {
+                    // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
                     return modifierData[modifier].isSkill;
                 }
+                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
                 const data = modifierData['increased' + modifier];
                 if (data === undefined) {
                     // this.log(`Unknown modifier ${modifier}`);
@@ -860,17 +912,17 @@
                 return data.isSkill;
             }
 
-            printRelevantModifiers(modifiers, tag) {
+            printRelevantModifiers(modifiers: any, tag: any) {
                 const relevantNames = this.relevantModifiers[tag].names;
                 const skillIDs = this.relevantModifiers[tag].skillIDs;
-                const toPrint = [];
-                relevantNames.forEach(name => {
-                    this.printModifier(modifiers, name, skillIDs).forEach(result => toPrint.push(result));
+                const toPrint: any = [];
+                relevantNames.forEach((name: any) => {
+                    this.printModifier(modifiers, name, skillIDs).forEach((result: any) => toPrint.push(result));
                 });
                 return toPrint;
             }
 
-            makeTagButton(tag, text, icon) {
+            makeTagButton(tag: any, text: any, icon: any) {
                 return '<div class="dropdown d-inline-block ml-2">'
                     + '<button type="button" '
                     + 'class="btn btn-sm btn-dual text-combat-smoke" '
@@ -883,13 +935,15 @@
                     + '</div>';
             }
 
-            replaceRelevantModifiersHtml(modifiers, text, tag) {
+            replaceRelevantModifiersHtml(modifiers: any, text: any, tag: any) {
+                // @ts-expect-error TS(2581): Cannot find name '$'. Do you need to install type ... Remove this comment to see the full error message
                 $('#show-modifiers').replaceWith(this.printRelevantModifiersHtml(modifiers, text, tag));
             }
 
-            printRelevantModifiersHtml(modifiers, text, tag, id = 'show-modifiers') {
+            printRelevantModifiersHtml(modifiers: any, text: any, tag: any, id = 'show-modifiers') {
                 let passives = `<div id="${id}"><br/>`;
                 passives += `<h5 class=\"font-w400 font-size-sm mb-1\">${text}</h5><br/>`;
+                // @ts-expect-error TS(7006): Parameter 'toPrint' implicitly has an 'any' type.
                 this.printRelevantModifiers(modifiers, tag).forEach(toPrint => {
                     passives += `<h5 class=\"font-w400 font-size-sm mb-1 ${toPrint[1]}\">${toPrint[0]}</h5>`;
                 });
@@ -897,7 +951,7 @@
                 return passives;
             }
 
-            showRelevantModifiers(modifiers, text, tag = 'all') {
+            showRelevantModifiers(modifiers: any, text: any, tag = 'all') {
                 let passives = `<h5 class=\"font-w600 font-size-sm mb-1 text-combat-smoke\">${text}</h5><h5 class=\"font-w600 font-size-sm mb-3 text-warning\"></h5>`;
                 passives += `<h5 class="font-w600 font-size-sm mb-3 text-warning"><small>(Does not include non-modifier effects)</small></h5>`;
                 passives += this.makeTagButton('all', 'All Modifiers', 'assets/media/main/completion_log.svg');
@@ -908,11 +962,12 @@
                 passives += this.makeTagButton('magic', 'Combat Magic', 'assets/media/skills/combat/spellbook.svg');
                 passives += this.makeTagButton('slayer', 'Slayer', 'assets/media/skills/slayer/slayer.svg');
                 passives += '<br/>';
-                this.gatheringSkills.forEach(skill => passives += this.makeTagButton(skill, skill, `assets/media/skills/${skill.toLowerCase()}/${skill.toLowerCase()}.svg`));
+                this.gatheringSkills.forEach((skill: any) => passives += this.makeTagButton(skill, skill, `assets/media/skills/${skill.toLowerCase()}/${skill.toLowerCase()}.svg`));
                 passives += '<br/>';
-                this.productionSkills.forEach(skill => passives += this.makeTagButton(skill, skill, `assets/media/skills/${skill.toLowerCase()}/${skill.toLowerCase()}.svg`));
+                this.productionSkills.forEach((skill: any) => passives += this.makeTagButton(skill, skill, `assets/media/skills/${skill.toLowerCase()}/${skill.toLowerCase()}.svg`));
                 passives += this.makeTagButton('altMagic', 'Alt. Magic', 'assets/media/skills/magic/magic.svg');
                 passives += this.printRelevantModifiersHtml(modifiers, 'All Modifiers', tag);
+                // @ts-expect-error TS(2304): Cannot find name 'Swal'.
                 Swal.fire({
                     html: passives,
                 });
@@ -924,10 +979,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -936,19 +993,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -957,10 +1015,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'modifierNames');
 

@@ -20,12 +20,12 @@
 
 (() => {
 
-    const reqs = [];
+    const reqs: any = [];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
-        MICSR.addModal = (title, id, content) => {
+        MICSR.addModal = (title: any, id: any, content: any) => {
             // create modal
             const modal = document.createElement('div');
             modal.id = id;
@@ -42,23 +42,26 @@
             modalDialog.appendChild(modalContent);
 
             // create header
+            // @ts-expect-error TS(2581): Cannot find name '$'. Do you need to install type ... Remove this comment to see the full error message
             const modalHeader = $(`<div class="block block-themed block-transparent mb-0"><div class="block-header bg-primary-dark">
         <h3 class="block-title">${title}</h3>
         <div class="block-options"><button type="button" class="btn-block-option" data-dismiss="modal" aria-label="Close">
         <i class="fa fa-fw fa-times"></i></button></div></div></div>`);
+            // @ts-expect-error TS(2581): Cannot find name '$'. Do you need to install type ... Remove this comment to see the full error message
             $(modalContent).append(modalHeader);
 
             // add content
-            content.forEach(x => modalContent.appendChild(x));
+            content.forEach((x: any) => modalContent.appendChild(x));
 
             // insert modal
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             document.getElementById('page-container').appendChild(modal);
 
             // return modal
             return modal;
         }
 
-        MICSR.createMenu = (title, menuID, eyeID) => {
+        MICSR.createMenu = (title: any, menuID: any, eyeID: any) => {
             // check if tools menu already exists
             let menu = document.getElementById(menuID);
             if (menu !== null) {
@@ -78,40 +81,43 @@
             headingEye.onclick = () => MICSR.headingEyeOnClick(eyeID);
             headingEye.style.cursor = 'pointer';
             menu.appendChild(headingEye);
-            window.MICSR_eyeHidden = false;
+            (window as any).MICSR_eyeHidden = false;
 
             // insert menu before Minigames
-            document.getElementsByClassName('nav-main-heading').forEach(heading => {
-                if (heading.textContent === getLangString('PAGE_NAME_MISC', '1')) {
-                    heading.parentElement.insertBefore(menu, heading);
-                }
-            });
+(document.getElementsByClassName('nav-main-heading') as any).forEach((heading: any) => {
+    // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
+    if (heading.textContent === getLangString('PAGE_NAME_MISC', '1')) {
+        heading.parentElement.insertBefore(menu, heading);
+    }
+});
         }
 
         /**
          * Callback for when sidebar eye is clicked
          */
-        MICSR.headingEyeOnClick = (eyeID) => {
+        MICSR.headingEyeOnClick = (eyeID: any) => {
             const headingEye = document.getElementById(eyeID);
-            if (window.MICSR_eyeHidden) {
+            if ((window as any).MICSR_eyeHidden) {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 headingEye.className = 'far fa-eye text-muted ml-1';
-                window.MICSR_menuTabs.forEach(tab => tab.style.display = '');
-                window.MICSR_eyeHidden = false;
+                (window as any).MICSR_menuTabs.forEach((tab: any) => tab.style.display = '');
+                (window as any).MICSR_eyeHidden = false;
             } else {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 headingEye.className = 'far fa-eye-slash text-muted ml-1';
-                window.MICSR_menuTabs.forEach(tab => tab.style.display = 'none');
-                window.MICSR_eyeHidden = true;
+                (window as any).MICSR_menuTabs.forEach((tab: any) => tab.style.display = 'none');
+                (window as any).MICSR_eyeHidden = true;
             }
         }
 
-        MICSR.addMenuItem = (itemTitle, iconSrc, accessID, modalID, menuTitle = 'Tools', menuID = 'mcsToolsMenu', eyeID = 'mcsHeadingEye') => {
+        MICSR.addMenuItem = (itemTitle: any, iconSrc: any, accessID: any, modalID: any, menuTitle = 'Tools', menuID = 'mcsToolsMenu', eyeID = 'mcsHeadingEye') => {
             MICSR.createMenu(menuTitle, menuID, eyeID);
-            if (window.MICSR_menuTabs === undefined) {
-                window.MICSR_menuTabs = [];
+            if ((window as any).MICSR_menuTabs === undefined) {
+                (window as any).MICSR_menuTabs = [];
             }
 
             const tabDiv = document.createElement('li');
-            window.MICSR_menuTabs.push(tabDiv);
+            (window as any).MICSR_menuTabs.push(tabDiv);
             tabDiv.id = accessID;
             tabDiv.style.cursor = 'pointer';
             tabDiv.className = 'nav-main-item mcsNoSelect';
@@ -132,28 +138,31 @@
             menuText.textContent = itemTitle;
             menuButton.appendChild(menuText);
 
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
             document.getElementById(menuID).after(tabDiv);
 
             // return access point
             return tabDiv;
         }
 
-        MICSR.destroyMenu = (menuItemId, modalID, menuID = 'mcsToolsMenu') => {
+        MICSR.destroyMenu = (menuItemId: any, modalID: any, menuID = 'mcsToolsMenu') => {
             // remove the MICSR tab access point
             const tab = document.getElementById(menuItemId);
             if (tab !== null) {
-                window.MICSR_menuTabs = window.MICSR_menuTabs.filter(x => x !== tab);
+                (window as any).MICSR_menuTabs = (window as any).MICSR_menuTabs.filter((x: any) => x !== tab);
                 tab.remove();
             }
             // remove the tools menu if it is empty
             const menu = document.getElementById(menuID);
-            if (menu !== null && menu.length === 0) {
+            if (menu !== null && (menu as any).length === 0) {
                 menu.remove();
             }
             // hide and remove the modal
             const modal = document.getElementById(modalID);
             if (modal !== null) {
+                // @ts-expect-error TS(2581): Cannot find name '$'. Do you need to install type ... Remove this comment to see the full error message
                 $(modal).modal('hide');
+                // @ts-expect-error TS(2581): Cannot find name '$'. Do you need to install type ... Remove this comment to see the full error message
                 $(modal).modal('dispose');
                 modal.remove();
             }
@@ -161,10 +170,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -173,19 +184,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -194,10 +206,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Menu');
 

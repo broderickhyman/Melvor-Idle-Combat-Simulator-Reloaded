@@ -20,16 +20,20 @@
 
 (() => {
 
-    const reqs = [];
+    const reqs: any = [];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * Class to handle data exporting
          */
         MICSR.DataExport = class {
-            constructor(app) {
+            app: any;
+            exportOptions: any;
+            header: any;
+            simulator: any;
+            constructor(app: any) {
                 this.app = app;
                 this.simulator = this.app.simulator;
                 // Data Export Settings
@@ -46,29 +50,30 @@
                 );
             }
 
-            skip(filter, data) {
+            skip(filter: any, data: any) {
                 if (this.exportOptions.nonSimmed) {
                     return false;
                 }
                 return !filter || !data.simSuccess;
             }
 
-            exportEntity(exportData, exportIdx, filter, info, data) {
+            exportEntity(exportData: any, exportIdx: any, filter: any, info: any, data: any) {
                 if (this.skip(filter, data)) {
                     return;
                 }
                 exportData[exportIdx] = {
                     ...info,
-                    data: this.header.map(prop => this.round(data[prop])),
+                    data: this.header.map((prop: any) => this.round(data[prop])),
                 }
             }
 
-            round(x) {
+            round(x: any) {
                 if (x === undefined || x === null) {
                     return x;
                 }
                 if ((x).toString() === '[object Object]') {
                     const result = {};
+                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     Object.getOwnPropertyNames(x).forEach(prop => result[prop] = this.round(x[prop]));
                     return result;
                 } else if (!isNaN) {
@@ -91,7 +96,7 @@
                 }
 
                 // export Combat Areas, Wandering Bard, and Slayer Areas
-                this.app.monsterIDs.forEach(monsterID => this.exportEntity(
+                this.app.monsterIDs.forEach((monsterID: any) => this.exportEntity(
                     exportData.monsters,
                     monsterID,
                     this.simulator.monsterSimFilter[monsterID],
@@ -103,7 +108,7 @@
                 ));
 
                 // export dungeons
-                MICSR.dungeons.forEach((dungeon, dungeonID) => {
+                MICSR.dungeons.forEach((dungeon: any, dungeonID: any) => {
                     if (this.skip(
                         this.simulator.dungeonSimFilter[dungeonID],
                         this.simulator.dungeonSimData[dungeonID],
@@ -123,8 +128,10 @@
                     );
                     // dungeon monsters
                     if (this.exportOptions.dungeonMonsters) {
+                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                         exportData.dungeonMonsters[dungeonID] = {},
-                            dungeon.monsters.forEach(monsterID => this.exportEntity(
+                            dungeon.monsters.forEach((monsterID: any) => this.exportEntity(
+                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                                 exportData.dungeonMonsters[dungeonID],
                                 monsterID,
                                 this.simulator.dungeonSimFilter[dungeonID],
@@ -139,7 +146,8 @@
                 });
 
                 // export slayer tasks
-                SlayerTask.data.forEach((task, taskID) => {
+                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
+                SlayerTask.data.forEach((task: any, taskID: any) => {
                     if (this.skip(
                         this.simulator.slayerSimFilter[taskID],
                         this.simulator.slayerSimData[taskID],
@@ -159,7 +167,7 @@
                         this.simulator.slayerSimData[taskID],
                     );
                     // task monsters
-                    this.simulator.slayerTaskMonsters[taskID].forEach(monsterID => {
+                    this.simulator.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
                         this.exportEntity(
                             exportData.monsters,
                             monsterID,
@@ -174,15 +182,16 @@
                 });
                 return JSON.stringify(exportData);
             }
-
         }
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -191,19 +200,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -212,10 +222,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'DataExport');
 

@@ -17,6 +17,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// @ts-expect-error TS(6504): File '/home/gmiclott/Documents/Distractions/Melvor... Remove this comment to see the full error message
 /// <reference path="../typedefs.js" />
 
 (() => {
@@ -26,10 +27,10 @@
     ];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         // Define the message listeners from the content script
-        function onMessage(event) {
+        function onMessage(event: any) {
             // We only accept messages from ourselves
             if (event.source !== window) {
                 return;
@@ -41,11 +42,13 @@
                         // MICSR.log('Loading sim with provided URLS');
                         let tryLoad = true;
                         let wrongVersion = false;
+                        // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
                         if (gameVersion !== MICSR.gameVersion && gameVersion !== localStorage.getItem('MICSR-gameVersion')) {
                             wrongVersion = true;
                             tryLoad = window.confirm(`${MICSR.name} ${MICSR.version}\n`
                                 + `A different game version was detected (expected: ${MICSR.gameVersion}).\n`
                                 + `Loading the combat sim may cause unexpected behaviour.\n`
+                                // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
                                 + `After a successful load, this popup will be skipped for Melvor ${gameVersion}\n`
                                 + `Try loading the simulator?`);
                         }
@@ -54,7 +57,9 @@
                                 MICSR.melvorCombatSim = new MICSR.App(event.data.urls);
                                 if (wrongVersion) {
                                     MICSR.log(`${MICSR.name} ${MICSR.version} loaded, but simulation results may be inaccurate due to game version incompatibility.`);
+                                    // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
                                     MICSR.log(`No further warnings will be given when loading the simulator in Melvor ${gameVersion}`);
+                                    // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
                                     localStorage.setItem('MICSR-gameVersion', gameVersion);
                                 } else {
                                     MICSR.log(`${MICSR.name} ${MICSR.version} loaded.`);
@@ -81,8 +86,10 @@
         window.addEventListener('message', onMessage, false);
 
         // Wait for page to finish loading, then create an instance of the combat sim
+        // @ts-expect-error TS(2304): Cannot find name 'confirmedLoaded'.
         if (typeof confirmedLoaded !== 'undefined') {
             const melvorCombatSimLoader = setInterval(() => {
+                // @ts-expect-error TS(2304): Cannot find name 'confirmedLoaded'.
                 if (confirmedLoaded) {
                     clearInterval(melvorCombatSimLoader);
                     window.postMessage({type: 'MCS_FROM_PAGE', action: 'REQUEST_URLS'});
@@ -92,10 +99,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -104,19 +113,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -125,10 +135,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'main');
 

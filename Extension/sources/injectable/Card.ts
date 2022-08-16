@@ -24,12 +24,17 @@
     ];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * Class for the cards in the bottom of the ui
          */
         MICSR.Card = class {
+            container: any;
+            dropDowns: any;
+            inputWidth: any;
+            numOutputs: any;
+            outerContainer: any;
             /**
              * Constructs an instance of McsCard
              * @param {HTMLElement} parentElement The parent element the card should be appended to
@@ -37,7 +42,7 @@
              * @param {string} inputWidth The width of inputs for the card's ui elements
              * @param {boolean} outer This card is an outside card
              */
-            constructor(parentElement, height, inputWidth, outer = false) {
+            constructor(parentElement: any, height: any, inputWidth: any, outer = false) {
                 this.outerContainer = document.createElement('div');
                 this.outerContainer.className = `mcsCardContainer${outer ? ' mcsOuter block block-rounded border-top border-combat border-4x bg-combat-inner-dark' : ''}`;
                 if (height !== '') {
@@ -68,7 +73,7 @@
              * @param {Function} onclickCallback Callback to excute when pressed
              * @param {string} idTag Optional ID Tag
              */
-            addButton(buttonText, onclickCallback) {
+            addButton(buttonText: any, onclickCallback: any) {
                 const newButton = document.createElement('button');
                 newButton.type = 'button';
                 newButton.id = `MCS ${buttonText} Button`;
@@ -90,7 +95,7 @@
              * @param {string} imageID Element ID
              * @return {HTMLImageElement}
              */
-            addImage(imageSource, imageSize, imageID = '') {
+            addImage(imageSource: any, imageSize: any, imageID = '') {
                 const newImage = document.createElement('img');
                 newImage.style.width = `${imageSize}px`;
                 newImage.style.height = `${imageSize}px`;
@@ -113,7 +118,7 @@
              * @param {string} tooltip The tooltip content
              * @return {HTMLButtonElement} The created button element
              */
-            createImageButton(imageSource, idText, onclickCallback, size, tooltip) {
+            createImageButton(imageSource: any, idText: any, onclickCallback: any, size: any, tooltip: any) {
                 const newButton = document.createElement('button');
                 newButton.type = 'button';
                 newButton.id = `MCS ${idText} Button`;
@@ -138,7 +143,7 @@
              * @param {string} containerWidth container width
              * @return {HTMLDivElement[]} The image buttons
              */
-            addImageButtons(sources, idtexts, size, onclickCallbacks, tooltips, containerWidth = undefined) {
+            addImageButtons(sources: any, idtexts: any, size: any, onclickCallbacks: any, tooltips: any, containerWidth = undefined) {
                 const newCCContainer = document.createElement('div');
                 newCCContainer.className = 'mcsMultiImageButtonContainer';
                 for (let i = 0; i < sources.length; i++) {
@@ -156,11 +161,11 @@
              * @param {HTMLElement} showElement Element that should show the popup when clicked
              * @param {HTMLElement} popupMenuElement Element that should be displayed when the showElement is clicked
              */
-            registerPopupMenu(showElement, popupMenuElement) {
+            registerPopupMenu(showElement: any, popupMenuElement: any) {
                 showElement.addEventListener('click', () => {
                     let firstClick = true;
                     if (popupMenuElement.style.display === 'none') {
-                        const outsideClickListener = (event) => {
+                        const outsideClickListener = (event: any) => {
                             if (firstClick) {
                                 firstClick = false;
                                 return;
@@ -183,10 +188,12 @@
              * @param {HTMLElement[]} popups
              * @param {string[]} tooltips The tooltip contents
              */
-            addMultiPopupMenu(sources, elIds, popups, tooltips, newCCContainer = undefined) {
+            addMultiPopupMenu(sources: any, elIds: any, popups: any, tooltips: any, newCCContainer = undefined) {
                 if (!newCCContainer) {
+                    // @ts-expect-error TS(2322): Type 'HTMLDivElement' is not assignable to type 'u... Remove this comment to see the full error message
                     newCCContainer = document.createElement('div');
                 }
+                // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                 newCCContainer.className = 'mcsEquipmentImageContainer';
                 for (let i = 0; i < sources.length; i++) {
                     const containerDiv = document.createElement('div');
@@ -200,6 +207,7 @@
                     newImage.dataset.tippyHideonclick = 'true';
                     containerDiv.appendChild(newImage);
                     containerDiv.appendChild(popups[i]);
+                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     newCCContainer.appendChild(containerDiv);
                     popups[i].style.display = 'none';
                     this.registerPopupMenu(containerDiv, popups[i]);
@@ -215,7 +223,7 @@
              * @param {Array} optionValues The values of the dropdown's options
              * @param {Function} onChangeCallback The callback for when the option is changed
              */
-            addDropdown(labelText, optionText, optionValues, onChangeCallback) {
+            addDropdown(labelText: any, optionText: any, optionValues: any, onChangeCallback: any) {
                 const dropDownID = `MCS ${labelText} Dropdown`;
                 const newCCContainer = this.createCCContainer();
                 newCCContainer.id = `${dropDownID} Container`;
@@ -236,7 +244,7 @@
              * @param {Function} onChangeCallback The callback for when the option is changed
              * @return {HTMLSelectElement}
              */
-            createDropdown(optionText, optionValues, dropDownID, onChangeCallback) {
+            createDropdown(optionText: any, optionValues: any, dropDownID: any, onChangeCallback: any) {
                 const newDropdown = document.createElement('select');
                 newDropdown.className = 'form-control mb-1';
                 newDropdown.id = dropDownID;
@@ -259,7 +267,7 @@
              * @param {number} max The maximum value of the input
              * @param {Function} onChangeCallback The callback for when the input changes
              */
-            addNumberInput(labelText, startValue, min, max, onChangeCallback) {
+            addNumberInput(labelText: any, startValue: any, min: any, max: any, onChangeCallback: any) {
                 const inputID = `MCS ${labelText} Input`;
                 const newCCContainer = this.createCCContainer();
                 const label = this.createLabel(labelText, inputID);
@@ -283,7 +291,7 @@
              * @param {string} startValue The initial text in the input
              * @param {Function} onInputCallback The callback for when the input changes
              */
-            addTextInput(labelText, startValue, onInputCallback, id = null) {
+            addTextInput(labelText: any, startValue: any, onInputCallback: any, id = null) {
                 id = id === null ? labelText : id;
                 const inputID = `MCS ${id} TextInput`;
                 const newCCContainer = this.createCCContainer();
@@ -301,7 +309,7 @@
                 this.container.appendChild(newCCContainer);
             }
 
-            numberArrayToInputString(array) {
+            numberArrayToInputString(array: any) {
                 if (array === undefined || array === null) {
                     return '';
                 }
@@ -318,22 +326,22 @@
              * @param key
              * @param defaultValue
              */
-            addNumberArrayInput(labelText, object, key, defaultValue = undefined) {
-                let interval = undefined;
-                const onInputCallback = (event) => {
+            addNumberArrayInput(labelText: any, object: any, key: any, defaultValue = undefined) {
+                let interval: any = undefined;
+                const onInputCallback = (event: any) => {
                     let input = event.currentTarget.value;
-                    let result;
+                    let result: any;
                     try {
                         // split input into numbers
                         result = input.split(/\D/)
                             // get rid of empty entries
-                            .filter(x => x.length)
+                            .filter((x: any) => x.length)
                             // parse
-                            .map(x => parseInt(x))
+                            .map((x: any) => parseInt(x))
                             // sort numerically
-                            .sort((a, b) => a - b)
+                            .sort((a: any, b: any) => a - b)
                             // remove duplicates
-                            .filter((e, i, a) => e !== a[i - 1]);
+                            .filter((e: any, i: any, a: any) => e !== a[i - 1]);
                     } catch {
                         result = defaultValue;
                     }
@@ -361,7 +369,7 @@
              * @param {string} textToDisplay
              * @return {HTMLDivElement}
              */
-            addInfoText(textToDisplay) {
+            addInfoText(textToDisplay: any) {
                 const textDiv = document.createElement('div');
                 textDiv.textContent = textToDisplay;
                 textDiv.className = 'mcsInfoText';
@@ -378,7 +386,7 @@
              * @param {string} outputID The id of the output field
              * @param {boolean} setLabelID Whether or not to assign an ID to the label
              */
-            addNumberOutput(labelText, initialValue, height, imageSrc, outputID, setLabelID = false) {
+            addNumberOutput(labelText: any, initialValue: any, height: any, imageSrc: any, outputID: any, setLabelID = false) {
                 if (!outputID) {
                     outputID = `MCS ${labelText} Output`;
                 }
@@ -388,6 +396,7 @@
                     newCCContainer.appendChild(this.createImage(imageSrc, height));
                 }
                 // label
+                // @ts-expect-error TS(2554): Expected 2 arguments, but got 3.
                 const newLabel = this.createLabel(labelText, outputID, setLabelID);
                 if (setLabelID) {
                     newLabel.id = `MCS ${labelText} Label`;
@@ -410,7 +419,7 @@
              * @param {string} titleText The text for the title
              * @param {string} titleID An optional id for the title, if left as '' an ID will not be assigned
              */
-            addSectionTitle(titleText, titleID = undefined) {
+            addSectionTitle(titleText: any, titleID = undefined) {
                 const newSectionTitle = document.createElement('div');
                 if (titleID) {
                     newSectionTitle.id = titleID;
@@ -430,7 +439,7 @@
              * @param {number} width The width of the buttons in pixels
              * @param {Function[]} buttonCallbacks The callback function for when the buttons are clicked
              */
-            addMultiButton(buttonText, buttonCallbacks, container = this.container) {
+            addMultiButton(buttonText: any, buttonCallbacks: any, container = this.container) {
                 let newButton;
                 const newCCContainer = document.createElement('div');
                 newCCContainer.className = 'mcsMultiButtonContainer';
@@ -447,7 +456,7 @@
                 container.appendChild(newCCContainer);
             }
 
-            addImageToggleWithInfo(imgSrc, id, callBack, text, size = 'Medium', tooltip = '') {
+            addImageToggleWithInfo(imgSrc: any, id: any, callBack: any, text: any, size = 'Medium', tooltip = '') {
                 const container = this.createCCContainer();
                 // image
                 const img = this.createImageButton(imgSrc, id, callBack, size, tooltip);
@@ -469,7 +478,7 @@
                 this.container.appendChild(container);
             }
 
-            addToggleRadio(labelText, radioName, object, flag, initialYes = false, height = 25, callBack = () => {
+            addToggleRadio(labelText: any, radioName: any, object: any, flag: any, initialYes = false, height = 25, callBack = () => {
             }) {
                 const yesToggle = () => {
                     object[flag] = true;
@@ -493,7 +502,7 @@
              * @param {number} initialRadio The initial radio that is on
              * @param {string} imageSrc An optional string to specify the source of a label image, if '' an image is not added
              */
-            addRadio(labelText, height, radioName, radioLabels, radioCallbacks, initialRadio, imageSrc = '') {
+            addRadio(labelText: any, height: any, radioName: any, radioLabels: any, radioCallbacks: any, initialRadio: any, imageSrc = '') {
                 const newCCContainer = this.createCCContainer();
                 if (imageSrc && imageSrc !== '') {
                     newCCContainer.appendChild(this.createImage(imageSrc, height));
@@ -519,7 +528,7 @@
              * @param {Function} radioCallback Callback for when the radio is clicked
              * @return {HTMLDivElement}
              */
-            createRadio(radioName, radioLabel, radioID, checked, radioCallback) {
+            createRadio(radioName: any, radioLabel: any, radioID: any, checked: any, radioCallback: any) {
                 const newDiv = document.createElement('div');
                 newDiv.className = 'custom-control custom-radio custom-control-inline';
                 const newRadio = document.createElement('input');
@@ -555,10 +564,11 @@
              * @param {string} referenceID The element the label references
              * @return {HTMLLabelElement}
              */
-            createLabel(labelText, referenceID) {
+            createLabel(labelText: any, referenceID: any) {
                 const newLabel = document.createElement('label');
                 newLabel.className = 'mcsLabel';
                 newLabel.textContent = labelText;
+                // @ts-expect-error TS(2551): Property 'for' does not exist on type 'HTMLLabelEl... Remove this comment to see the full error message
                 newLabel.for = referenceID;
                 return newLabel;
             }
@@ -569,7 +579,7 @@
              * @param {number} height in pixels
              * @return {HTMLImageElement} The newly created image element
              */
-            createImage(imageSrc, height) {
+            createImage(imageSrc: any, height: any) {
                 const newImage = document.createElement('img');
                 newImage.style.height = `${height}px`;
                 newImage.src = imageSrc;
@@ -582,7 +592,7 @@
              * @param {MouseEvent} e The mouseleave event
              * @param {HTMLDivElement} tooltip The tooltip element
              */
-            hideTooltip(e, tooltip) {
+            hideTooltip(e: any, tooltip: any) {
                 tooltip.style.display = 'none';
             }
 
@@ -591,17 +601,19 @@
              * @param {MouseEvent} e The mouseenter event
              * @param {HTMLDivElement} tooltip The tooltip element
              */
-            showTooltip(e, tooltip) {
+            showTooltip(e: any, tooltip: any) {
                 tooltip.style.display = '';
             }
         }
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -610,19 +622,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -631,10 +644,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Card');
 

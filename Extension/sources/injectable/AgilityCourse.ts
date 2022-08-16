@@ -24,18 +24,29 @@
     ];
 
     const setup = () => {
-        const MICSR = window.MICSR;
+        const MICSR = (window as any).MICSR;
 
         /**
          * Class for the cards in the bottom of the ui
          */
         MICSR.AgilityCourse = class {
-            constructor(parent, data, filters) {
+            agilityCategories: any;
+            agilityObstacles: any;
+            agilityPillars: any;
+            data: any;
+            filter: any;
+            filters: any;
+            id: any;
+            media: any;
+            parent: any;
+            tmpModifiers: any;
+            constructor(parent: any, data: any, filters: any) {
                 this.parent = parent;
                 this.data = data;
                 this.filters = filters;
                 this.filter = this.filters[0];
                 this.id = Date.now();
+                // @ts-expect-error TS(2304): Cannot find name 'PlayerModifiers'.
                 this.tmpModifiers = new PlayerModifiers();
 
                 // icons
@@ -59,22 +70,24 @@
                     name: 'None',
                     requirements: {},
                 }
-                this.agilityObstacles = [noObstacle, ...Agility.obstacles.map((x, id) => {
+                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
+                this.agilityObstacles = [noObstacle, ...Agility.obstacles.map((x: any, id: any) => {
                     const obstacle = {...x};
                     obstacle.id = id;
-                    this.filters.forEach(filter => obstacle[filter.tag] = MICSR.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
+                    this.filters.forEach((filter: any) => obstacle[filter.tag] = MICSR.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
                     return obstacle;
                 })];
-                this.agilityPillars = [noObstacle, ...Agility.passivePillars.map((x, id) => {
+                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
+                this.agilityPillars = [noObstacle, ...Agility.passivePillars.map((x: any, id: any) => {
                     const pillar = {...x};
                     pillar.id = id;
                     pillar.media = [this.media.combat, this.media.statistics, this.media.gp][id]
-                    this.filters.forEach(filter => pillar[filter.tag] = MICSR.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
+                    this.filters.forEach((filter: any) => pillar[filter.tag] = MICSR.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
                     return pillar;
                 })];
             }
 
-            createAgilityCourseContainer(card, filter) {
+            createAgilityCourseContainer(card: any, filter: any) {
                 this.filter = filter;
                 card.addSectionTitle('Agility Course');
 
@@ -84,7 +97,7 @@
                     const obstacleSelectionContainer = card.createCCContainer();
                     // mastery button
                     if (category < this.agilityCategories) {
-                        const masteryButton = card.createImageButton(this.media.mastery, `Agility Mastery ${category} ${this.id} Toggle`, (event) => this.agilityMasteryOnClick(event, category), 'Small', '99 Mastery');
+                        const masteryButton = card.createImageButton(this.media.mastery, `Agility Mastery ${category} ${this.id} Toggle`, (event: any) => this.agilityMasteryOnClick(event, category), 'Small', '99 Mastery');
                         masteryButton.className += ' col-3';
                         obstacleSelectionContainer.appendChild(masteryButton);
                     } else {
@@ -104,10 +117,12 @@
                     // label
                     const labelDiv = document.createElement('div');
                     labelDiv.className = 'col-6';
+                    // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
                     labelDiv.style = 'display: table; text-align: center;';
                     const label = document.createElement('label');
                     label.id = `MICSR Obstacle ${category} ${this.id} Label`;
                     label.textContent = 'None';
+                    // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
                     label.style = 'display: table-cell; vertical-align: middle;';
                     labelDiv.appendChild(label);
                     obstacleSelectionContainer.appendChild(labelDiv);
@@ -120,38 +135,39 @@
              * @param {Card} card The parent card
              * @param {number} category The obstacle index
              */
-            addObstacleMultiButton(card, title, category, prop, isProp) {
+            addObstacleMultiButton(card: any, title: any, category: any, prop: any, isProp: any) {
                 const menuItems = category === this.agilityCategories
                     ? this.agilityPillars
-                    : this.agilityObstacles.filter(x => x.category === -1 || (x[prop] === isProp && x.category === category));
+                    : this.agilityObstacles.filter((x: any) => x.category === -1 || (x[prop] === isProp && x.category === category));
                 if (menuItems.length <= 1) {
                     return;
                 }
-                const buttonMedia = menuItems.map(obstacle => obstacle.media);
-                const buttonIds = menuItems.map(obstacle => `${obstacle.name} ${this.id}`);
-                const buttonCallbacks = menuItems.map(obstacle => () => this.selectObstacle(category, obstacle));
-                const tooltips = menuItems.map(obstacle => this.getObstacleTooltip(category, obstacle));
+                const buttonMedia = menuItems.map((obstacle: any) => obstacle.media);
+                const buttonIds = menuItems.map((obstacle: any) => `${obstacle.name} ${this.id}`);
+                const buttonCallbacks = menuItems.map((obstacle: any) => () => this.selectObstacle(category, obstacle));
+                const tooltips = menuItems.map((obstacle: any) => this.getObstacleTooltip(category, obstacle));
                 card.addSectionTitle(title);
                 card.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
             }
 
-            getObstacleTooltip(category, obstacle) {
+            getObstacleTooltip(category: any, obstacle: any) {
                 let passives = `<div class="text-center">${obstacle.name}</div>`;
                 if (this.data.courseMastery[category]) {
                     this.tmpModifiers.addModifiers(obstacle.modifiers, 0.5);
                 } else {
                     this.tmpModifiers.addModifiers(obstacle.modifiers);
                 }
-                MICSR.showModifiersInstance.printRelevantModifiers(this.tmpModifiers, this.filter.tag).forEach(toPrint => {
+                MICSR.showModifiersInstance.printRelevantModifiers(this.tmpModifiers, this.filter.tag).forEach((toPrint: any) => {
                     passives += `<div class="${toPrint[1]}">${toPrint[0]}</div>`;
                 });
                 this.tmpModifiers.reset();
                 return passives;
             }
 
-            createAgilityPopup(category, filter) {
+            createAgilityPopup(category: any, filter: any) {
                 const obstacleSelectPopup = document.createElement('div');
                 obstacleSelectPopup.className = 'mcsPopup';
+                // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
                 obstacleSelectPopup.style = 'width:350px;';
                 const obstacleSelectCard = new MICSR.Card(obstacleSelectPopup, '', '600px');
                 if (category === this.agilityCategories) {
@@ -163,8 +179,9 @@
                 return obstacleSelectPopup;
             }
 
-            selectObstacle(category, obstacle) {
+            selectObstacle(category: any, obstacle: any) {
                 const label = document.getElementById(`MICSR Obstacle ${category} ${this.id} Label`);
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 label.textContent = obstacle.name;
                 this.setObstacleImage(category, obstacle);
                 if (category === this.agilityCategories) {
@@ -182,26 +199,26 @@
             /**
              * Change the obstacle image
              */
-            setObstacleImage(category, obstacle) {
+            setObstacleImage(category: any, obstacle: any) {
                 const img = document.getElementById(`MICSR Obstacle ${category} ${this.id} Image`);
-                img.src = obstacle.media;
-                img._tippy.setContent(this.getObstacleTooltip(category, obstacle));
+                (img as any).src = obstacle.media;
+                (img as any)._tippy.setContent(this.getObstacleTooltip(category, obstacle));
             }
 
-            updateAgilityTooltips(category) {
-                this.agilityObstacles.forEach(obstacle => {
+            updateAgilityTooltips(category: any) {
+                this.agilityObstacles.forEach((obstacle: any) => {
                     if (obstacle.category !== category) {
                         return;
                     }
                     const button = document.getElementById(`MCS ${obstacle.name} ${this.id} Button`);
-                    button._tippy.setContent(this.getObstacleTooltip(category, obstacle));
+                    (button as any)._tippy.setContent(this.getObstacleTooltip(category, obstacle));
                 });
                 const obstacle = this.agilityObstacles[this.data.course[category] + 1];
                 const img = document.getElementById(`MICSR Obstacle ${category} ${this.id} Image`);
-                img._tippy.setContent(this.getObstacleTooltip(category, obstacle));
+                (img as any)._tippy.setContent(this.getObstacleTooltip(category, obstacle));
             }
 
-            agilityMasteryOnClick(event, category) {
+            agilityMasteryOnClick(event: any, category: any) {
                 // toggle
                 if (this.data.courseMastery[category]) {
                     this.data.courseMastery[category] = false;
@@ -216,12 +233,12 @@
                 this.parent.agilityCourseCallback();
             }
 
-            importAgilityCourse(course, masteries, pillar) {
+            importAgilityCourse(course: any, masteries: any, pillar: any) {
                 // clear current values
                 this.data.course.fill(-1);
                 this.data.courseMastery.fill(false);
                 // import settings
-                this.data.course.forEach((_, category) => {
+                this.data.course.forEach((_: any, category: any) => {
                     let obstacleID = course[category];
                     if (obstacleID === undefined) {
                         obstacleID = -1;
@@ -235,7 +252,7 @@
                 this.data.pillar = pillar;
                 this.selectObstacle(this.agilityCategories, this.agilityPillars[pillar + 1]);
                 // set image selection
-                this.data.courseMastery.forEach((m, i) => {
+                this.data.courseMastery.forEach((m: any, i: any) => {
                     const elt = document.getElementById(`MCS Agility Mastery ${i} ${this.id} Toggle Button`);
                     if (m) {
                         this.parent.selectButton(elt);
@@ -248,10 +265,12 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs, setup, id) => {
+    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (characterSelected && !characterLoading) {
             loadCounter++;
         }
@@ -260,19 +279,20 @@
             return;
         }
         // check requirements
+        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && !characterLoading;
-        if (window.MICSR === undefined) {
+        if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
         } else {
             for (const req of reqs) {
-                if (window.MICSR.loadedFiles[req]) {
+                if ((window as any).MICSR.loadedFiles[req]) {
                     continue;
                 }
                 reqMet = false;
                 // not defined yet: try again later
                 if (loadCounter === 1) {
-                    window.MICSR.log(id + ' is waiting for ' + req);
+                    (window as any).MICSR.log(id + ' is waiting for ' + req);
                 }
             }
         }
@@ -281,10 +301,10 @@
             return;
         }
         // requirements met
-        window.MICSR.log('setting up ' + id);
+(window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-        window.MICSR.loadedFiles[id] = true;
+(window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'AgilityCourse');
 
