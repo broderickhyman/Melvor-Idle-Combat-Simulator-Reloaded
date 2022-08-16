@@ -58,6 +58,7 @@
             testCount: any;
             testMax: any;
             workerURL: any;
+
             /**
              *
              * @param {McsApp} parent Reference to container class
@@ -82,7 +83,7 @@
                     };
                     if (isMonster) {
                         (data as any).inQueue = false;
-                        (data as any).petRolls = { other: [] };
+                        (data as any).petRolls = {other: []};
                     }
                     return data
                 }
@@ -183,7 +184,7 @@
                             workerContent.open('GET', this.workerURL);
                             workerContent.send();
                             workerContent.addEventListener('load', (event) => {
-                                const blob = new Blob([(event.currentTarget as any).responseText], { type: 'application/javascript' });
+                                const blob = new Blob([(event.currentTarget as any).responseText], {type: 'application/javascript'});
                                 this.workerURL = URL.createObjectURL(blob);
                                 resolve(new Worker(this.workerURL));
                             });
@@ -532,9 +533,8 @@
                     // @ts-expect-error TS(2304): Cannot find name 'petUnlocked'.
                     {name: 'petUnlocked', data: petUnlocked},
                 ];
-                const constants = {};
+                const constants: { [name: string]: string; } = {};
                 constantNames.forEach(constant =>
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     constants[constant.name] = constant.data
                 );
                 // functions
@@ -618,19 +618,21 @@
                         data: MICSR.getModifierValue,
                     },
                 ];
-                const functions = {};
+                const functions: { [name: string]: string; } = {};
                 functionNames.forEach(func => {
                     let fstring = func.data.toString();
                     if (!fstring.startsWith('function ') && !fstring.includes('=>')) {
                         fstring = 'function ' + fstring;
                     }
                     fstring = fstring.replace(`function ${func.name}`, 'function');
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    functions[func.name] = `${func.name} = ${fstring}`;
+                    if (func.name.startsWith('MICSR.')) {
+                        functions[func.name] = `${func.name} = ${fstring}`;
+                    } else {
+                        functions[func.name] = `self['${func.name}'] = ${fstring}`;
+                    }
                 });
                 // modify value cloned functions
                 cloneBackupMethods.forEach(func => {
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                     functions[func.name] = func.data;
                     functionNames.push(func)
                 });
@@ -689,7 +691,7 @@
                     {name: 'Enemy', data: Enemy},
                     {name: 'MICSR.SimEnemy', data: MICSR.SimEnemy},
                 ];
-                const classes = {};
+                const classes: { [name: string]: string; } = {};
                 classNames.forEach(clas => {
                     const s = clas.data.toString()
                         // remove class name
@@ -699,8 +701,11 @@
                         // fix Character bug
                         //TODO: remove this when Character.applyDOT no longer refers to the global combatManager object
                         .replace('combatManager', 'this.manager');
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    classes[clas.name] = `${clas.name} = ${s}`;
+                    if (clas.name.startsWith('MICSR.')) {
+                        classes[clas.name] = `${clas.name} = ${s}`;
+                    } else {
+                        classes[clas.name] = `self['${clas.name}'] = ${s}`;
+                    }
                 });
                 // worker
                 worker.onmessage = (event: any) => this.processWorkerMessage(event, i);
@@ -1391,10 +1396,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Simulator');
 

@@ -17,8 +17,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-// @ts-expect-error TS(6504): File '/home/gmiclott/Documents/Distractions/Melvor... Remove this comment to see the full error message
-/// <reference path="../typedefs.js" />
 
 (() => {
     const reqs = [
@@ -135,10 +133,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'main');
 

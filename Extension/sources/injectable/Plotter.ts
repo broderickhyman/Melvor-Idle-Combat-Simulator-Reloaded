@@ -64,6 +64,7 @@
             xAxisCrosses: any;
             xAxisImages: any;
             yAxis: any;
+
             /**
              * Consctructs an instance of the plotting class
              * @param {McsApp} parent Reference to container class
@@ -634,10 +635,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Plotter');
 

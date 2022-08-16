@@ -121,6 +121,7 @@
             uniqueModifiers: any;
             viewedDungeonID: any;
             zoneInfoCard: any;
+
             /**
              * Constructs an instance of mcsApp
              * @param {Object} urls URLs from content script
@@ -1150,7 +1151,7 @@
                     }
                 });
                 // set UI to 0
-this.constellationModifierContainers.forEach((containers: any) => containers.forEach((x: any) => (document.getElementById(x) as any).value = 0));
+                this.constellationModifierContainers.forEach((containers: any) => containers.forEach((x: any) => (document.getElementById(x) as any).value = 0));
                 // update summary
                 this.updateAstrologySummary();
                 // update stats
@@ -1261,7 +1262,7 @@ this.constellationModifierContainers.forEach((containers: any) => containers.for
             createUniqueAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
                 // unique modifiers
                 const uniqMod = constellation.uniqueModifiers.reduce((acc: any, val: any) => acc.concat(val), []).filter((m: any) => MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m)
-                || MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m.substring(9))
+                    || MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m.substring(9))
                 );
                 uniqMod.forEach((modifier: any) => {
                     card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
@@ -1859,32 +1860,32 @@ this.constellationModifierContainers.forEach((containers: any) => containers.for
                     equipmentSelectCard.addSectionTitle('1H Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('melee', item);
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Attack));
                     equipmentSelectCard.addSectionTitle('2H Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('melee', item);
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Attack));
                     equipmentSelectCard.addSectionTitle('1H Ranged');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('ranged', item);
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('2H Ranged');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('ranged', item);
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('1H Magic');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('magic', item);
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Magic));
                     equipmentSelectCard.addSectionTitle('2H Magic');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('magic', item);
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                     }, x => this.getItemLevelReq(x, Skills.Magic));
                 } else if (equipmentSlot === 9) {
                     equipmentSelectCard.addSectionTitle('Arrows');
@@ -1901,7 +1902,7 @@ this.constellationModifierContainers.forEach((containers: any) => containers.for
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, Skills.Ranged));
                     equipmentSelectCard.addSectionTitle('Other');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterNoAmmoType(item), x => x.name);
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 } else if (equipmentSlot === equipmentSlotData.Passive.id) {
                     equipmentSelectCard.addSectionTitle('Magic Damage');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterMagicDamage(item), x => x.name);
@@ -1909,7 +1910,7 @@ this.constellationModifierContainers.forEach((containers: any) => containers.for
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterSlayer(item), x => x.name);
                     equipmentSelectCard.addSectionTitle('Other');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterRemainingPassive(item), x => x.name);
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
+                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 } else if (equipmentSlot === equipmentSlotData.Summon1.id || equipmentSlot === equipmentSlotData.Summon2.id) {
                     equipmentSelectCard.addSectionTitle('Combat Familiars')
                     // @ts-expect-error TS(2304): Cannot find name 'Skills'.
@@ -3217,7 +3218,7 @@ this.constellationModifierContainers.forEach((containers: any) => containers.for
             getItemName(itemID: any) {
                 if (itemID === -1) {
                     return 'None';
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                 } else if (!items[itemID]) {
                     MICSR.warn(`Invalid itemID ${itemID} in getItemName`);
                     return 'None';
@@ -3320,10 +3321,10 @@ this.constellationModifierContainers.forEach((containers: any) => containers.for
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'App');
 

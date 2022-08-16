@@ -84,12 +84,12 @@
             (window as any).MICSR_eyeHidden = false;
 
             // insert menu before Minigames
-(document.getElementsByClassName('nav-main-heading') as any).forEach((heading: any) => {
-    // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
-    if (heading.textContent === getLangString('PAGE_NAME_MISC', '1')) {
-        heading.parentElement.insertBefore(menu, heading);
-    }
-});
+            (document.getElementsByClassName('nav-main-heading') as any).forEach((heading: any) => {
+                // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
+                if (heading.textContent === getLangString('PAGE_NAME_MISC', '1')) {
+                    heading.parentElement.insertBefore(menu, heading);
+                }
+            });
         }
 
         /**
@@ -206,10 +206,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Menu');
 

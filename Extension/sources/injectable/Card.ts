@@ -35,6 +35,7 @@
             inputWidth: any;
             numOutputs: any;
             outerContainer: any;
+
             /**
              * Constructs an instance of McsCard
              * @param {HTMLElement} parentElement The parent element the card should be appended to
@@ -644,10 +645,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'Card');
 

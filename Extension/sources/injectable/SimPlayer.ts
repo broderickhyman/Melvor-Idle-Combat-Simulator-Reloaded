@@ -104,6 +104,7 @@
             usedPrayerPoints: any;
             usedRunes: any;
             usingAncient: any;
+
             constructor(simManager: any) {
                 super(simManager);
                 this.detachGlobals();
@@ -308,7 +309,6 @@
 
             computeConditionalListeners() {
                 // Reset the listener sets
-                // @ts-expect-error TS(2550): Property 'values' does not exist on type 'ObjectCo... Remove this comment to see the full error message
                 Object.values(this.conditionalListeners).forEach((list: any) => list.clear());
                 // Equipped Items
                 this.equipment.slotArray.forEach((slot: any) => {
@@ -961,10 +961,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'SimPlayer');
 

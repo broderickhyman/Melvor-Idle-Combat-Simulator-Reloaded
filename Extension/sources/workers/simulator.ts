@@ -17,8 +17,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-// @ts-expect-error TS(6504): File '/home/gmiclott/Documents/Distractions/Melvor... Remove this comment to see the full error message
-/// <reference path="../typedefs.js" />
 
 (() => {
     // spoof MICSR
@@ -150,7 +148,7 @@
                     eval(event.data.classes[name]);
                 });
                 // create instances
-(MICSR as any).showModifiersInstance = new (MICSR as any).ShowModifiers('', 'MICSR', false);
+                (MICSR as any).showModifiersInstance = new (MICSR as any).ShowModifiers('', 'MICSR', false);
                 // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 SlayerTask.data = (self as any).slayerTaskData;
                 combatSimulator = new CombatSimulator();
@@ -191,6 +189,7 @@
 
     class CombatSimulator {
         cancelStatus: any;
+
         constructor() {
             this.cancelStatus = false;
         }

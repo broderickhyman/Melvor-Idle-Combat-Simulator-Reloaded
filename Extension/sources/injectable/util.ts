@@ -25,7 +25,7 @@
     const setup = () => {
 
         // global combat simulator object
-const MICSR = (window as any).MICSR;
+        const MICSR = (window as any).MICSR;
 
         // combat sim name
         MICSR.name = 'Melvor Idle Combat Simulator Reloaded';
@@ -292,10 +292,10 @@ const MICSR = (window as any).MICSR;
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'util');
 

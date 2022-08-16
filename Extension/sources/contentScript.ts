@@ -32,7 +32,7 @@ window.addEventListener('message', (event) => {
                     // @ts-expect-error TS(2304): Cannot find name 'chrome'.
                     crossedOut: chrome.runtime.getURL('icons/crossedOut.svg'),
                     // @ts-expect-error TS(2304): Cannot find name 'chrome'.
-                    simulationWorker: chrome.runtime.getURL('sources/workers/simulator.js'),
+                    simulationWorker: chrome.runtime.getURL('built/workers/simulator.js'),
                 };
                 window.postMessage({type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls});
                 break;
@@ -55,7 +55,7 @@ function injectScript(scriptName: any) {
     }
     // Inject script
     // @ts-expect-error TS(2304): Cannot find name 'chrome'.
-    const scriptPath = chrome.runtime.getURL(`sources/injectable/${scriptName}.js`);
+    const scriptPath = chrome.runtime.getURL(`built/injectable/${scriptName}.js`);
     const newScript = document.createElement('script');
     newScript.setAttribute('id', scriptID);
     newScript.src = scriptPath;

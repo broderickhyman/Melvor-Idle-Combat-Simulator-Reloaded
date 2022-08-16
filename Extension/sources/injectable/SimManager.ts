@@ -71,6 +71,7 @@
             startFight: any;
             tick: any;
             tickCount: any;
+
             constructor() {
                 super();
                 this.player = new MICSR.SimPlayer(this);
@@ -162,22 +163,22 @@
                 const ticksPerSecond = 1000 / TICK_INTERVAL;
                 const trials = simResult.killCount + simResult.deathCount;
                 // success
-(data as any).simSuccess = simResult.success;
+                (data as any).simSuccess = simResult.success;
                 (data as any).reason = undefined;
                 (data as any).tickCount = simResult.tickCount;
                 // xp rates
 // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-(data as any).xpPerSecond = gps.skillXP[Skills.Attack]
-    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-    + gps.skillXP[Skills.Strength]
-    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-    + gps.skillXP[Skills.Defence]
-    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-    + gps.skillXP[Skills.Ranged]
-    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-    + gps.skillXP[Skills.Magic]; // TODO: this depends on attack style
- // @ts-expect-error TS(2304): Cannot find name 'Skills'.
- (data as any).hpXpPerSecond = gps.skillXP[Skills.Hitpoints];
+                (data as any).xpPerSecond = gps.skillXP[Skills.Attack]
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    + gps.skillXP[Skills.Strength]
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    + gps.skillXP[Skills.Defence]
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    + gps.skillXP[Skills.Ranged]
+                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                    + gps.skillXP[Skills.Magic]; // TODO: this depends on attack style
+                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
+                (data as any).hpXpPerSecond = gps.skillXP[Skills.Hitpoints];
                 // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 (data as any).slayerXpPerSecond = gps.skillXP[Skills.Slayer];
                 // @ts-expect-error TS(2304): Cannot find name 'Skills'.
@@ -185,7 +186,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'Skills'.
                 (data as any).summoningXpPerSecond = gps.skillXP[Skills.Summoning];
                 // consumables
-(data as any).ppConsumedPerSecond = gps.usedPrayerPoints;
+                (data as any).ppConsumedPerSecond = gps.usedPrayerPoints;
                 (data as any).ammoUsedPerSecond = gps.usedAmmo;
                 (data as any).runesUsedPerSecond = gps.usedRunes;
                 (data as any).usedRunesBreakdown = gps.usedRunesBreakdown;
@@ -197,24 +198,24 @@
                     potionCharges = potion.potionCharges + MICSR.getModifierValue(this.player.modifiers, 'PotionChargesFlat');
                 }
                 (data as any).potionsUsedPerSecond = gps.usedPotionCharges / potionCharges; // TODO: divide by potion capacity
- (data as any).tabletsUsedPerSecond = gps.usedSummoningCharges;
+                (data as any).tabletsUsedPerSecond = gps.usedSummoningCharges;
                 (data as any).atePerSecond = gps.usedFood;
                 // survivability
-(data as any).deathRate = simResult.deathCount / trials;
+                (data as any).deathRate = simResult.deathCount / trials;
                 (data as any).highestDamageTaken = gps.highestDamageTaken;
                 (data as any).lowestHitpoints = gps.lowestHitpoints;
                 // kill time
-(data as any).killTimeS = simResult.tickCount / ticksPerSecond / simResult.killCount;
+                (data as any).killTimeS = simResult.tickCount / ticksPerSecond / simResult.killCount;
                 (data as any).killsPerSecond = 1 / (data as any).killTimeS;
                 // loot gains
-(data as any).baseGpPerSecond = gps.gp; // gpPerSecond is computed from this
- (data as any).dropChance = NaN;
+                (data as any).baseGpPerSecond = gps.gp; // gpPerSecond is computed from this
+                (data as any).dropChance = NaN;
                 (data as any).signetChance = NaN;
                 (data as any).petChance = NaN;
                 (data as any).petRolls = gps.petRolls;
                 (data as any).slayerCoinsPerSecond = gps.slayercoins;
                 // not displayed -> TODO: remove?
-(data as any).simulationTime = NaN;
+                (data as any).simulationTime = NaN;
                 if (targetTrials - trials > 0) {
                     (data as any).reason = `simulated ${trials}/${targetTrials} trials`;
                 }
@@ -403,10 +404,10 @@
             return;
         }
         // requirements met
-(window as any).MICSR.log('setting up ' + id);
+        (window as any).MICSR.log('setting up ' + id);
         setup();
         // mark as loaded
-(window as any).MICSR.loadedFiles[id] = true;
+        (window as any).MICSR.loadedFiles[id] = true;
     }
     waitLoadOrder(reqs, setup, 'SimManager');
 
