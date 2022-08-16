@@ -723,7 +723,7 @@
                     img.style.border = '';
                 }
                 // @ts-expect-error TS(2304): Cannot find name 'items'.
-                (img as any)._tippy.setContent(this.getFoodTooltip(items[itemID]));
+                this.setTooltip(img, this.getFoodTooltip(items[itemID]));
                 this.updateHealing();
             }
 
@@ -1983,7 +1983,7 @@
                 const img = document.getElementById(`MCS ${slotKey} Image`);
                 const item = MICSR.getItem(itemId, slotKey);
                 (img as any).src = this.getItemMedia(item);
-                (img as any)._tippy.setContent(this.getEquipmentTooltip(equipmentSlot, item));
+                this.setTooltip(img, this.getEquipmentTooltip(equipmentSlot, item));
                 if (occupy && item.occupiesSlots) {
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     item.occupiesSlots.forEach((slot: any) => this.setEquipmentImage(equipmentSlotData[slot].id, itemId, false));
@@ -2856,7 +2856,16 @@
                 }
                 let tooltip = `<span>${Math.floor(deathRate / killTimeS * dataMultiplier * 10000) / 10000} Est. Deaths/${this.selectedTimeShorthand}</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
-                (document.getElementById(`MCS deathRate Output`) as any)._tippy.setContent(tooltip);
+                this.setTooltipById(`MCS deathRate Output`, tooltip);
+            }
+
+            setTooltipById(id: string, tooltip: string) {
+                this.setTooltip(document.getElementById(id), tooltip);
+            }
+
+            setTooltip(element: HTMLElement | null, tooltip: string) {
+                // @ts-expect-error TS(2339): Property _tippy does not exist on type 'HTMLElement'.
+                element._tippy.setContent(tooltip);
             }
 
             setGPTooltip(baseGpPerSecond: any, killTimeS: any) {
@@ -2867,7 +2876,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'formatNumber'.
                 let tooltip = `<span>${formatNumber(Math.floor(baseGpPerSecond * dataMultiplier))} Raw GP/${this.selectedTimeShorthand}</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
-                (document.getElementById(`MCS gpPerSecond Output`) as any)._tippy.setContent(tooltip);
+                this.setTooltipById(`MCS gpPerSecond Output`, tooltip);
             }
 
             setPrayerTooltip(prayerXpPerSecond: any, ppConsumedPerSecond: any) {
@@ -2877,7 +2886,7 @@
                 }
                 let tooltip = `<span>${(xpPerPP).toFixed(3)} Prayer XP/Point</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
-                (document.getElementById(`MCS prayerXpPerSecond Output`) as any)._tippy.setContent(tooltip);
+                this.setTooltipById(`MCS prayerXpPerSecond Output`, tooltip);
             }
 
             setRuneTooltip(runesUsed: any, killTimeS: any) {
@@ -2891,11 +2900,10 @@
                     tooltip += `<img class="skill-icon-xs" src="${getItemMedia(id)}"><span>${(runesUsed[id] * dataMultiplier).toFixed(2)}</span><br/>`
                 }
                 if (tooltip.length > 0) {
-                    // @ts-expect-error TS(2349): This expression is not callable.
-                    tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`
-                    (document.getElementById(`MCS runesUsedPerSecond Output`) as any)._tippy.setContent(tooltip);
+                    tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`;
+                    this.setTooltipById(`MCS runesUsedPerSecond Output`, tooltip);
                 } else {
-                    (document.getElementById(`MCS runesUsedPerSecond Output`) as any)._tippy.setContent(`No runes used.`);
+                    this.setTooltipById(`MCS runesUsedPerSecond Output`, `No runes used.`);
                 }
             }
 
@@ -3126,7 +3134,7 @@
                     // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
                     (img as any).src = getItemMedia(potion.id);
                     // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    (img.parentElement as any)._tippy.setContent(this.getPotionTooltip(potion));
+                    this.setTooltip(img.parentElement, this.getPotionTooltip(potion));
                 });
             }
 
