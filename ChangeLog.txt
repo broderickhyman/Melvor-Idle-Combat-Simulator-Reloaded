@@ -1,3 +1,7 @@
+v1.7.0
+    Migrate to typescript, WIP
+    Add 'unsafe-eval' to CSP in the manifest
+
 v1.6.10
     Update for v1.0.5
     Fix "Only Undiscovered" toggle in loot tab, #99
