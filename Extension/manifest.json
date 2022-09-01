@@ -1,11 +1,11 @@
 {
   "manifest_version": 2,
   "name": "Melvor Idle Combat Simulator Reloaded",
-  "version": "1.7.0",
   "description": "Adds a combat simulator to Melvor Idle",
   "icons": {
     "48": "icons/melvorSim-48.png"
   },
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
   "content_scripts": [
     {
       "matches": [

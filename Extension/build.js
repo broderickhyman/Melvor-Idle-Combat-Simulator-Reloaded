@@ -5,9 +5,12 @@ const path = require('path');
 
 copydir.sync('styles', 'dist/styles');
 copydir.sync('icons', 'dist/icons');
-fs.copyFileSync('manifest.json', 'dist/manifest.json');
 
-const { version } = require('./manifest.json');
+const { version } = require('./package.json');
+// copy manifest.json
+const manifest = JSON.parse(fs.readFileSync('manifest.json').toString());
+manifest.version = version
+fs.writeFileSync('dist/manifest.json', JSON.stringify(manifest, null, 4));
 
 const zipName = path.join(__dirname, '.build', `MICSR-v${version}.zip`);
 console.log(zipName)
