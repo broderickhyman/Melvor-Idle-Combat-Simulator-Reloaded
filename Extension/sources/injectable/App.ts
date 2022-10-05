@@ -130,7 +130,7 @@
              */
             constructor(urls: any) {
                 // Combat Data Object
-                this.manager = new MICSR.SimManager()
+                this.manager = new MICSR.SimManager(MICSR.game, MICSR.namespace)
                 this.manager.initialize();
                 this.player = this.manager.player;
                 this.combatData = new MICSR.CombatData(this.manager);
@@ -214,10 +214,8 @@
                     synergyLock: 'assets/media/skills/summoning/synergy_locked.svg',
                     stamina: 'assets/media/main/stamina.png',
                     question: 'assets/media/main/question.svg',
-                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                    airRune: getItemMedia(Items.Air_Rune),
-                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                    mistRune: getItemMedia(Items.Mist_Rune),
+                    airRune: MICSR.game.items.getObjectByID('melvorD:Air_Rune').media,
+                    mistRune: MICSR.game.items.getObjectByID('melvorD:Mist_Rune').media,
                     bank: 'assets/media/main/bank_header.svg',
                     herblore: 'assets/media/skills/herblore/herblore.svg',
                     cooking: 'assets/media/skills/cooking/cooking.svg',
@@ -230,11 +228,9 @@
                 // monster IDs
                 const bardID = 139;
                 this.monsterIDs = [
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    ...combatAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
+                    ...MICSR.combatAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
                     bardID,
-                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                    ...slayerAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
+                    ...MICSR.slayerAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
                 ]
 
                 // combat pet IDs
@@ -249,12 +245,19 @@
 
                 // Forced equipment sorting
                 this.force = {
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    [Skills.Defence]: [Items.Slayer_Helmet_Basic, Items.Slayer_Platebody_Basic],
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    [Skills.Ranged]: [Items.Slayer_Cowl_Basic, Items.Slayer_Leather_Body_Basic],
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    [Skills.Magic]: [Items.Slayer_Wizard_Hat_Basic, Items.Slayer_Wizard_Robes_Basic, Items.Enchanted_Shield],
+                    [MICSR.skillIDs.Defence]: [
+                        'melvorF:Slayer_Helmet_Basic',
+                        'melvorF:Slayer_Platebody_Basic',
+                    ],
+                    [MICSR.skillIDs.Ranged]: [
+                        'melvorF:Slayer_Cowl_Basic',
+                        'melvorF:Slayer_Leather_Body_Basic',
+                    ],
+                    [MICSR.skillIDs.Magic]: [
+                        'melvorF:Slayer_Wizard_Hat_Basic',
+                        'melvorF:Slayer_Wizard_Robes_Basic',
+                        'melvorF:Enchanted_Shield',
+                    ],
                 };
 
                 // Generate equipment subsets
@@ -265,47 +268,34 @@
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     const slotId = equipmentSlotData[slot].id;
                     this.equipmentSubsets.push([MICSR.emptyItems[slot]]);
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    for (let i = 0; i < items.length; i++) {
-                        // @ts-expect-error TS(2304): Cannot find name 'items'.
-                        if (items[i].validSlots === undefined) {
-                            continue;
-                        }
-                        // @ts-expect-error TS(2304): Cannot find name 'items'.
-                        if (items[i].validSlots.includes(slot)
-                            // @ts-expect-error TS(2304): Cannot find name 'items'.
-                            || (items[i].validSlots.includes('Summon')
-                                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                                && slotId === equipmentSlotData.Summon2.id)) {
-                            // @ts-expect-error TS(2304): Cannot find name 'items'.
-                            this.equipmentSubsets[slotId].push(items[i]);
-                        }
-                    }
+                    MICSR.items.filter((item: any) => item.validSlots)
+                        .forEach((item: any) => {
+                            if (item.validSlots.includes(slot)
+                                || (item.validSlots.includes('Summon')
+                                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
+                                    && slotId === equipmentSlotData.Summon2.id)) {
+                                this.equipmentSubsets[slotId].push(item);
+                            }
+                        });
                 }
                 // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                this.equipmentSubsets[equipmentSlotData.Passive.id].push(...items.filter((x: any) => x.isPassiveItem));
+                this.equipmentSubsets[equipmentSlotData.Passive.id].push(...MICSR.items.filter((x: any) => x.isPassiveItem));
                 // Add ammoType 2 and 3 to weapon subsets
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                for (let i = 0; i < items.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    if (items[i].validSlots && items[i].validSlots.includes('Quiver') && (items[i].ammoType === 2 || items[i].ammoType === 3)) {
+                MICSR.items.forEach((item: any) => {
+                    if (item.validSlots && item.validSlots.includes('Quiver') && (item.ammoType === 2 || item.ammoType === 3)) {
                         // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                        this.equipmentSubsets[equipmentSlotData.Weapon.id].push(items[i]);
+                        this.equipmentSubsets[equipmentSlotData.Weapon.id].push(item);
                     }
-                }
+                });
                 // Sort equipment subsets
                 // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 for (const slot in equipmentSlotData) {
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     const slotId = equipmentSlotData[slot].id;
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Attack) - this.getItemLevelReq(b, Skills.Attack));
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Defence) - this.getItemLevelReq(b, Skills.Defence));
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Ranged) - this.getItemLevelReq(b, Skills.Ranged));
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, Skills.Magic) - this.getItemLevelReq(b, Skills.Magic));
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Attack) - this.getItemLevelReq(b, MICSR.skillIDs.Attack));
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Defence) - this.getItemLevelReq(b, MICSR.skillIDs.Defence));
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Ranged) - this.getItemLevelReq(b, MICSR.skillIDs.Ranged));
+                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Magic) - this.getItemLevelReq(b, MICSR.skillIDs.Magic));
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     if (slotId === equipmentSlotData.Quiver.id) {
                         this.equipmentSubsets[slotId].sort((a: any, b: any) => (a.ammoType || 0) - (b.ammoType || 0));
@@ -381,8 +371,7 @@
                     task: 2,
                 }
 
-                // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                combatAreas.forEach((area: any) => {
+                MICSR.combatAreas.forEach((area: any) => {
                     area.monsters.forEach((monster: any) => {
                         this.barMonsterIDs.push(monster);
                         this.barType.push(this.barTypes.monster);
@@ -390,8 +379,7 @@
                 });
                 this.barMonsterIDs.push(bardID);
                 this.barType.push(this.barTypes.monster);
-                // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                slayerAreas.forEach((area: any) => {
+                MICSR.slayerAreas.forEach((area: any) => {
                     area.monsters.forEach((monster: any) => {
                         this.barMonsterIDs.push(monster);
                         this.barType.push(this.barTypes.monster);
@@ -665,10 +653,9 @@
                     foodSelectPopup.className = 'mcsPopup';
                     const equipmentSelectCard = new MICSR.Card(foodSelectPopup, '', '600px');
                     equipmentSelectCard.addSectionTitle('Food');
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    this.foodItems = [MICSR.emptyItems.Food, ...items].filter((item) => this.filterIfHasKey('healsFor', item));
+                    this.foodItems = [MICSR.emptyItems.Food, ...MICSR.items].filter((item) => this.filterIfHasKey('healsFor', item));
                     this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
-                    const buttonMedia = this.foodItems.map((item: any) => this.getItemMedia(item));
+                    const buttonMedia = this.foodItems.map((item: any) => item.media);
                     const buttonIds = this.foodItems.map((item: any) => this.getItemName(item.id));
                     const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item.id));
                     const tooltips = this.foodItems.map((item: any) => this.getFoodTooltip(item));
@@ -717,13 +704,11 @@
                     // @ts-expect-error TS(2531): Object is possibly 'null'.
                     img.style.border = '1px solid red';
                 } else {
-                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                    (img as any).src = getItemMedia(itemID);
+                    (img as any).src = this.getItemMedia(itemID);
                     // @ts-expect-error TS(2531): Object is possibly 'null'.
                     img.style.border = '';
                 }
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                this.setTooltip(img, this.getFoodTooltip(items[itemID]));
+                this.setTooltip(img, this.getFoodTooltip(MICSR.items[itemID]));
                 this.updateHealing();
             }
 
@@ -995,14 +980,10 @@
                 const tooltips = [];
                 /** @type {number[]} */
                 this.combatPotionIDs = [];
-                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                for (let i = 0; i < Herblore.potions.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                    if (Herblore.potions[i].category === 0) {
-                        // @ts-expect-error TS(2304): Cannot find name 'items'.
-                        const potion = items[Herblore.potions[i].potionIDs[0]];
-                        // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                        potionSources.push(getItemMedia(potion.id));
+                for (let i = 0; i < MICSR.herblorePotions.length; i++) {
+                    if (MICSR.herblorePotions[i].category === 0) {
+                        const potion = MICSR.herblorePotions[i].potions[0];
+                        potionSources.push(potion.media);
                         potionNames.push(this.getPotionName(i));
                         potionCallbacks.push((e: any) => this.potionImageButtonOnClick(e, i));
                         tooltips.push(this.getPotionTooltip(potion));
@@ -1013,8 +994,7 @@
             }
 
             createPetSelectCard() {
-                // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                const combatPets = this.petIDs.map((id: any) => PETS[id]);
+                const combatPets = this.petIDs.map((id: any) => MICSR.pets[id]);
                 this.petSelectCard = this.mainTabCard.addTab('Pets', this.media.pet, '', '100px');
                 this.petSelectCard.addSectionTitle('Pets');
                 const petImageSources = combatPets.map((pet: any) => pet.media);
@@ -1023,12 +1003,10 @@
                 const tooltips = combatPets.map((pet: any) => `<div class="text-center">${pet.name}<br><small class='text-info'>${pet.description.replace(/\.$/, '')}</small></div>`);
                 this.petSelectCard.addImageButtons(petImageSources, petNames, 'Medium', petButtonCallbacks, tooltips);
                 this.petSelectCard.addButton("Clear All Pets", () => {
-                    // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                    this.import.importPets(Array(PETS.length).fill(false));
+                    this.import.importPets(Array(MICSR.pets.length).fill(false));
                     this.updateCombatStats();
                 });
-                // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                this.petSelectCard.addImage(PETS[4].media, 100, 'MCS Rock').style.display = 'none';
+                this.petSelectCard.addImage(MICSR.pets[4].media, 100, 'MCS Rock').style.display = 'none';
             }
 
             createAgilitySelectCard() {
@@ -1104,10 +1082,8 @@
                     );
                     cc.appendChild(card.createLabel(`${constellation.name} (${constellation.level})`));
                     cc.appendChild(constellationImage);
-                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
-                    cc.appendChild(card.createImage(SKILLS[constellation.skills[0]].media, 20));
-                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
-                    cc.appendChild(card.createImage(SKILLS[constellation.skills[1]].media, 20));
+                    cc.appendChild(card.createImage(constellation.skills[0].media, 20));
+                    cc.appendChild(card.createImage(constellation.skills[1].media, 20));
                     const standardLabel = card.createLabel(`+0%`)
                     standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
                     cc.appendChild(standardLabel);
@@ -1205,8 +1181,7 @@
                         return;
                     }
                     // summoning has no relevant modifiers other than increasedSkillXP
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    if (Skills.Summoning === skillID) {
+                    if (MICSR.skillIDs.Summoning === skillID) {
                         stdMod.push([skillID, 'increasedSkillXP']);
                         return;
                     }
@@ -1221,8 +1196,7 @@
                     const skillID = x[0];
                     const modifier = x[1];
                     if (skillID !== undefined) {
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        card.addNumberInput(`${constellation.name}-${Skills[skillID]}-${modifier}`, 0, 0, 15, (event: any) => {
+                        card.addNumberInput(`${constellation.name}-${MICSR.skillNames[skillID]}-${modifier}`, 0, 0, 15, (event: any) => {
                             activeConstellationModifiers[modifier] = activeConstellationModifiers[modifier].map((y: any) => {
                                 if (y[0] !== skillID) {
                                     return y;
@@ -1235,11 +1209,9 @@
                             this.updateAstrologySummary();
                             this.updateCombatStats();
                         });
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        const id = `MCS ${constellation.name}-${Skills[skillID]}-${modifier} Input`;
+                        const id = `MCS ${constellation.name}-${MICSR.skillNames[skillID]}-${modifier} Input`;
                         elementList.push(id);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        card.container.lastChild.firstChild.textContent = `${Skills[skillID]} ${modifier}`;
+                        card.container.lastChild.firstChild.textContent = `${MICSR.skillNames[skillID]} ${modifier}`;
                         if (activeConstellationModifiers[modifier] === undefined) {
                             activeConstellationModifiers[modifier] = [];
                         }
@@ -1406,8 +1378,7 @@
                             const itemID = entry[0];
                             // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                             lootMap[itemID] = true;
-                            // @ts-expect-error TS(2304): Cannot find name 'items'.
-                            const dropTable = items[itemID].dropTable;
+                            const dropTable = MICSR.items[itemID].dropTable;
                             if (dropTable) {
                                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                                 dropTable.forEach((x: any) => lootMap[x[0]] = true);
@@ -1417,13 +1388,11 @@
                     if (monster.bones > -1) {
                         // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                         lootMap[monster.bones] = true;
-                        // @ts-expect-error TS(2304): Cannot find name 'items'.
-                        const upgradeID = items[monster.bones].trimmedItemID;
+                        const upgradeID = MICSR.items[monster.bones].trimmedItemID;
                         if (upgradeID) {
                             // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                             lootMap[upgradeID] = true;
-                            // @ts-expect-error TS(2304): Cannot find name 'items'.
-                            const dropTable = items[upgradeID].dropTable;
+                            const dropTable = MICSR.items[upgradeID].dropTable;
                             if (dropTable) {
                                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                                 dropTable.forEach((x: any) => lootMap[x[0]] = true);
@@ -1437,38 +1406,32 @@
                             const dungeonID = this.barMonsterIDs[this.selectedBar];
                             const monsters = MICSR.dungeons[dungeonID].monsters;
                             const bossID = monsters[monsters.length - 1];
-                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                            addToLootMap(MONSTERS[bossID]);
+                            addToLootMap(MICSR.monsters[bossID]);
                         } else if (this.barIsTask(this.selectedBar)) {
                             const taskID = this.barMonsterIDs[this.selectedBar] - MICSR.dungeons.length;
                             const monsters = this.simulator.slayerTaskMonsters[taskID];
-                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                            monsters.map((id: any) => MONSTERS[id]).forEach((monster: any) => addToLootMap(monster));
+                            monsters.map((id: any) => MICSR.monsters[id]).forEach((monster: any) => addToLootMap(monster));
                         } else {
-                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                            addToLootMap(MONSTERS[this.barMonsterIDs[this.selectedBar]]);
+                            addToLootMap(MICSR.monsters[this.barMonsterIDs[this.selectedBar]]);
                         }
                     } else if (this.loot.godDungeonIDs.includes(this.viewedDungeonID)) {
                         const monsterID = this.getSelectedDungeonMonsterID();
-                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                        addToLootMap(MONSTERS[monsterID]);
+                        addToLootMap(MICSR.monsters[monsterID]);
                     }
                 } else {
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    MONSTERS.forEach((monster: any) => addToLootMap(monster));
+                    MICSR.monsters.forEach((monster: any) => addToLootMap(monster));
                 }
                 // construct list
                 let lootList = Object.getOwnPropertyNames(lootMap).map(x => parseInt(x));
                 // apply undiscovered filter
                 if (this.dropListFilters.onlyUndiscovered) {
                     lootList = lootList.filter(itemID => {
-                        // @ts-expect-error TS(2304): Cannot find name 'game'.
-                        return game.stats.Items.get(itemID, ItemStats.TimesFound) === 0;
+                        // @ts-expect-error TS(2304): Cannot find name 'ItemStats'.
+                        return MICSR.game.stats.Items.get(itemID, ItemStats.TimesFound) === 0;
                     });
                 }
                 // sort by name
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                return [-1, ...lootList.sort((a, b) => items[a].name > items[b].name ? 1 : -1)];
+                return [-1, ...lootList.sort((a, b) => MICSR.items[a].name > MICSR.items[b].name ? 1 : -1)];
             }
 
             dropChanceOnChange(event: any) {
@@ -1606,7 +1569,7 @@
                     return x ? x : 0;
                 }
                 menuItems.sort((a: any, b: any) => sortKey(a) - sortKey(b));
-                const buttonMedia = menuItems.map((item: any) => this.getItemMedia(item));
+                const buttonMedia = menuItems.map((item: any) => item.media);
                 const buttonIds = menuItems.map((item: any) => this.getItemName(item.id));
                 const buttonCallbacks = menuItems.map((item: any) => () => this.equipItem(equipmentSlot, item.id));
                 const tooltips = menuItems.map((item: any) => this.getEquipmentTooltip(equipmentSlot, item));
@@ -1634,8 +1597,7 @@
             }
 
             getItemLevelReq(item: any, skillID: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                if (skillID === Skills.Summoning) {
+                if (skillID === MICSR.skillIDs.Summoning) {
                     return item.summoningLevel | 0;
                 }
                 let req = 0;
@@ -1664,12 +1626,9 @@
                     return true;
                 }
                 const skillIDs = [
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    Skills.Defence,
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    Skills.Ranged,
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    Skills.Magic,
+                    MICSR.skillIDs.Defence,
+                    MICSR.skillIDs.Ranged,
+                    MICSR.skillIDs.Magic,
                 ]
                 for (let skillID of skillIDs) {
                     if (this.getItemLevelReq(item, skillID) || (this.force[skillID] && this.force[skillID].includes(item.id))) {
@@ -1740,8 +1699,7 @@
                 if (item.modifiers === undefined) {
                     return false;
                 }
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                if (item.modifiers.increasedSkillXP && item.modifiers.increasedSkillXP.filter((x: any) => x[0] === Skills.Slayer).length > 0) {
+                if (item.modifiers.increasedSkillXP && item.modifiers.increasedSkillXP.filter((x: any) => x[0] === MICSR.skillIDs.Slayer).length > 0) {
                     return true;
                 }
                 return item.modifiers.increasedSlayerAreaEffectNegationFlat > 0
@@ -1829,24 +1787,18 @@
                 if (triSplit.includes(equipmentSlot)) {
                     equipmentSelectCard.addSectionTitle('Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        (item: any) => this.filterIfHasLevelReq(item, Skills.Defence),
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        x => this.filterIfHasLevelReq(x, Skills.Defence)
+                        (item: any) => this.filterIfHasLevelReq(item, MICSR.skillIDs.Defence),
+                        x => this.filterIfHasLevelReq(x, MICSR.skillIDs.Defence)
                     );
                     equipmentSelectCard.addSectionTitle('Ranged');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        (item: any) => this.filterIfHasLevelReq(item, Skills.Ranged),
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        x => this.filterIfHasLevelReq(x, Skills.Ranged)
+                        (item: any) => this.filterIfHasLevelReq(item, MICSR.skillIDs.Ranged),
+                        x => this.filterIfHasLevelReq(x, MICSR.skillIDs.Ranged)
                     );
                     equipmentSelectCard.addSectionTitle('Magic');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        (item: any) => this.filterIfHasLevelReq(item, Skills.Magic),
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        x => this.filterIfHasLevelReq(x, Skills.Magic)
+                        (item: any) => this.filterIfHasLevelReq(item, MICSR.skillIDs.Magic),
+                        x => this.filterIfHasLevelReq(x, MICSR.skillIDs.Magic)
                     );
                     if (this.equipmentSubsets[equipmentSlot].filter((item: any) => this.filterIfHasNoLevelReq(item)).length > 1) {
                         equipmentSelectCard.addSectionTitle('Other');
@@ -1860,46 +1812,36 @@
                     equipmentSelectCard.addSectionTitle('1H Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('melee', item);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    }, x => this.getItemLevelReq(x, Skills.Attack));
+                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Attack));
                     equipmentSelectCard.addSectionTitle('2H Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('melee', item);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    }, x => this.getItemLevelReq(x, Skills.Attack));
+                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Attack));
                     equipmentSelectCard.addSectionTitle('1H Ranged');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('ranged', item);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    }, x => this.getItemLevelReq(x, Skills.Ranged));
+                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('2H Ranged');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('ranged', item);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    }, x => this.getItemLevelReq(x, Skills.Ranged));
+                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('1H Magic');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('magic', item);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    }, x => this.getItemLevelReq(x, Skills.Magic));
+                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Magic));
                     equipmentSelectCard.addSectionTitle('2H Magic');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('magic', item);
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    }, x => this.getItemLevelReq(x, Skills.Magic));
+                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Magic));
                 } else if (equipmentSlot === 9) {
                     equipmentSelectCard.addSectionTitle('Arrows');
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('Bolts');
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(1, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(1, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('Javelins');
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(2, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(2, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('Throwing Knives');
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, Skills.Ranged));
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('Other');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterNoAmmoType(item), x => x.name);
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
@@ -1913,11 +1855,9 @@
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 } else if (equipmentSlot === equipmentSlotData.Summon1.id || equipmentSlot === equipmentSlotData.Summon2.id) {
                     equipmentSelectCard.addSectionTitle('Combat Familiars')
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, Skills.Summoning));
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, MICSR.skillIDs.Summoning));
                     equipmentSelectCard.addSectionTitle('Non-Combat Familiars')
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, false), x => this.getItemLevelReq(x, Skills.Summoning));
+                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, false), x => this.getItemLevelReq(x, MICSR.skillIDs.Summoning));
                 } else {
                     throw Error(`Invalid equipmentSlot: ${equipmentSlot}`);
                 }
@@ -1982,7 +1922,7 @@
                 const slotKey = EquipmentSlots[equipmentSlot];
                 const img = document.getElementById(`MCS ${slotKey} Image`);
                 const item = MICSR.getItem(itemId, slotKey);
-                (img as any).src = this.getItemMedia(item);
+                (img as any).src = item.media;
                 this.setTooltip(img, this.getEquipmentTooltip(equipmentSlot, item));
                 if (occupy && item.occupiesSlots) {
                     // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
@@ -2077,8 +2017,7 @@
                     const levelReqs = item.equipRequirements.find((x: any) => x.type === 'Level');
                     if (levelReqs) {
                         this.skillKeys.forEach((skill: any) => {
-                            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                            const levelReq = levelReqs.levels.find((x: any) => x.skill === Skills[skill]);
+                            const levelReq = levelReqs.levels.find((x: any) => x.skill.name === skill);
                             if (levelReq) {
                                 requirements.push(`${skill} Level ${levelReq.level}`);
                             }
@@ -2135,8 +2074,7 @@
             levelInputOnChange(event: any, skillName: any) {
                 const newLevel = parseInt(event.currentTarget.value);
                 if (newLevel >= 1) {
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.player.skillLevel[Skills[skillName]] = newLevel;
+                    this.player.skillLevel[MICSR.skillIDs[skillName]] = newLevel;
                     // Update Spell and Prayer Button UIS, and deselect things if they become invalid
                     if (skillName === 'Magic') {
                         this.updateSpellOptions();
@@ -2176,10 +2114,9 @@
                 // Escape if prayer level is not reached
                 // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
                 const prayer = PRAYER[prayerID];
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                if (!this.player.activePrayers.has(prayerID) && this.player.skillLevel[Skills.Prayer] < prayer.prayerLevel) {
+                if (!this.player.activePrayers.has(prayerID) && this.player.skillLevel[MICSR.skillIDs.Prayer] < prayer.prayerLevel) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(Skills.Prayer, `${this.getPrayerName(prayerID)} requires level ${prayer.prayerLevel} Prayer.`, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Prayer, `${this.getPrayerName(prayerID)} requires level ${prayer.prayerLevel} Prayer.`, 'danger');
                     return;
                 }
                 let prayerChanged = false;
@@ -2194,7 +2131,7 @@
                         prayerChanged = true;
                     } else {
                         // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                        notifyPlayer(Skills.Prayer, 'You can only have 2 prayers active at once.', 'danger');
+                        notifyPlayer(MICSR.skillIDs.Prayer, 'You can only have 2 prayers active at once.', 'danger');
                     }
                 }
                 if (prayerChanged) {
@@ -2272,7 +2209,7 @@
                 // send message if required
                 if (message) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(Skills.Magic, message, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Magic, message, 'danger');
                 }
             }
 
@@ -2284,15 +2221,14 @@
                 // get spell
                 const spell = this.combatData.spells[spellType][spellID];
                 // Escape for not meeting the level/item requirement
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                if (this.player.skillLevel[Skills.Magic] < spell.level) {
+                if (this.player.skillLevel[MICSR.skillIDs.Magic] < spell.level) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(Skills.Magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
                     return;
                 }
                 if (this.checkRequiredItem(spell)) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(Skills.Magic, `${spell.name} requires ${this.getItemName(spell.requiredItem)}.`, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.name} requires ${this.getItemName(spell.requiredItem)}.`, 'danger');
                     return;
                 }
                 // remove previous selection
@@ -2310,7 +2246,7 @@
                 // send message if required
                 if (message) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(Skills.Magic, message, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Magic, message, 'danger');
                 }
             }
 
@@ -2337,7 +2273,7 @@
                     if (this.combatData.spells[spellType][spellSelection[spellType]] === undefined) {
                         this.player.spellSelection[spellType] = -1;
                         // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                        notifyPlayer(Skills.Magic, `disabled invalid ${spellType} ${spellSelection[spellType]}`, 'danger');
+                        notifyPlayer(MICSR.skillIDs.Magic, `disabled invalid ${spellType} ${spellSelection[spellType]}`, 'danger');
                     }
                 });
                 // check that at least one spell is selected
@@ -2896,8 +2832,7 @@
                 }
                 let tooltip = '';
                 for (const id in runesUsed) {
-                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                    tooltip += `<img class="skill-icon-xs" src="${getItemMedia(id)}"><span>${(runesUsed[id] * dataMultiplier).toFixed(2)}</span><br/>`
+                    tooltip += `<img class="skill-icon-xs" src="${this.getItemMedia(id)}"><span>${(runesUsed[id] * dataMultiplier).toFixed(2)}</span><br/>`
                 }
                 if (tooltip.length > 0) {
                     tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`;
@@ -2928,8 +2863,7 @@
                             // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                             SlayerTask.data[taskID].display,
                             taskID,
-                            // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
-                            SKILLS[Skills.Slayer].media,
+                            MICSR.game.slayer.media,
                             this.simulator.slayerSimData[taskID],
                         );
                     } else {
@@ -2944,8 +2878,7 @@
                         this.setZoneInfoCard(
                             this.getMonsterName(monsterID),
                             monsterID,
-                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                            MONSTERS[monsterID].media,
+                            MICSR.monsters[monsterID].media,
                             this.simulator.monsterSimData[this.simulator.simID(
                                 monsterID,
                                 dungeonID >= MICSR.dungeons.length ? undefined : dungeonID,
@@ -3010,8 +2943,7 @@
              * Checks if magic level required for spell is met
              */
             checkForSpellLevel() {
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                const magicLevel = this.player.skillLevel[Skills.Magic];
+                const magicLevel = this.player.skillLevel[MICSR.skillIDs.Magic];
                 const setSpellsPerLevel = (spell: any, spellID: any, spellType: any) => {
                     if (magicLevel < spell.level) {
                         (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = this.media.question;
@@ -3020,14 +2952,11 @@
                         (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = spell.media;
                     }
                 };
-                // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
-                SPELLS.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'standard'));
-                // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
-                AURORAS.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'aurora'));
-                // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
-                CURSES.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'curse'));
-                // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
-                ANCIENT.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'ancient'));
+                MICSR.standardSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'standard'));
+                MICSR.auroraSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'aurora'));
+                MICSR.curseSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'curse'));
+                MICSR.ancientSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'ancient'));
+                MICSR.archaicSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'archaic'));
             }
 
             checkRequiredItem(spell: any) {
@@ -3044,22 +2973,18 @@
                         this.disableSpell(spellType, spellID, `${spell.name} has been de-selected. It requires ${this.getItemName(spell.requiredItem)}.`);
                     }
                 };
-                // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
-                SPELLS.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'standard'));
-                // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
-                AURORAS.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'aurora'));
-                // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
-                CURSES.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'curse'));
-                // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
-                ANCIENT.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'ancient'));
+                MICSR.standardSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'standard'));
+                MICSR.auroraSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'aurora'));
+                MICSR.curseSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'curse'));
+                MICSR.ancientSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'ancient'));
+                MICSR.archaicSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'archaic'));
             }
 
             /**
              * Updates the prayers that display in the prayer selection card, based on if the player can use it
              */
             updatePrayerOptions() {
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                const prayerLevel = this.player.skillLevel[Skills.Prayer];
+                const prayerLevel = this.player.skillLevel[MICSR.skillIDs.Prayer];
                 // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
                 PRAYER.forEach((prayer: any) => {
                     const prayerName = this.getPrayerName(prayer.id);
@@ -3068,7 +2993,7 @@
                         if (this.player.activePrayers.has(prayer.id)) {
                             this.prayerButtonOnClick({currentTarget: document.getElementById(`MCS ${prayerName} Button`)}, prayer.id);
                             // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                            notifyPlayer(Skills.Prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
+                            notifyPlayer(MICSR.skillIDs.Prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
                         }
                     } else {
                         (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = prayer.media;
@@ -3128,11 +3053,9 @@
              */
             updatePotionTier(potionTier: any) {
                 this.combatPotionIDs.forEach((potionId: any) => {
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    const potion = items[Herblore.potions[potionId].potionIDs[potionTier]];
+                    const potion = MICSR.herblorePotions[potionId].potions[potionTier];
                     const img = document.getElementById(`MCS ${this.getPotionName(potionId)} Button Image`);
-                    // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                    (img as any).src = getItemMedia(potion.id);
+                    (img as any).src = potion.media;
                     // @ts-expect-error TS(2531): Object is possibly 'null'.
                     this.setTooltip(img.parentElement, this.getPotionTooltip(potion));
                 });
@@ -3195,17 +3118,26 @@
              * @return {string} The name of a dungeon
              */
             getDungeonName(dungeonID: any) {
-                return this.replaceApostrophe(MICSR.dungeons[dungeonID].name);
+                let name = undefined;
+                if (MICSR.dungeons[dungeonID]) {
+                    name = MICSR.dungeons[dungeonID]._localID;
+                } else if (dungeonID && dungeonID._localID) {
+                    name = dungeonID._localID;
+                }
+                if (name === undefined) {
+                    MICSR.error(`Unknown dungeon in getDungeonName ${dungeonID}`);
+                    return 'Unknown Dungeon';
+                }
+                return this.replaceApostrophe(name);
             }
 
             /**
              * Removes HTML from the potion name
-             * @param {number} potionID The index of Herblore.potions
+             * @param {number} potionID The index of MICSR.herblorePotions
              * @return {string} The name of a potion
              */
             getPotionName(potionID: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                return this.replaceApostrophe(Herblore.potions[potionID].name);
+                return this.replaceApostrophe(MICSR.herblorePotions[potionID].name);
             }
 
             /**
@@ -3226,32 +3158,35 @@
             getItemName(itemID: any) {
                 if (itemID === -1) {
                     return 'None';
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                } else if (!items[itemID]) {
+                } else if (!MICSR.items[itemID]) {
                     MICSR.warn(`Invalid itemID ${itemID} in getItemName`);
                     return 'None';
                 } else {
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    return this.replaceApostrophe(items[itemID].name);
+                    return this.replaceApostrophe(MICSR.items[itemID].name);
                 }
             }
 
-            getItemMedia(item: any) {
-                if (item.id === -1) {
-                    return item.media;
-                }
-                // @ts-expect-error TS(2663): Cannot find name 'getItemMedia'. Did you mean the ... Remove this comment to see the full error message
-                return getItemMedia(item.id);
+            getItemMedia(itemID: number | string) {
+                return MICSR.items[itemID].media
             }
 
             /**
              * Removes HTML from a monster name
-             * @param {number} monsterID The index of MONSTERS
+             * @param {number} monsterID The index of MICSR.monsters
              * @return {string} the name of a monster
              */
             getMonsterName(monsterID: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                return this.replaceApostrophe(MONSTERS[monsterID].name);
+                let name = undefined;
+                if (MICSR.monsters[monsterID]) {
+                    name = MICSR.monsters[monsterID]._localID;
+                } else if (monsterID && monsterID._localID) {
+                    name = monsterID._localID;
+                }
+                if (name === undefined) {
+                    MICSR.error(`Unknown monster in getMonsterName ${monsterID}`);
+                    return 'Unknown Monster';
+                }
+                return this.replaceApostrophe(name);
             }
 
             /**
@@ -3299,7 +3234,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -3307,8 +3243,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

@@ -40,6 +40,7 @@
     let combatSimulator: any;
 
     onmessage = (event) => {
+        // TODO: remove temporary reply
         switch (event.data.action) {
             case 'RECEIVE_GAMEDATA':
                 // constants
@@ -50,107 +51,76 @@
                 event.data.functionNames.forEach((name: any) => {
                     eval(event.data.functions[name]);
                 });
-                // update modifierData functions
-                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                for (const m in modifierData) {
-                    // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                    if (modifierData[m].modifyValue !== undefined) {
-                        // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                        if (modifierData[m].modifyValue === 'modifyValue') {
-                            // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                            modifierData[m].modifyValue = MICSR[`${m}ModifyValue`];
-                        } else {
-                            // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                            modifierData[m].modifyValue = MICSR[modifierData[m].modifyValue];
-                        }
-                    }
-                }
-                // update itemConditionalModifiers
-                // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
-                for (let i = 0; i < itemConditionalModifiers.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
-                    for (let j = 0; j < itemConditionalModifiers[i].conditionals.length; j++) {
-                        // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
-                        itemConditionalModifiers[i].conditionals[j].condition = MICSR[`itemConditionalModifiers-condition-${i}-${j}`];
-                    }
-                }
-                const conditionalModifiers = new Map();
-                // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
-                itemConditionalModifiers.forEach((itemCondition: any) => {
-                    conditionalModifiers.set(itemCondition.itemID, itemCondition.conditionals);
+                // classes
+                event.data.classNames.forEach((name: any) => {
+                    eval(event.data.classes[name]);
                 });
-                // update Summoning functions
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                for (const i in Summoning.synergies) {
-                    // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                    if (Summoning.synergies[i].conditionalModifiers) {
-                        // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                        for (let k = 0; k < Summoning.synergies[i].conditionalModifiers.length; k++) {
-                            // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                            Summoning.synergies[i].conditionalModifiers[k].condition = MICSR[`SUMMONING-conditional-${i}-${k}`];
-                        }
-                    }
-                }
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                Summoning.getTabletConsumptionXP = getTabletConsumptionXP;
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                Summoning.synergiesByItemID = Summoning.synergies.reduce((synergyMap: any, synergy: any) => {
-                    const setSynergy = (item0: any, item1: any) => {
-                        let itemMap = synergyMap.get(item0);
-                        if (itemMap === undefined) {
-                            itemMap = new Map();
-                            synergyMap.set(item0, itemMap);
-                        }
-                        itemMap.set(item1, synergy);
-                    };
-                    // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                    const itemID0 = Summoning.marks[synergy.summons[0]].itemID;
-                    // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                    const itemID1 = Summoning.marks[synergy.summons[1]].itemID;
-                    setSynergy(itemID0, itemID1);
-                    setSynergy(itemID1, itemID0);
-                    return synergyMap;
-                }, new Map());
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                Summoning.marksByItemID = Summoning.marks.reduce((itemMap: any, mark: any) => {
-                    itemMap.set(mark.itemID, mark);
-                    return itemMap;
-                }, new Map());
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                Summoning.getMarkFromItemID = (itemID: any) => Summoning.marksByItemID.get(itemID);
-                // update itemSynergies conditional modifiers
-                // @ts-expect-error TS(2304): Cannot find name 'itemSynergies'.
-                for (let i = 0; i < itemSynergies.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'itemSynergies'.
-                    if (itemSynergies[i].conditionalModifiers) {
-                        // @ts-expect-error TS(2304): Cannot find name 'itemSynergies'.
-                        for (let j = 0; j < itemSynergies[i].conditionalModifiers.length; j++) {
-                            // @ts-expect-error TS(2304): Cannot find name 'itemSynergies'.
-                            itemSynergies[i].conditionalModifiers[j].condition = MICSR[`itemSynergies-conditional-${i}-${j}`];
-                        }
-                    }
-                }
-                // create itemSynergyMap
-                const itemSynergyMap = new Map();
-                // @ts-expect-error TS(2304): Cannot find name 'itemSynergies'.
-                itemSynergies.forEach((synergy: any) => {
-                    synergy.items.forEach((item: any) => {
-                        let existingSynergies = itemSynergyMap.get(item);
-                        if (existingSynergies === undefined) {
-                            existingSynergies = [];
-                            itemSynergyMap.set(item, existingSynergies);
-                        }
-                        existingSynergies.push(synergy);
-                    });
+                // create instances
+                return;
+            case 'START_SIMULATION':
+                postMessage({
+                    action: 'FINISHED_SIM',
+                    monsterID: event.data.monsterID,
+                    dungeonID: event.data.dungeonID,
+                    simResult: {
+                        // success
+                        simSuccess: true,
+                        reason: undefined,
+                        tickCount: 0,
+                        // xp rates
+                        xpPerSecond: 0,
+                        hpXpPerSecond: 0,
+                        slayerXpPerSecond: 0,
+                        prayerXpPerSecond: 0,
+                        summoningXpPerSecond: 0,
+                        // consumables
+                        ppConsumedPerSecond: 0,
+                        ammoUsedPerSecond: 0,
+                        runesUsedPerSecond: 0,
+                        usedRunesBreakdown: 0,
+                        combinationRunesUsedPerSecond: 0,
+                        potionsUsedPerSecond: 0, // TODO: divide by potion capacity
+                        tabletsUsedPerSecond: 0,
+                        atePerSecond: 0,
+                        // survivability
+                        deathRate: 0,
+                        highestDamageTaken: 0,
+                        lowestHitpoints: 0,
+                        // kill time
+                        killTimeS: 0,
+                        killsPerSecond: 0,
+                        // loot gains
+                        baseGpPerSecond: 0, // gpPerSecond is computed from this
+                        dropChance: NaN,
+                        signetChance: NaN,
+                        petChance: NaN,
+                        petRolls: [],
+                        slayerCoinsPerSecond: 0,
+                        // not displayed -> TODO: remove?
+                        simulationTime: NaN,
+                    },
+                    selfTime: 0,
+                });
+                return;
+            case 'CANCEL_SIMULATION':
+                combatSimulator.cancelSimulation();
+                return;
+        }
+        switch (event.data.action) {
+            case 'RECEIVE_GAMEDATA':
+                // constants
+                event.data.constantNames.forEach((name: any) => {
+                    self[name] = event.data.constants[name];
+                });
+                // functions
+                event.data.functionNames.forEach((name: any) => {
+                    eval(event.data.functions[name]);
                 });
                 // classes
                 event.data.classNames.forEach((name: any) => {
                     eval(event.data.classes[name]);
                 });
                 // create instances
-                (MICSR as any).showModifiersInstance = new (MICSR as any).ShowModifiers('', 'MICSR', false);
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                SlayerTask.data = (self as any).slayerTaskData;
                 combatSimulator = new CombatSimulator();
                 break;
             case 'START_SIMULATION':

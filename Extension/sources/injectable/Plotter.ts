@@ -85,20 +85,13 @@
 
                 let totBars = 0;
 
-                // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                for (let i = 0; i < combatAreas.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    totBars += combatAreas[i].monsters.length;
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    this.barBottomNames.push(combatAreas[i].name);
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    this.barBottomLength.push(combatAreas[i].monsters.length);
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    for (let j = 0; j < combatAreas[i].monsters.length; j++) {
-                        // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                        this.barNames.push(this.parent.getMonsterName(combatAreas[i].monsters[j]));
-                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                        this.barImageSrc.push(MONSTERS[combatAreas[i].monsters[j]].media);
+                for (let i = 0; i < MICSR.combatAreas.length; i++) {
+                    totBars += MICSR.combatAreas[i].monsters.length;
+                    this.barBottomNames.push(MICSR.combatAreas[i].name);
+                    this.barBottomLength.push(MICSR.combatAreas[i].monsters.length);
+                    for (let j = 0; j < MICSR.combatAreas[i].monsters.length; j++) {
+                        this.barNames.push(this.parent.getMonsterName(MICSR.combatAreas[i].monsters[j]));
+                        this.barImageSrc.push(MICSR.combatAreas[i].monsters[j].media);
                     }
                 }
                 const bardID = 139;
@@ -106,22 +99,14 @@
                 this.barBottomNames.push('');
                 this.barBottomLength.push(1);
                 this.barNames.push(this.parent.getMonsterName(bardID));
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                this.barImageSrc.push(MONSTERS[bardID].media);
-                // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                for (let i = 0; i < slayerAreas.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                    totBars += slayerAreas[i].monsters.length;
-                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                    this.barBottomNames.push(slayerAreas[i].name);
-                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                    this.barBottomLength.push(slayerAreas[i].monsters.length);
-                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                    for (let j = 0; j < slayerAreas[i].monsters.length; j++) {
-                        // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                        this.barNames.push(this.parent.getMonsterName(slayerAreas[i].monsters[j]));
-                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                        this.barImageSrc.push(MONSTERS[slayerAreas[i].monsters[j]].media);
+                this.barImageSrc.push(MICSR.monsters[bardID].media);
+                for (let i = 0; i < MICSR.slayerAreas.length; i++) {
+                    totBars += MICSR.slayerAreas[i].monsters.length;
+                    this.barBottomNames.push(MICSR.slayerAreas[i].name);
+                    this.barBottomLength.push(MICSR.slayerAreas[i].monsters.length);
+                    for (let j = 0; j < MICSR.slayerAreas[i].monsters.length; j++) {
+                        this.barNames.push(this.parent.getMonsterName(MICSR.slayerAreas[i].monsters[j]));
+                        this.barImageSrc.push(MICSR.slayerAreas[i].monsters[j].media);
                     }
                 }
 
@@ -134,15 +119,11 @@
                 }
 
                 this.barBottomNames.push('Auto Slayer');
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                this.barBottomLength.push(SlayerTask.data.length);
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                totBars += SlayerTask.data.length;
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                for (const slayerTask of SlayerTask.data) {
+                this.barBottomLength.push(MICSR.slayerTaskData.length);
+                totBars += MICSR.slayerTaskData.length;
+                for (const slayerTask of MICSR.slayerTaskData) {
                     this.barNames.push(slayerTask.display);
-                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
-                    this.barImageSrc.push(SKILLS[Skills.Slayer].media);
+                    this.barImageSrc.push(MICSR.game.slayer.media);
                 }
 
                 this.plotContainer = document.createElement('div');
@@ -229,8 +210,7 @@
                 for (let i = 0; i < totBars; i++) {
                     const bar = document.createElement('div');
                     bar.className = 'mcsBar';
-                    // @ts-expect-error TS(2322): Type 'number' is not assignable to type 'string'.
-                    bar.style.height = 0;
+                    bar.style.height = '0';
                     const barContainer = document.createElement('div');
                     barContainer.className = 'mcs-bar-container';
                     barContainer.appendChild(bar);
@@ -361,10 +341,10 @@
                     }
                 }
 
-                let Ndivs;
-                let divMax;
-                let divPower;
-                let closestRatio;
+                let Ndivs = 10;
+                let divMax = 1;
+                let divPower = 0;
+                let closestRatio = 0.1;
                 let divDecimals = 1;
                 if (barMax !== 0) {
                     const divRatio = barMax / Math.pow(10, Math.floor(Math.log10(barMax)) + 1);
@@ -379,15 +359,9 @@
                         closestRatio = 0.1;
                     }
                     divPower = Math.floor(Math.log10(barMax));
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     const division = closestRatio * Math.pow(10, divPower);
                     Ndivs = Math.ceil(barMax / division);
                     divMax = Ndivs * division;
-                } else {
-                    divMax = 1;
-                    divPower = 0;
-                    Ndivs = 10;
-                    closestRatio = 0.1;
                 }
                 // Modify in reverse
                 const numBars = this.bars.length;
@@ -407,17 +381,14 @@
                     if (this.parent.isViewingDungeon) {
                         const selection = this.parent.getMonsterList(this.parent.viewedDungeonID);
                         const monsterID = selection[barIndex + selection.length - this.bars.length];
-                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                        barName = MONSTERS[monsterID].name;
+                        barName = MICSR.monsters[monsterID].name;
                     } else {
                         if (this.parent.barIsDungeon(barIndex)) {
                             barName = MICSR.dungeons[this.parent.barMonsterIDs[barIndex]].name;
                         } else if (this.parent.barIsTask(barIndex)) {
-                            // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                            barName = SlayerTask.data[this.parent.barMonsterIDs[barIndex] - MICSR.dungeons.length].display;
+                            barName = MICSR.slayerTaskData[this.parent.barMonsterIDs[barIndex] - MICSR.dungeons.length].display;
                         } else {
-                            // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                            barName = MONSTERS[this.parent.barMonsterIDs[barIndex]].name;
+                            barName = MICSR.monsters[this.parent.barMonsterIDs[barIndex]].name;
                         }
                     }
                     // open tooltip and set tooltip title
@@ -455,10 +426,8 @@
                 }
                 if (divPower >= 0) {
                     const powerLeft = divPower % 3;
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     closestRatio *= Math.pow(10, powerLeft);
                 } else {
-                    // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                     closestRatio *= Math.pow(10, divPower);
                     divDecimals -= divPower;
                 }
@@ -467,7 +436,6 @@
                     if (i < (Ndivs + 1)) {
                         this.tickText[i].style.display = 'block';
                         this.tickText[i].style.bottom = `${i * 100 / Ndivs - 2.5}%`;
-                        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
                         this.tickText[i].textContent = `${(i * closestRatio).toLocaleString(undefined, {
                             maximumFractionDigits: divDecimals,
                             minimumFractionDigits: divDecimals
@@ -511,8 +479,7 @@
                     if (i < monsters.length) {
                         // Change image source
                         this.xAxisContainers[i].style.display = '';
-                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                        this.xAxisImages[i].setAttribute('src', MONSTERS[monsters[i]].media);
+                        this.xAxisImages[i].setAttribute('src', MICSR.monsters[monsters[i]].media);
                         this.bars[this.bars.length - i - 1].style.display = '';
                     } else {
                         // Disable Bar and images
@@ -605,7 +572,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -613,8 +581,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

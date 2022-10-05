@@ -51,14 +51,11 @@
                 this.modifiers = this.player.modifiers;
                 // Spell Selection
                 this.spells = {
-                    // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
-                    standard: SPELLS,
-                    // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
-                    curse: CURSES,
-                    // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
-                    aurora: AURORAS,
-                    // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
-                    ancient: ANCIENT,
+                    standard: MICSR.standardSpells,
+                    curse: MICSR.curseSpells,
+                    aurora: MICSR.auroraSpells,
+                    ancient: MICSR.ancientSpells,
+                    archaic: MICSR.archaicSpells,
                 };
                 // Combat Stats
                 this.combatStats = {
@@ -194,7 +191,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -202,8 +200,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

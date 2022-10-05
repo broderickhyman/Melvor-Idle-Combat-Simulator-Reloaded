@@ -193,7 +193,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -201,8 +202,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

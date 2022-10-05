@@ -167,14 +167,11 @@
                     isSlayerTask = false;
                 }
                 // set slayer task to currently selected monster
-                // @ts-expect-error TS(2304): Cannot find name 'combatManager'.
-                combatManager.slayerTask.active = isSlayerTask;
+                MICSR.actualGame.combatManager.slayerTask.active = isSlayerTask;
                 if (isSlayerTask) {
-                    // @ts-expect-error TS(2304): Cannot find name 'combatManager'.
-                    combatManager.slayerTask.monster = MONSTERS[this.actualApp.barMonsterIDs[this.actualApp.selectedBar]];
+                    MICSR.actualGame.combatManager.slayerTask.monster = MICSR.monsters[this.actualApp.barMonsterIDs[this.actualApp.selectedBar]];
                 }
-                // @ts-expect-error TS(2304): Cannot find name 'combatManager'.
-                combatManager.slayerTask.killsLeft = isSlayerTask * 1e9;
+                MICSR.actualGame.combatManager.slayerTask.killsLeft = isSlayerTask * 1e9;
             }
 
             importGameMode(currentGamemode: any) {
@@ -199,7 +196,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'chosenAgilityObstacles'.
                 chosenAgilityObstacles = course;
                 // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
-                MASTERY[Skills.Agility].xp = MASTERY[Skills.Agility].xp.map((_: any, i: any) => masteries[i] * 14e6);
+                MASTERY[MICSR.skillIDs.Agility].xp = MASTERY[MICSR.skillIDs.Agility].xp.map((_: any, i: any) => masteries[i] * 14e6);
                 // @ts-expect-error TS(2304): Cannot find name 'agilityPassivePillarActive'.
                 agilityPassivePillarActive = pillar;
             }
@@ -226,7 +223,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -234,8 +232,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

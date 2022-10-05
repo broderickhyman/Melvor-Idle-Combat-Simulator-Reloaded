@@ -88,8 +88,7 @@
                     return data
                 }
                 this.monsterSimData = {};
-                // @ts-expect-error TS(2552): Cannot find name 'MONSTERS'. Did you mean 'monster... Remove this comment to see the full error message
-                for (let monsterID = 0; monsterID < MONSTERS.length; monsterID++) {
+                for (let monsterID = 0; monsterID < MICSR.monsters.length; monsterID++) {
                     this.monsterSimData[monsterID] = this.newSimData(true);
                     this.monsterSimFilter.push(true);
                 }
@@ -131,7 +130,7 @@
                 this.simulationQueue = [];
                 /** @type {SimulationWorker[]} */
                 this.simulationWorkers = [];
-                this.maxThreads = window.navigator.hardwareConcurrency;
+                this.maxThreads = 1; // TODO: window.navigator.hardwareConcurrency;
                 this.simStartTime = 0;
                 /** If the current sim has been cancelled */
                 this.simCancelled = false;
@@ -202,422 +201,20 @@
              * @param {number} i
              */
             intializeWorker(worker: any, i: any) {
-                // clone data without DOM references or functions
-                const equipmentSlotDataClone = {};
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                for (const slot in equipmentSlotData) {
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    equipmentSlotDataClone[slot] = {
-                        // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                        ...equipmentSlotData[slot],
-                        imageElements: [],
-                        qtyElements: [],
-                        tooltips: [],
-                    }
-                }
-                const modifierDataClone = {};
-                const cloneBackupMethods = [
-                    {
-                        name: 'MICSR.divideByNumberMultiplier',
-                        // @ts-expect-error TS(2304): Cannot find name 'divideByNumberMultiplier'.
-                        data: divideByNumberMultiplier.toString().replace('function ', 'MICSR.').replace(/(\(.*\)){/, ' = $1 => {')
-                    },
-                    {
-                        name: 'MICSR.milliToSeconds',
-                        // @ts-expect-error TS(2304): Cannot find name 'milliToSeconds'.
-                        data: milliToSeconds.toString().replace('function ', 'MICSR.').replace(/(\(.*\)){/, ' = $1 => {')
-                    },
-                    {
-                        name: 'MICSR.multiplyByNumberMultiplier',
-                        // @ts-expect-error TS(2304): Cannot find name 'multiplyByNumberMultiplier'.
-                        data: multiplyByNumberMultiplier.toString().replace('function ', 'MICSR.').replace(/(\(.*\)){/, ' = $1 => {')
-                    },
-                ]
-                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                for (const slot in modifierData) {
-                    // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                    const modifyValue = modifierData[slot].modifyValue?.name;
-                    if (modifyValue === 'modifyValue') {
-                        cloneBackupMethods.push({
-                            name: `MICSR.${slot}ModifyValue`,
-                            // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                            data: `MICSR.${slot}ModifyValue=${modifierData[slot].modifyValue.toString()}`
-                        });
-                    }
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    modifierDataClone[slot] = {
-                        // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                        ...modifierData[slot],
-                        format: '',
-                        modifyValue: modifyValue,
-                    }
-                }
-                // clone itemConditionalModifiers
-                const itemConditionalModifiersClone = [
-                    // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
-                    ...itemConditionalModifiers,
-                ];
-                for (let i = 0; i < itemConditionalModifiersClone.length; i++) {
-                    itemConditionalModifiersClone[i] = {...itemConditionalModifiersClone[i]};
-                    itemConditionalModifiersClone[i].conditionals = [...itemConditionalModifiersClone[i].conditionals];
-                    for (let j = 0; j < itemConditionalModifiersClone[i].conditionals.length; j++) {
-                        const condition = itemConditionalModifiersClone[i].conditionals[j].condition.toString();
-                        itemConditionalModifiersClone[i].conditionals[j] = {
-                            ...itemConditionalModifiersClone[i].conditionals[j],
-                        };
-                        itemConditionalModifiersClone[i].conditionals[j].condition = condition;
-                        cloneBackupMethods.push({
-                            name: `MICSR["itemConditionalModifiers-condition-${i}-${j}"]`,
-                            data: `MICSR["itemConditionalModifiers-condition-${i}-${j}"]=${condition}`,
-                            // @ts-expect-error TS(2345): Argument of type '{ name: string; data: string; co... Remove this comment to see the full error message
-                            condition: condition,
-                        });
-                    }
-                }
-                // clone SUMMONING
-                const summoningClone = {
-                    // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                    marks: Summoning.marks,
-                };
-                (summoningClone as any).synergies = [];
-                let synergyIndex = 0;
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                for (const synergy of Summoning.synergies) {
-                    const synergyClone = {...synergy};
-                    if (synergyClone.conditionalModifiers) {
-                        synergyClone.conditionalModifiers = [...synergyClone.conditionalModifiers];
-                        for (let k = 0; k < synergyClone.conditionalModifiers.length; k++) {
-                            const condition = synergyClone.conditionalModifiers[k].condition.toString();
-                            synergyClone.conditionalModifiers[k] = {
-                                ...synergyClone.conditionalModifiers[k],
-                                condition: condition,
-                            };
-                            cloneBackupMethods.push({
-                                name: `MICSR["SUMMONING-conditional-${synergyIndex}-${k}"]`,
-                                data: `MICSR["SUMMONING-conditional-${synergyIndex}-${k}"]=${condition}`,
-                                // @ts-expect-error TS(2345): Argument of type '{ name: string; data: string; co... Remove this comment to see the full error message
-                                condition: condition,
-                            });
-                        }
-                    }
-                    (summoningClone as any).synergies.push(synergyClone);
-                    synergyIndex++;
-                }
-                // clone itemSynergies
-                const itemSynergiesClone: any = [];
-                // @ts-expect-error TS(2304): Cannot find name 'itemSynergies'.
-                itemSynergies.forEach((synergy: any, i: any) => {
-                    const clone = {...synergy};
-                    if (synergy.conditionalModifiers) {
-                        clone.conditionalModifiers = [];
-                        synergy.conditionalModifiers.forEach((conditionalModifier: any, j: any) => {
-                            const condition = conditionalModifier.condition.toString();
-                            clone.conditionalModifiers.push({
-                                ...conditionalModifier,
-                                condition: condition,
-                            })
-                            cloneBackupMethods.push({
-                                name: `MICSR["itemSynergies-conditional-${i}-${j}"]`,
-                                data: `MICSR["itemSynergies-conditional-${i}-${j}"]=${condition}`,
-                                // @ts-expect-error TS(2345): Argument of type '{ name: string; data: string; co... Remove this comment to see the full error message
-                                condition: condition,
-                            });
-                        });
-                    }
-                    itemSynergiesClone.push(clone);
-                });
-                // fix conditionals that are created by a function
-                const backupsToReplace = [
-                    // @ts-expect-error TS(2304): Cannot find name 'bankCondition'.
-                    bankCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'gloveCondition'.
-                    gloveCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHitpointsBelowCondition'.
-                    playerHitpointsBelowCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHitpointsAboveCondition'.
-                    playerHitpointsAboveCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHasDotCondition'.
-                    playerHasDotCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'enemyHasDotCondition'.
-                    enemyHasDotCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHasEffectCondition'.
-                    playerHasEffectCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'enemyHasEffectCondition'.
-                    enemyHasEffectCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'typeVsTypeCondition'.
-                    typeVsTypeCondition().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'allConditions'.
-                    allConditions().toString(),
-                    // @ts-expect-error TS(2304): Cannot find name 'anyCondition'.
-                    anyCondition().toString(),
-                ];
-                const replacements = {
-                    'MICSR["itemConditionalModifiers-condition-0-0"]': "(player)=>{return true;}", // bankCondition
-                    'MICSR["itemConditionalModifiers-condition-1-0"]': "playerHitpointsBelowCondition(50)",
-                    'MICSR["itemConditionalModifiers-condition-2-0"]': "(player)=>{return true;}", // glove condition
-                    'MICSR["itemConditionalModifiers-condition-3-0"]': "(player)=>{return true;}", // glove condition
-                    'MICSR["itemConditionalModifiers-condition-4-0"]': "(player)=>{return true;}", // glove condition
-                    'MICSR["itemConditionalModifiers-condition-5-0"]': "(player)=>{return true;}", // glove condition
-                    'MICSR["itemConditionalModifiers-condition-6-0"]': "(player)=>{return true;}", // glove condition
-                    'MICSR["itemConditionalModifiers-condition-7-0"]': "playerHitpointsBelowCondition(100)",
-                    'MICSR["itemConditionalModifiers-condition-8-0"]': "typeVsTypeCondition('melee', 'ranged')",
-                    'MICSR["itemConditionalModifiers-condition-9-0"]': "typeVsTypeCondition('ranged', 'magic')",
-                    'MICSR["itemConditionalModifiers-condition-10-0"]': "typeVsTypeCondition('magic', 'melee')",
-                    'MICSR["SUMMONING-conditional-9-0"]': "playerHitpointsAboveCondition(100)",
-                    'MICSR["SUMMONING-conditional-9-1"]': "playerHitpointsAboveCondition(100)",
-                    'MICSR["SUMMONING-conditional-53-0"]': "enemyHasDotCondition('Burn')",
-                    'MICSR["itemSynergies-conditional-3-0"]': "playerHasDotCondition('Poison')",
-                    'MICSR["itemSynergies-conditional-3-1"]': "enemyHasDotCondition('Poison')",
-                    'MICSR["itemSynergies-conditional-4-0"]': "anyCondition([" +
-                        "playerHasEffectCondition(ModifierEffectSubtype.Slow)," +
-                        "playerHasEffectCondition(ModifierEffectSubtype.Frostburn)," +
-                        "playerHasDotCondition('Burn')," +
-                        "])",
-                    'MICSR["itemSynergies-conditional-5-0"]': "playerHasDotCondition('Bleed')",
-                }
-                for (const backup of cloneBackupMethods) {
-                    if (backupsToReplace.includes((backup as any).condition)) {
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        if (replacements[backup.name]) {
-                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                            backup.data = `${backup.name}=${replacements[backup.name]}`;
-                        } else {
-                            MICSR.warn('Unexpected conditional method', backup.name, (backup as any).condition);
-                        }
-                    }
-                }
                 // constants
-                const constantNames = [
-                    // actual constants
-                    // @ts-expect-error TS(2304): Cannot find name 'afflictionEffect'.
-                    {name: 'afflictionEffect', data: afflictionEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-                    {name: 'Agility', data: {obstacles: Agility.obstacles, passivePillars: Agility.passivePillars}},
-                    // @ts-expect-error TS(2304): Cannot find name 'ANCIENT'.
-                    {name: 'ANCIENT', data: ANCIENT},
-                    // @ts-expect-error TS(2304): Cannot find name 'attacks'.
-                    {name: 'attacks', data: attacks},
-                    // @ts-expect-error TS(2304): Cannot find name 'attacksIDMap'.
-                    {name: 'attacksIDMap', data: attacksIDMap},
-                    // @ts-expect-error TS(2304): Cannot find name 'attackStyles'.
-                    {name: 'attackStyles', data: attackStyles},
-                    // @ts-expect-error TS(2304): Cannot find name 'AttackStyles'.
-                    {name: 'AttackStyles', data: AttackStyles},
-                    // @ts-expect-error TS(2304): Cannot find name 'AURORAS'.
-                    {name: 'AURORAS', data: AURORAS},
-                    // @ts-expect-error TS(2304): Cannot find name 'bleedReflectEffect'.
-                    {name: 'bleedReflectEffect', data: bleedReflectEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'burnEffect'.
-                    {name: 'burnEffect', data: burnEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    {name: 'combatAreas', data: combatAreas},
-                    {
-                        name: 'combatMenus', data: {
-                            progressBars: {},
-                        }
-                    },
-                    // @ts-expect-error TS(2304): Cannot find name 'combatPassives'.
-                    {name: 'combatPassives', data: combatPassives},
-                    // @ts-expect-error TS(2304): Cannot find name 'combatSkills'.
-                    {name: 'combatSkills', data: combatSkills},
-                    {name: 'CombatStats', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
-                    {name: 'combatTriangle', data: combatTriangle},
-                    // @ts-expect-error TS(2304): Cannot find name 'CONSTANTS'.
-                    {name: 'CONSTANTS', data: CONSTANTS},
-                    // @ts-expect-error TS(2304): Cannot find name 'CURSES'.
-                    {name: 'CURSES', data: CURSES},
-                    // @ts-expect-error TS(2304): Cannot find name 'DotTypeIDs'.
-                    {name: 'DotTypeIDs', data: DotTypeIDs},
-                    // @ts-expect-error TS(2304): Cannot find name 'Dungeons'.
-                    {name: 'Dungeons', data: Dungeons},
-                    // @ts-expect-error TS(2304): Cannot find name 'DUNGEONS'.
-                    {name: 'DUNGEONS', data: DUNGEONS},
-                    {name: 'effectMedia', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'elementalEffects'.
-                    {name: 'elementalEffects', data: elementalEffects},
-                    // @ts-expect-error TS(2304): Cannot find name 'emptyFood'.
-                    {name: 'emptyFood', data: emptyFood},
-                    {name: 'enemyHTMLElements', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'emptyItem'.
-                    {name: 'emptyItem', data: emptyItem},
-                    // @ts-expect-error TS(2304): Cannot find name 'enemyNoun'.
-                    {name: 'enemyNoun', data: enemyNoun},
-                    // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                    {name: 'EquipmentSlots', data: EquipmentSlots},
-                    {name: 'equipmentSlotData', data: equipmentSlotDataClone},
-                    // @ts-expect-error TS(2304): Cannot find name 'formatNumberSetting'.
-                    {name: 'formatNumberSetting', data: formatNumberSetting},
-                    // @ts-expect-error TS(2304): Cannot find name 'frostBurnEffect'.
-                    {name: 'frostBurnEffect', data: frostBurnEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
-                    {name: 'GAMEMODES', data: GAMEMODES},
-                    // @ts-expect-error TS(2304): Cannot find name 'GeneralShopPurchases'.
-                    {name: 'GeneralShopPurchases', data: GeneralShopPurchases},
-                    {name: 'gp', data: 1e9}, // required for confetti crossbow
-                    // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                    {name: 'Herblore', data: {potions: Herblore.potions}},
-                    // @ts-expect-error TS(2304): Cannot find name 'markOfDeathEffect'.
-                    {name: 'markOfDeathEffect', data: markOfDeathEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'ModifierTarget'.
-                    {name: 'ModifierTarget', data: ModifierTarget},
-                    {name: 'MonsterStats', data: {}},
-                    {name: 'itemConditionalModifiers', data: itemConditionalModifiersClone},
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    {name: 'items', data: items},
-                    // @ts-expect-error TS(2304): Cannot find name 'Items'.
-                    {name: 'Items', data: Items},
-                    {name: 'ItemStats', data: {}},
-                    {name: 'itemSynergies', data: itemSynergiesClone},
-                    {name: 'modifierData', data: modifierDataClone},
-                    // @ts-expect-error TS(2304): Cannot find name 'ModifierEffectSubtype'.
-                    {name: 'ModifierEffectSubtype', data: ModifierEffectSubtype},
-                    // @ts-expect-error TS(2304): Cannot find name 'Monsters'.
-                    {name: 'Monsters', data: Monsters},
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    {name: 'MONSTERS', data: MONSTERS},
-                    // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                    {name: 'PETS', data: PETS},
-                    {name: 'playerHTMLElements', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'poisonEffect'.
-                    {name: 'poisonEffect', data: poisonEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                    {name: 'PRAYER', data: PRAYER},
-                    // @ts-expect-error TS(2304): Cannot find name 'Prayers'.
-                    {name: 'Prayers', data: Prayers},
-                    {name: 'PrayerStats', data: {}},
-                    {
-                        name: 'SETTINGS', data: {
-                            performance: {},
-                        }
-                    },
-                    // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
-                    {name: 'SHOP', data: SHOP},
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    {name: 'Skills', data: Skills},
-                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
-                    {name: 'SKILLS', data: SKILLS},
-                    // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                    {name: 'slayerAreas', data: slayerAreas},
-                    // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                    {name: 'slayerTaskData', data: SlayerTask.data},
-                    // @ts-expect-error TS(2304): Cannot find name 'SpellTypes'.
-                    {name: 'SpellTypes', data: SpellTypes},
-                    // @ts-expect-error TS(2304): Cannot find name 'SPELLS'.
-                    {name: 'SPELLS', data: SPELLS},
-                    // @ts-expect-error TS(2304): Cannot find name 'stackingEffects'.
-                    {name: 'stackingEffects', data: stackingEffects},
-                    {name: 'Stats', data: {}},
-                    {name: 'synergyElements', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'SynergyItem'.
-                    {name: 'SynergyItem', data: SynergyItem},
-                    {name: 'Summoning', data: summoningClone},
-                    // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
-                    {name: 'TICK_INTERVAL', data: TICK_INTERVAL},
-                    // @ts-expect-error TS(2304): Cannot find name 'tutorialComplete'.
-                    {name: 'tutorialComplete', data: tutorialComplete},
-                    // @ts-expect-error TS(2304): Cannot find name 'unknownArea'.
-                    {name: 'unknownArea', data: unknownArea},
-                    // @ts-expect-error TS(2304): Cannot find name 'youNoun'.
-                    {name: 'youNoun', data: youNoun},
-                    // character settings  // TODO: sim setting
-                    // @ts-expect-error TS(2304): Cannot find name 'currentGamemode'.
-                    {name: 'currentGamemode', data: currentGamemode},
-                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
-                    {name: 'numberMultiplier', data: numberMultiplier},
-                    // character data // TODO: wipe these from SimPlayer
-                    {name: 'bank', data: []},
-                    {name: 'bankCache', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'skillLevel'.
-                    {name: 'skillLevel', data: skillLevel},
-                    // @ts-expect-error TS(2304): Cannot find name 'petUnlocked'.
-                    {name: 'petUnlocked', data: petUnlocked},
-                ];
+                const constantNames: {
+                    name: string;
+                    data: any;
+                }[] = [];
                 const constants: { [name: string]: string; } = {};
                 constantNames.forEach(constant =>
                     constants[constant.name] = constant.data
                 );
                 // functions
-                const functionNames = [
-                    // global functions
-                    // @ts-expect-error TS(2304): Cannot find name 'applyModifier'.
-                    {name: 'applyModifier', data: applyModifier},
-                    {
-                        name: 'checkRequirements', data: (...args: any[]) => {/*console.log('checkRequirements', ...args); */
-                            return true;
-                        }
-                    },
-                    // @ts-expect-error TS(2304): Cannot find name 'allConditions'.
-                    {name: 'allConditions', data: allConditions},
-                    // @ts-expect-error TS(2304): Cannot find name 'anyCondition'.
-                    {name: 'anyCondition', data: anyCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'clampValue'.
-                    {name: 'clampValue', data: clampValue},
-                    // @ts-expect-error TS(2304): Cannot find name 'damageReducer'.
-                    {name: 'damageReducer', data: damageReducer},
-                    // @ts-expect-error TS(2304): Cannot find name 'enemyHasDotCondition'.
-                    {name: 'enemyHasDotCondition', data: enemyHasDotCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'enemyHasEffectCondition'.
-                    {name: 'enemyHasEffectCondition', data: enemyHasEffectCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'formatNumber'.
-                    {name: 'formatNumber', data: formatNumber},
-                    // @ts-expect-error TS(2304): Cannot find name 'getAttackFromID'.
-                    {name: 'getAttackFromID', data: getAttackFromID},
-                    // @ts-expect-error TS(2304): Cannot find name 'getBankId'.
-                    {name: 'getBankId', data: getBankId},
-                    // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                    {name: 'getTabletConsumptionXP', data: Summoning.getTabletConsumptionXP},
-                    // @ts-expect-error TS(2304): Cannot find name 'getDamageRoll'.
-                    {name: 'getDamageRoll', data: getDamageRoll},
-                    {name: 'getLangString', data: (key: any, id: any) => `${key}${id}`},
-                    // @ts-expect-error TS(2304): Cannot find name 'getMonsterArea'.
-                    {name: 'getMonsterArea', data: getMonsterArea},
-                    // @ts-expect-error TS(2304): Cannot find name 'getMonsterCombatLevel'.
-                    {name: 'getMonsterCombatLevel', data: getMonsterCombatLevel},
-                    // @ts-expect-error TS(2304): Cannot find name 'getNumberMultiplierValue'.
-                    {name: 'getNumberMultiplierValue', data: getNumberMultiplierValue},
-                    // @ts-expect-error TS(2304): Cannot find name 'isEquipment'.
-                    {name: 'isEquipment', data: isEquipment},
-                    // @ts-expect-error TS(2304): Cannot find name 'isFood'.
-                    {name: 'isFood', data: isFood},
-                    // @ts-expect-error TS(2304): Cannot find name 'isSeedItem'.
-                    {name: 'isSeedItem', data: isSeedItem},
-                    // @ts-expect-error TS(2304): Cannot find name 'isSkillEntry'.
-                    {name: 'isSkillEntry', data: isSkillEntry},
-                    // @ts-expect-error TS(2304): Cannot find name 'isSkillLocked'.
-                    {name: 'isSkillLocked', data: isSkillLocked},
-                    // @ts-expect-error TS(2304): Cannot find name 'isWeapon'.
-                    {name: 'isWeapon', data: isWeapon},
-                    // @ts-expect-error TS(2304): Cannot find name 'maxDamageReducer'.
-                    {name: 'maxDamageReducer', data: maxDamageReducer},
-                    // @ts-expect-error TS(2304): Cannot find name 'numberWithCommas'.
-                    {name: 'numberWithCommas', data: numberWithCommas},
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHasDotCondition'.
-                    {name: 'playerHasDotCondition', data: playerHasDotCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHasEffectCondition'.
-                    {name: 'playerHasEffectCondition', data: playerHasEffectCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHitpointsBelowCondition'.
-                    {name: 'playerHitpointsBelowCondition', data: playerHitpointsBelowCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'playerHitpointsAboveCondition'.
-                    {name: 'playerHitpointsAboveCondition', data: playerHitpointsAboveCondition},
-                    // @ts-expect-error TS(2304): Cannot find name 'rollInteger'.
-                    {name: 'rollInteger', data: rollInteger},
-                    // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
-                    {name: 'rollPercentage', data: rollPercentage},
-                    // @ts-expect-error TS(2304): Cannot find name 'roundToTickInterval'.
-                    {name: 'roundToTickInterval', data: roundToTickInterval},
-                    // @ts-expect-error TS(2304): Cannot find name 'typeVsTypeCondition'.
-                    {name: 'typeVsTypeCondition', data: typeVsTypeCondition},
-                    // MICSR functions
-                    {
-                        name: 'MICSR.addAgilityModifiers',
-                        data: MICSR.addAgilityModifiers,
-                    },
-                    {
-                        name: 'MICSR.getModifierValue',
-                        data: MICSR.getModifierValue,
-                    },
-                ];
+                const functionNames: {
+                    name: string;
+                    data: any;
+                }[] = [];
                 const functions: { [name: string]: string; } = {};
                 functionNames.forEach(func => {
                     let fstring = func.data.toString();
@@ -631,66 +228,8 @@
                         functions[func.name] = `self['${func.name}'] = ${fstring}`;
                     }
                 });
-                // modify value cloned functions
-                cloneBackupMethods.forEach(func => {
-                    functions[func.name] = func.data;
-                    functionNames.push(func)
-                });
                 // classes
-                const classNames = [
-                    // @ts-expect-error TS(2304): Cannot find name 'BankHelper'.
-                    {name: 'BankHelper', data: BankHelper},
-                    // @ts-expect-error TS(2304): Cannot find name 'CharacterStats'.
-                    {name: 'CharacterStats', data: CharacterStats},
-                    // @ts-expect-error TS(2304): Cannot find name 'CombatLoot'.
-                    {name: 'CombatLoot', data: CombatLoot},
-                    // @ts-expect-error TS(2304): Cannot find name 'DataReader'.
-                    {name: 'DataReader', data: DataReader},
-                    // @ts-expect-error TS(2304): Cannot find name 'Equipment'.
-                    {name: 'Equipment', data: Equipment},
-                    // @ts-expect-error TS(2304): Cannot find name 'EquipmentStats'.
-                    {name: 'EquipmentStats', data: EquipmentStats},
-                    // @ts-expect-error TS(2304): Cannot find name 'EquippedFood'.
-                    {name: 'EquippedFood', data: EquippedFood},
-                    // @ts-expect-error TS(2304): Cannot find name 'EquipSlot'.
-                    {name: 'EquipSlot', data: EquipSlot},
-                    {name: 'MICSR.ShowModifiers', data: MICSR.ShowModifiers},
-                    // @ts-expect-error TS(2304): Cannot find name 'NotificationQueue'.
-                    {name: 'NotificationQueue', data: NotificationQueue},
-                    // @ts-expect-error TS(2304): Cannot find name 'PlayerStats'.
-                    {name: 'PlayerStats', data: PlayerStats},
-                    // @ts-expect-error TS(2304): Cannot find name 'TargetModifiers'.
-                    {name: 'TargetModifiers', data: TargetModifiers},
-                    // @ts-expect-error TS(2304): Cannot find name 'Timer'.
-                    {name: 'Timer', data: Timer},
-                    // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                    {name: 'SlayerTask', data: SlayerTask},
-                    // @ts-expect-error TS(2304): Cannot find name 'SlowEffect'.
-                    {name: 'SlowEffect', data: SlowEffect},
-                    // @ts-expect-error TS(2304): Cannot find name 'SplashManager'.
-                    {name: 'SplashManager', data: SplashManager},
-                    // PlayerModifiers extends CombatModifiers
-                    // @ts-expect-error TS(2304): Cannot find name 'CombatModifiers'.
-                    {name: 'CombatModifiers', data: CombatModifiers},
-                    // @ts-expect-error TS(2304): Cannot find name 'PlayerModifiers'.
-                    {name: 'PlayerModifiers', data: PlayerModifiers},
-                    // SimManager extends CombatManager extends BaseManager
-                    // @ts-expect-error TS(2304): Cannot find name 'BaseManager'.
-                    {name: 'BaseManager', data: BaseManager},
-                    // @ts-expect-error TS(2304): Cannot find name 'CombatManager'.
-                    {name: 'CombatManager', data: CombatManager},
-                    {name: 'MICSR.SimManager', data: MICSR.SimManager},
-                    // SimPlayer extends Player extends Character
-                    // SimEnemy extends Enemy extends Character
-                    // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                    {name: 'Character', data: Character},
-                    // @ts-expect-error TS(2304): Cannot find name 'Player'.
-                    {name: 'Player', data: Player},
-                    {name: 'MICSR.SimPlayer', data: MICSR.SimPlayer},
-                    // @ts-expect-error TS(2304): Cannot find name 'Enemy'.
-                    {name: 'Enemy', data: Enemy},
-                    {name: 'MICSR.SimEnemy', data: MICSR.SimEnemy},
-                ];
+                const classNames: any[] = [];
                 const classes: { [name: string]: string; } = {};
                 classNames.forEach(clas => {
                     const s = clas.data.toString()
@@ -830,11 +369,9 @@
                 }
                 const minLevel = task.minLevel;
                 const maxLevel = task.maxLevel === -1 ? 6969 : task.maxLevel;
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                for (let monsterID = 0; monsterID < MONSTERS.length; monsterID++) {
+                for (let monsterID = 0; monsterID < MICSR.monsters.length; monsterID++) {
                     // check if it is a slayer monster
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    if (!MONSTERS[monsterID].canSlayer) {
+                    if (!MICSR.monsters[monsterID].canSlayer) {
                         continue;
                     }
                     // check if combat level fits the current task type
@@ -1366,7 +903,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -1374,8 +912,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

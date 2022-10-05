@@ -80,8 +80,7 @@
              * @return {number}
              */
             computeLootChance(monsterID: any) {
-                // @ts-expect-error TS(2552): Cannot find name 'MONSTERS'. Did you mean 'monster... Remove this comment to see the full error message
-                return ((MONSTERS[monsterID].lootChance !== undefined) ? MONSTERS[monsterID].lootChance / 100 : 1);
+                return ((MICSR.monsters[monsterID].lootChance !== undefined) ? MICSR.monsters[monsterID].lootChance / 100 : 1);
             }
 
             /**
@@ -91,12 +90,10 @@
              */
             computeDropTableValue(monsterID: any) {
                 // lootTable[x][0]: Item ID, [x][1]: Weight [x][2]: Max Qty
-                // @ts-expect-error TS(2552): Cannot find name 'MONSTERS'. Did you mean 'monster... Remove this comment to see the full error message
-                if (MONSTERS[monsterID].lootTable) {
+                if (MICSR.monsters[monsterID].lootTable) {
                     let gpWeight = 0;
                     let totWeight = 0;
-                    // @ts-expect-error TS(2552): Cannot find name 'MONSTERS'. Did you mean 'monster... Remove this comment to see the full error message
-                    MONSTERS[monsterID].lootTable.forEach((x: any) => {
+                    MICSR.monsters[monsterID].lootTable.forEach((x: any) => {
                         const itemID = x[0];
                         let avgQty = (x[2] + 1) / 2;
                         // @ts-expect-error TS(2304): Cannot find name 'items'.
@@ -165,10 +162,8 @@
                 }
                 monsterValue *= this.computeLootChance(monsterID);
                 // bones drops are not affected by loot chance
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                if (this.sellBones && !this.modifiers.autoBurying && MONSTERS[monsterID].bones) {
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    monsterValue += this.getItemValue(MONSTERS[monsterID].bones) * this.lootBonus * ((MONSTERS[monsterID].boneQty) ? MONSTERS[monsterID].boneQty : 1);
+                if (this.sellBones && !this.modifiers.autoBurying && MICSR.monsters[monsterID].bones) {
+                    monsterValue += this.getItemValue(MICSR.monsters[monsterID].bones) * this.lootBonus * ((MICSR.monsters[monsterID].boneQty) ? MICSR.monsters[monsterID].boneQty : 1);
                 }
                 return monsterValue;
             }
@@ -181,10 +176,8 @@
             computeDungeonMonsterValue(monsterID: any) {
                 let gpPerKill = 0;
                 if (this.godDungeonIDs.includes(this.app.viewedDungeonID)) {
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    const boneQty = MONSTERS[monsterID].boneQty ?? 1;
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    const shardID = MONSTERS[monsterID].bones;
+                    const boneQty = MICSR.monsters[monsterID].boneQty ?? 1;
+                    const shardID = MICSR.monsters[monsterID].bones;
                     if (this.convertShards) {
                         // @ts-expect-error TS(2304): Cannot find name 'items'.
                         const chestID = items[shardID].trimmedItemID;
@@ -215,11 +208,9 @@
                 // Shards
                 if (this.godDungeonIDs.includes(dungeonID)) {
                     let shardCount = 0;
-                    // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                    const shardID = MONSTERS[MICSR.dungeons[dungeonID].monsters[0]].bones;
+                    const shardID = MICSR.monsters[MICSR.dungeons[dungeonID].monsters[0]].bones;
                     MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
-                        // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                        shardCount += MONSTERS[monsterID].boneQty ?? 1;
+                        shardCount += MICSR.monsters[monsterID].boneQty ?? 1;
                     });
                     shardCount *= this.lootBonus;
                     if (this.convertShards) {
@@ -423,8 +414,7 @@
                 let totalChances = 0;
                 let selectedChance = 0;
                 let selectedAmt = 0;
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                const monsterData = MONSTERS[monsterId];
+                const monsterData = MICSR.monsters[monsterId];
                 if (!monsterData.lootTable || monsterData.lootTable.length === 0) {
                     return 0;
                 }
@@ -451,8 +441,7 @@
             }
 
             getAverageBoneDropAmt(monsterId: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                const monsterData = MONSTERS[monsterId];
+                const monsterData = MICSR.monsters[monsterId];
                 const boneID = monsterData.bones;
                 if (boneID === -1) {
                     return 0;
@@ -533,7 +522,7 @@
 
             /**
              * Calculates the drop chance of a signet half from a monster
-             * @param {number} monsterID The index of MONSTERS
+             * @param {number} monsterID The index of MICSR.monsters
              * @return {number}
              */
             getSignetDropRate(monsterID: any) {
@@ -578,8 +567,7 @@
                 if (petSkills.includes(this.petSkill)) {
                     // @ts-expect-error TS(2304): Cannot find name 'simResult'.
                     const timeMultiplier = (this.app.timeMultiplier === -1) ? simResult.killTimeS : this.app.timeMultiplier;
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    const petSkillLevel = this.player.skillLevel[Skills[this.petSkill]] + 1;
+                    const petSkillLevel = this.player.skillLevel[MICSR.skillIDs[this.petSkill]] + 1;
                     for (const simID in this.monsterSimData) {
                         const simResult = this.monsterSimData[simID];
                         simResult.petChance = 100 * (1 - this.chanceForNoPet(simResult, timeMultiplier, petSkillLevel));
@@ -644,7 +632,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -652,8 +641,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

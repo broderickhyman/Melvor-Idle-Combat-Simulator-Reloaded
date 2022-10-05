@@ -32,7 +32,7 @@
         MICSR.shortName = 'Combat Simulator';
 
         // compatible game version
-        MICSR.gameVersion = 'v1.0.5';
+        MICSR.gameVersion = 'v1.1';
 
         // combat sim version
         MICSR.majorVersion = 1;
@@ -121,13 +121,71 @@
             return items[itemID];
         }
 
-        MICSR.dungeons = [];
-        // @ts-expect-error TS(2304): Cannot find name 'DUNGEONS'.
-        DUNGEONS.forEach((dungeon: any) => MICSR.dungeons.push({...dungeon}));
-        // @ts-expect-error TS(2552): Cannot find name 'Dungeons'. Did you mean 'dungeon... Remove this comment to see the full error message
-        MICSR.dungeons = MICSR.dungeons.filter((dungeon: any) => dungeon.id !== Dungeons.Impending_Darkness);
-        // @ts-expect-error TS(2304): Cannot find name 'Dungeons'.
-        MICSR.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
+        // @ts-expect-error TS(2304): Cannot find name 'game'.
+        MICSR.actualGame = game;
+        MICSR.game = MICSR.actualGame; // TODO this should be a mock game object probably
+        MICSR.namespace = MICSR.game.registeredNamespaces.registeredNamespaces.get('micsr');
+        if (MICSR.namespace === undefined) {
+            MICSR.namespace = MICSR.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
+        }
+        // skill IDs
+        MICSR.skillIDs = {};
+        MICSR.skillNames = [];
+        MICSR.skillNamesLC = [];
+        MICSR.game.skills.allObjects.forEach((x: any, i: number) => {
+            MICSR.skillIDs[x.name] = i;
+            MICSR.skillNames.push(x.name);
+            MICSR.skillNamesLC.push(x.name.toLowerCase());
+        });
+        // pets array
+        MICSR.pets = MICSR.game.pets.allObjects.map((x: any) => {
+            return {...x}
+        });
+        // dg array
+        MICSR.dungeons = MICSR.game.dungeons.allObjects.map((x: any) => {
+            return {...x}
+        });
+        // TODO filter special dungeons
+        //  MICSR.dungeons = MICSR.dungeons.filter((dungeon) => dungeon.id !== Dungeons.Impending_Darkness);
+        // TODO filter special monsters
+        //  MICSR.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
+        // monster array
+        MICSR.monsters = MICSR.game.monsters.allObjects.map((x: any) => {
+            return {...x}
+        });
+        // areas
+        MICSR.combatAreas = MICSR.game.combatAreas.allObjects.map((x: any) => {
+            return {...x}
+        });
+        MICSR.slayerAreas = MICSR.game.slayerAreas.allObjects.map((x: any) => {
+            return {...x}
+        });
+        // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
+        MICSR.slayerTaskData = SlayerTask.data
+        // potions
+        MICSR.herblorePotions = MICSR.game.herblore.actions.allObjects.map((x: any) => {
+            return {...x}
+        });
+        // items
+        MICSR.items = MICSR.game.items.allObjects.map((x: any) => {
+            return {...x}
+        });
+        // spells
+        MICSR.standardSpells = MICSR.game.standardSpells.allObjects.map((x: any) => {
+            return {...x}
+        });
+        MICSR.curseSpells = MICSR.game.curseSpells.allObjects.map((x: any) => {
+            return {...x}
+        });
+        MICSR.auroraSpells = MICSR.game.auroraSpells.allObjects.map((x: any) => {
+            return {...x}
+        });
+        MICSR.ancientSpells = MICSR.game.ancientSpells.allObjects.map((x: any) => {
+            return {...x}
+        });
+        MICSR.archaicSpells = MICSR.game.archaicSpells.allObjects.map((x: any) => {
+            return {...x}
+        });
 
         /**
          }
@@ -262,7 +320,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -270,8 +329,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

@@ -38,7 +38,6 @@
             activePrayers: any;
             activeSummonSlots: any;
             applyModifiersToPrayerCost: any;
-            attackBar: any;
             attackStyle: any;
             attackType: any;
             autoEatEfficiency: any;
@@ -58,7 +57,6 @@
             currentGamemode: any;
             dataNames: any;
             eatFood: any;
-            effectRenderer: any;
             emptyAutoHeal: any;
             equipment: any;
             equipmentSets: any;
@@ -89,10 +87,7 @@
             skillXP: any;
             slayercoins: any;
             spellSelection: any;
-            splashManager: any;
-            statElements: any;
             stats: any;
-            summonBar: any;
             summoningSynergy: any;
             target: any;
             timers: any;
@@ -104,9 +99,10 @@
             usedPrayerPoints: any;
             usedRunes: any;
             usingAncient: any;
+            activeSummoningSynergy: any;
 
-            constructor(simManager: any) {
-                super(simManager);
+            constructor(simManager: any, simGame: any) {
+                super(simManager, simGame);
                 this.detachGlobals();
                 this.replaceGlobals();
                 // remove standard spell selection
@@ -148,6 +144,98 @@
                 //
             }
 
+            _attackBar: any;
+
+            get attackBar() {
+                return this._attackBar;
+            }
+
+            _effectRenderer: any;
+
+            get effectRenderer() {
+                return this._effectRenderer;
+            }
+
+            _splashManager: any;
+
+            get splashManager() {
+                return this._splashManager;
+            }
+
+            _statElements: any;
+
+            get statElements() {
+                return this._statElements;
+            }
+
+            _summonBar: any;
+
+            get summonBar() {
+                return this._summonBar;
+            }
+
+            // get grandparent addHitpoints
+            get characterAddHitpoints() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
+                return Character.prototype.addHitpoints;
+            }
+
+            // get grandparent setHitpoints
+            get characterSetHitpoints() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
+                return Character.prototype.setHitpoints;
+            }
+
+            // override getters
+            get activeTriangle() {
+                // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
+                return combatTriangle[GAMEMODES[this.currentGamemode].combatTriangle];
+            }
+
+            get useCombinationRunes() {
+                return this.useCombinationRunesFlag;
+            }
+
+            set useCombinationRunes(useCombinationRunes) {
+                this.useCombinationRunesFlag = useCombinationRunes;
+            }
+
+            get allowRegen() {
+                // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
+                return GAMEMODES[this.currentGamemode].hasRegen;
+            }
+
+            get synergyDescription() {
+                const synergy = this.equippedSummoningSynergy;
+                if (synergy !== undefined) {
+                    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
+                    if (this.isSynergyActive(synergy)) {
+                        return synergy.langDescription;
+                    } else {
+                        // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
+                        return getLangString('MENU_TEXT', 'LOCKED');
+                    }
+                } else {
+                    return '';
+                }
+            }
+
+            get equippedSummoningSynergy() {
+                return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
+            }
+
+            // get grandparent rollToHit
+            get characterRollToHit() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
+                return Character.prototype.rollToHit;
+            }
+
+            // get grandparent damage
+            get characterDamage() {
+                // @ts-expect-error TS(2304): Cannot find name 'Character'.
+                return Character.prototype.damage;
+            }
+
             initForWebWorker() {
                 // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
                 currentGamemode = this.currentGamemode;
@@ -160,11 +248,11 @@
 
             // detach globals attached by parent constructor
             detachGlobals() {
-                this.splashManager = {
+                this._splashManager = {
                     add: () => {
                     },
                 };
-                this.effectRenderer = {
+                this._effectRenderer = {
                     queueRemoval: () => {
                     },
                     queueRemoveAll: () => {
@@ -186,21 +274,9 @@
                     addModifier: () => {
                     },
                 };
-                this.statElements = undefined;
-                this.attackBar = undefined;
-                this.summonBar = undefined;
-            }
-
-            // get grandparent addHitpoints
-            get characterAddHitpoints() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.addHitpoints;
-            }
-
-            // get grandparent setHitpoints
-            get characterSetHitpoints() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.setHitpoints;
+                this._statElements = undefined;
+                this._attackBar = undefined;
+                this._summonBar = undefined;
             }
 
             addHitpoints(amount: any) {
@@ -236,16 +312,12 @@
             // replace globals with properties
             replaceGlobals() {
                 // skillLevel
-                // @ts-expect-error TS(2663): Cannot find name 'skillLevel'. Did you mean the in... Remove this comment to see the full error message
-                this.skillLevel = skillLevel.map((_: any) => 1);
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                this.skillLevel[Skills.Hitpoints] = 10;
+                this.skillLevel = MICSR.skillNames.map((_: any) => 1);
+                this.skillLevel[MICSR.skillIDs.Hitpoints] = 10;
                 // currentGamemode, numberMultiplier
-                // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
-                this.currentGamemode = currentGamemode;
+                this.currentGamemode = MICSR.game.currentGamemode;
                 // petUnlocked
-                // @ts-expect-error TS(2663): Cannot find name 'petUnlocked'. Did you mean the i... Remove this comment to see the full error message
-                this.petUnlocked = petUnlocked.map((x: any) => false);
+                this.petUnlocked = MICSR.pets.map((x: any) => false);
                 // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
                 this.course = Array(10).fill(-1);
                 this.courseMastery = Array(10).fill(false);
@@ -263,49 +335,23 @@
                 this.cookingMastery = false;
                 // useCombinationRunes
                 this.useCombinationRunesFlag = false;
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                this.combinations = items.filter((x: any) => x.type === 'Rune' && x.providesRune).map((x: any) => x.id);
+                this.combinations = MICSR.items.filter((x: any) => x.type === 'Rune' && x.providesRune).map((x: any) => x.id);
                 // other
                 this.healAfterDeath = true;
                 this.isSlayerTask = false;
                 this.isManualEating = false;
-                // gp, skillXP, PETS, slayercoins
+                // gp, skillXP, pets, slayercoins
                 this.resetGains();
-                // conditionalModifiers
-                this.conditionalModifiers = new Map();
-                // @ts-expect-error TS(2304): Cannot find name 'itemConditionalModifiers'.
-                itemConditionalModifiers.forEach((itemCondition: any) => {
-                    this.conditionalModifiers.set(itemCondition.itemID, itemCondition.conditionals.map((x: any) => {
-                        return {...x}
-                    }));
-                });
                 // activeAstrologyModifiers
                 this.activeAstrologyModifiers = [];
                 // runes in bank
                 this.hasRunes = true;
             }
 
-            // override getters
-            get activeTriangle() {
-                // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
-                return combatTriangle[GAMEMODES[this.currentGamemode].combatTriangle];
-            }
-
-            get useCombinationRunes() {
-                return this.useCombinationRunesFlag;
-            }
-
-            set useCombinationRunes(useCombinationRunes) {
-                this.useCombinationRunesFlag = useCombinationRunes;
-            }
-
-            get allowRegen() {
-                // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
-                return GAMEMODES[this.currentGamemode].hasRegen;
-            }
-
             rollForSummoningMarks() {
             }
+
+            // this method does not care about overeating
 
             computeConditionalListeners() {
                 // Reset the listener sets
@@ -333,8 +379,7 @@
 
             resetGains() {
                 this.gp = 0;
-                // @ts-expect-error TS(2663): Cannot find name 'skillLevel'. Did you mean the in... Remove this comment to see the full error message
-                this.skillXP = skillLevel.map((_: any) => 0);
+                this.skillXP = MICSR.skillNames.map((_: any) => 0);
                 this.petRolls = {};
                 this._slayercoins = 0;
                 this.usedAmmo = 0;
@@ -403,7 +448,6 @@
                 }
             }
 
-            // this method does not care about overeating
             // eats at most once per tick
             manualEat() {
                 // don't eat at full health
@@ -480,8 +524,7 @@
             }
 
             addPetModifiers() {
-                // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                PETS.forEach((pet: any, i: any) => {
+                MICSR.pets.forEach((pet: any, i: any) => {
                     if (this.petUnlocked[i] && !pet.activeInRaid && pet.modifiers !== undefined) {
                         this.modifiers.addModifiers(pet.modifiers);
                     }
@@ -519,8 +562,7 @@
 
             addMiscModifiers() {
                 // Knight's Defender
-                // @ts-expect-error TS(2304): Cannot find name 'Items'.
-                if (this.equipment.checkForItemID(Items.Knights_Defender) && this.attackType === 'melee') {
+                if (this.equipment.checkForItemID("melvorF:Knights_Defender" /* ItemIDs.Knights_Defender */) && this.attackType === 'melee') {
                     this.modifiers.addModifiers({
                         decreasedAttackInterval: 100,
                         decreasedDamageReduction: 3,
@@ -573,8 +615,7 @@
                     this.addXP(gain.skill, gain.ratio * damage);
                 });
                 // Hitpoints
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                this.addXP(Skills.Hitpoints, damage * 1.33);
+                this.addXP(MICSR.skillIDs.Hitpoints, damage * 1.33);
                 // Prayer
                 let prayerRatio = 0;
                 this.activePrayers.forEach((pID: any) => {
@@ -583,8 +624,7 @@
                 });
                 prayerRatio /= 3;
                 if (prayerRatio > 0) {
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.addXP(Skills.Prayer, prayerRatio * damage);
+                    this.addXP(MICSR.skillIDs.Prayer, prayerRatio * damage);
                 }
                 // pets
                 this.petRolls[attackInterval] = 1 + (this.petRolls[attackInterval] | 0);
@@ -603,8 +643,7 @@
             }
 
             getPotion() {
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                return items[Herblore.potions[this.potionID].potionIDs[this.potionTier]];
+                return MICSR.items[MICSR.herblorePotions[this.potionID].potionIDs[this.potionTier]];
             }
 
             // track potion usage instead of consuming
@@ -701,7 +740,7 @@
             equipItem(itemID: any, set: any, slot = "Default", quantity = 1) {
                 const equipment = this.equipmentSets[set];
                 // @ts-expect-error TS(2304): Cannot find name 'emptyItem'.
-                const itemToEquip = itemID === -1 ? emptyItem : items[itemID];
+                const itemToEquip = itemID === -1 ? emptyItem : MICSR.items[itemID];
                 if (slot === "Default") {
                     slot = itemToEquip.validSlots[0];
                 }
@@ -727,8 +766,7 @@
                 // Unequip previous food
                 this.food.unequipSelected();
                 // Proceed to equip the food
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                this.food.equip(items[itemID], Infinity);
+                this.food.equip(MICSR.items[itemID], Infinity);
             }
 
             unequipFood() {
@@ -746,33 +784,13 @@
                 return bonus;
             }
 
-            get synergyDescription() {
-                const synergy = this.equippedSummoningSynergy;
-                if (synergy !== undefined) {
-                    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-                    if (this.isSynergyActive(synergy)) {
-                        return synergy.langDescription;
-                    } else {
-                        // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
-                        return getLangString('MENU_TEXT', 'LOCKED');
-                    }
-                } else {
-                    return '';
-                }
-            }
-
-            get activeSummoningSynergy() {
-                return this.getUnlockedSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
-            }
-
-            get equippedSummoningSynergy() {
-                return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
+            computeSummoningSynergy() {
+                this.activeSummoningSynergy = this.getUnlockedSynergyData(this.equipment.slots.Summon1.item, this.equipment.slots.Summon2.item);
             }
 
             getSynergyData(summon1: any, summon2: any) {
-                var _a;
-                // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-                return (_a = Summoning.synergiesByItemID.get(summon1)) === null || _a === void 0 ? void 0 : _a.get(summon2);
+                let _a;
+                return (_a = MICSR.game.summoning.synergiesByItem.get(summon1)) === null || _a === void 0 ? void 0 : _a.get(summon2);
             }
 
             getUnlockedSynergyData(summon1: any, summon2: any) {
@@ -819,20 +837,8 @@
                 this.canCurse = allowMagic && !this.usingAncient;
             }
 
-            // get grandparent rollToHit
-            get characterRollToHit() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.rollToHit;
-            }
-
             rollToHit(target: any, attack: any) {
                 return this.checkRequirements(this.manager.areaRequirements) && this.characterRollToHit(target, attack);
-            }
-
-            // get grandparent damage
-            get characterDamage() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.damage;
             }
 
             damage(amount: any, source: any, thieving = false) {
@@ -931,7 +937,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -939,8 +946,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

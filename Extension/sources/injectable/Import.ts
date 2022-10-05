@@ -34,10 +34,8 @@
             courseMastery: {"-1": false},
             // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
             equipment: Array(Object.getOwnPropertyNames(equipmentSlotData).length).fill(-1),
-            // @ts-expect-error TS(2304): Cannot find name 'skillXP'.
-            levels: Array(skillXP.length).fill(1),
-            // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-            petUnlocked: Array(PETS.length).fill(false),
+            levels: Array(MICSR.game.skills.allObjects.length).fill(1),
+            petUnlocked: Array(MICSR.pets.length).fill(false),
             styles: {
                 melee: 'Stab',
                 ranged: 'Accurate',
@@ -63,8 +61,7 @@
             summoningSynergy: true,
             useCombinationRunes: false,
         }
-        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-        MICSR.defaultSettings.levels[Skills.Hitpoints] = 10;
+        MICSR.defaultSettings.levels[MICSR.skillIDs.Hitpoints] = 10;
 
         /**
          * Class to handle importing
@@ -80,12 +77,9 @@
                 this.player = app.player;
                 this.document = document;
                 this.autoEatTiers = [
-                    // @ts-expect-error TS(2304): Cannot find name 'GeneralShopPurchases'.
-                    GeneralShopPurchases.Auto_Eat_Tier_I,
-                    // @ts-expect-error TS(2304): Cannot find name 'GeneralShopPurchases'.
-                    GeneralShopPurchases.Auto_Eat_Tier_II,
-                    // @ts-expect-error TS(2304): Cannot find name 'GeneralShopPurchases'.
-                    GeneralShopPurchases.Auto_Eat_Tier_III,
+                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_I'),
+                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_II'),
+                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_III'),
                 ];
             }
 
@@ -145,8 +139,7 @@
                 const astrologyModifiers = [];
                 // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
                 for (const constellation of Astrology.constellations) {
-                    // @ts-expect-error TS(2304): Cannot find name 'game'.
-                    const constellationModifiers = game.astrology.constellationModifiers.get(constellation);
+                    const constellationModifiers = MICSR.game.astrology.constellationModifiers.get(constellation);
                     const modifiers = {};
                     if (constellationModifiers) {
                         for (const m of [...constellationModifiers.standard, ...constellationModifiers.unique]) {
@@ -185,8 +178,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 const chosenAgilityObstacles = Array(1 + Math.max(...Agility.obstacles.map((x: any) => x.category))).fill(-1);
                 for (let i = 0; i < chosenAgilityObstacles.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'game'.
-                    const obstacle = game.agility.builtObstacles.get(i);
+                    const obstacle = MICSR.game.agility.builtObstacles.get(i);
                     if (obstacle !== undefined) {
                         chosenAgilityObstacles[i] = obstacle.id;
                     }
@@ -199,7 +191,7 @@
                     astrologyModifiers: astrologyModifiers,
                     course: chosenAgilityObstacles,
                     // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
-                    courseMastery: MASTERY[Skills.Agility].xp.map((x: any) => x > 13034431),
+                    courseMastery: MASTERY[MICSR.skillIDs.Agility].xp.map((x: any) => x > 13034431),
                     // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
                     equipment: player.equipmentSets[setID].slotArray.map((x: any) => x.occupiedBy === 'None' ? x.item.id : -1),
                     // @ts-expect-error TS(2304): Cannot find name 'skillXP'.
@@ -228,8 +220,7 @@
                     isAncient: player.spellSelection.ancient !== -1,
                     isManualEating: this.player.isManualEating,
                     isSlayerTask: this.player.isSlayerTask,
-                    // @ts-expect-error TS(2304): Cannot find name 'game'.
-                    pillar: game.agility.builtPassivePillar === undefined ? -1 : game.agility.builtPassivePillar.id,
+                    pillar: MICSR.game.agility.builtPassivePillar === undefined ? -1 : MICSR.game.agility.builtPassivePillar.id,
                     potionID: potionID,
                     potionTier: potionTier,
                     // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
@@ -422,16 +413,14 @@
             }
 
             importPets(petUnlocked: any) {
-                // Import PETS
+                // Import pets
                 petUnlocked.forEach((owned: any, petID: any) => {
                     this.player.petUnlocked[petID] = owned;
                     if (this.app.petIDs.includes(petID)) {
                         if (owned) {
-                            // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                            this.app.selectButton(this.document.getElementById(`MCS ${PETS[petID].name} Button`));
+                            this.app.selectButton(this.document.getElementById(`MCS ${MICSR.pets[petID].name} Button`));
                         } else {
-                            // @ts-expect-error TS(2304): Cannot find name 'PETS'.
-                            this.app.unselectButton(this.document.getElementById(`MCS ${PETS[petID].name} Button`));
+                            this.app.unselectButton(this.document.getElementById(`MCS ${MICSR.pets[petID].name} Button`));
                         }
                     }
                     if (petID === 4 && owned) this.document.getElementById('MCS Rock').style.display = '';
@@ -532,7 +521,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -540,8 +530,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

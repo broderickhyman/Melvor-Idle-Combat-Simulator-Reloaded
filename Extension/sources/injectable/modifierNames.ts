@@ -239,6 +239,7 @@
                         'ThievingStealth',
                         'MinThievingGP',
                     ],
+                    township: [],
                     woodcutting: [
                         'BirdNestDropRate',
                     ],
@@ -465,6 +466,7 @@
                         'summoningSynergy_11_18',
                         'summoningSynergy_11_19',
                     ],
+                    township: [],
                     woodcutting: [
                         'increasedTreeCutLimit',
                         'summoningSynergy_3_4',
@@ -513,8 +515,7 @@
                 // all
                 this.relevantModifiers.all = this.getModifierNames(
                     Object.getOwnPropertyNames(this.creasedModifiers),
-                    // @ts-expect-error TS(2304): Cannot find name 'SKILLS'.
-                    Object.getOwnPropertyNames(SKILLS).map(x => Number(x)),
+                    MICSR.game.skills.allObjects.map((_: any, x: number) => x),
                 );
 
                 // misc
@@ -530,24 +531,15 @@
                         'combat',
                     ],
                     [
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Attack,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Strength,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Ranged,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Magic,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Defence,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Hitpoints,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Prayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Slayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Summoning,
+                        MICSR.skillIDs.Attack,
+                        MICSR.skillIDs.Strength,
+                        MICSR.skillIDs.Ranged,
+                        MICSR.skillIDs.Magic,
+                        MICSR.skillIDs.Defence,
+                        MICSR.skillIDs.Hitpoints,
+                        MICSR.skillIDs.Prayer,
+                        MICSR.skillIDs.Slayer,
+                        MICSR.skillIDs.Summoning,
                     ],
                 );
 
@@ -558,20 +550,13 @@
                         'combat',
                     ],
                     [
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Attack,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Strength,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Defence,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Hitpoints,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Prayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Slayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Summoning,
+                        MICSR.skillIDs.Attack,
+                        MICSR.skillIDs.Strength,
+                        MICSR.skillIDs.Defence,
+                        MICSR.skillIDs.Hitpoints,
+                        MICSR.skillIDs.Prayer,
+                        MICSR.skillIDs.Slayer,
+                        MICSR.skillIDs.Summoning,
                     ],
                 );
 
@@ -582,18 +567,12 @@
                         'combat',
                     ],
                     [
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Ranged,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Defence,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Hitpoints,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Prayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Slayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Summoning,
+                        MICSR.skillIDs.Ranged,
+                        MICSR.skillIDs.Defence,
+                        MICSR.skillIDs.Hitpoints,
+                        MICSR.skillIDs.Prayer,
+                        MICSR.skillIDs.Slayer,
+                        MICSR.skillIDs.Summoning,
                     ],
                 );
 
@@ -605,18 +584,12 @@
                         'hitpoints',
                     ],
                     [
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Magic,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Defence,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Hitpoints,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Prayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Slayer,
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Summoning,
+                        MICSR.skillIDs.Magic,
+                        MICSR.skillIDs.Defence,
+                        MICSR.skillIDs.Hitpoints,
+                        MICSR.skillIDs.Prayer,
+                        MICSR.skillIDs.Slayer,
+                        MICSR.skillIDs.Summoning,
                     ],
                 );
 
@@ -626,8 +599,7 @@
                         'skilling',
                     ],
                     [
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        Skills.Slayer,
+                        MICSR.skillIDs.Slayer,
                     ],
                 );
 
@@ -641,8 +613,7 @@
                             'mastery',
                         ],
                         [
-                            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                            Skills[name]
+                            MICSR.skillIDs[name]
                         ],
                     );
                     const lname = name.toLowerCase();
@@ -669,8 +640,7 @@
                     this.relevantModifiers[name] = this.getModifierNames(
                         setNames,
                         [
-                            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                            Skills[name]
+                            MICSR.skillIDs[name]
                         ],
                     );
                 });
@@ -713,9 +683,7 @@
 
                 // check for unknown modifiers
                 const modifierNames = [
-                    // @ts-expect-error TS(2304): Cannot find name 'player'.
-                    ...Object.getOwnPropertyNames(player.modifiers),
-                    // player.modifiers.skillModifiers
+                    ...Object.getOwnPropertyNames(MICSR.game.combat.player.modifiers),
                     // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
                     ...Object.getOwnPropertyNames(modifierData).filter(x => modifierData[x].isSkill),
                 ];
@@ -750,20 +718,16 @@
             getModifierNames(setNames: any, skillIDs: any) {
                 // add skill based on skillID
                 skillIDs.forEach((id: any) => {
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    if (!setNames.includes(Skills[id])) {
-                        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                        setNames.push(Skills[id].toLowerCase());
+                    if (!setNames.includes(MICSR.skillNamesLC[id])) {
+                        setNames.push(MICSR.skillNamesLC[id]);
                     }
                 });
                 // add melee based on att/str skillID
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                if (skillIDs.includes(Skills.Attack) || skillIDs.includes(Skills.Strength)) {
+                if (skillIDs.includes(MICSR.skillIDs.Attack) || skillIDs.includes(MICSR.skillIDs.Strength)) {
                     if (!setNames.includes('melee')) {
                         setNames.push('melee');
                     }
                 }
-
                 // gather modifiers
                 return {
                     names: [...new Set([
@@ -985,7 +949,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -993,8 +958,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

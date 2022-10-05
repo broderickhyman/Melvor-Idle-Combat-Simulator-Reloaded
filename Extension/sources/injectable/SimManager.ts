@@ -72,13 +72,16 @@
             tick: any;
             tickCount: any;
 
-            constructor() {
-                super();
-                this.player = new MICSR.SimPlayer(this);
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                this.enemy = new MICSR.SimEnemy(MONSTERS[0], this);
+            constructor(game: any, namespace: any) {
+                super(game, namespace);
+                this.player = new MICSR.SimPlayer(this, MICSR.game);
+                this.enemy = new MICSR.SimEnemy(this, MICSR.game);
                 this.detachGlobals();
                 this.replaceGlobals();
+            }
+
+            get onSlayerTask() {
+                return this.player.isSlayerTask && this.areaType !== 'Dungeon' && this.areaType !== 'None';
             }
 
             initialize() {
@@ -126,10 +129,8 @@
 
             // create new Sim Enemy
             createNewEnemy() {
-                // @ts-expect-error TS(2304): Cannot find name 'MONSTERS'.
-                this.enemy = new MICSR.SimEnemy(MONSTERS[this.selectedMonster], this);
-                // @ts-expect-error TS(2304): Cannot find name 'DUNGEONS'.
-                this.enemy.isAfflicted = (this.areaData === DUNGEONS[Dungeons.Into_the_Mist]);
+                this.enemy = new MICSR.SimEnemy(this, MICSR.game);
+                this.enemy.isAfflicted = (this.areaData.id === 'melvorF:Into_the_Mist');
             }
 
             // reset sim stats
@@ -157,69 +158,63 @@
             }
 
             convertSlowSimToResult(simResult: any, targetTrials: any) {
-                const data = {};
                 const gps = simResult.gainsPerSecond;
                 // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
                 const ticksPerSecond = 1000 / TICK_INTERVAL;
                 const trials = simResult.killCount + simResult.deathCount;
-                // success
-                (data as any).simSuccess = simResult.success;
-                (data as any).reason = undefined;
-                (data as any).tickCount = simResult.tickCount;
-                // xp rates
-// @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                (data as any).xpPerSecond = gps.skillXP[Skills.Attack]
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    + gps.skillXP[Skills.Strength]
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    + gps.skillXP[Skills.Defence]
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    + gps.skillXP[Skills.Ranged]
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    + gps.skillXP[Skills.Magic]; // TODO: this depends on attack style
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                (data as any).hpXpPerSecond = gps.skillXP[Skills.Hitpoints];
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                (data as any).slayerXpPerSecond = gps.skillXP[Skills.Slayer];
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                (data as any).prayerXpPerSecond = gps.skillXP[Skills.Prayer];
-                // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                (data as any).summoningXpPerSecond = gps.skillXP[Skills.Summoning];
-                // consumables
-                (data as any).ppConsumedPerSecond = gps.usedPrayerPoints;
-                (data as any).ammoUsedPerSecond = gps.usedAmmo;
-                (data as any).runesUsedPerSecond = gps.usedRunes;
-                (data as any).usedRunesBreakdown = gps.usedRunesBreakdown;
-                (data as any).combinationRunesUsedPerSecond = gps.usedCombinationRunes;
+                let reason = undefined;
+                if (targetTrials - trials > 0) {
+                    reason = `simulated ${trials}/${targetTrials} trials`;
+                }
+                const killTimeS = simResult.tickCount / ticksPerSecond / simResult.killCount;
+                // compute potion use
                 let potionCharges = 1;
                 if (this.player.potionID > -1) {
                     // @ts-expect-error TS(2304): Cannot find name 'items'.
                     const potion = items[Herblore.potions[this.player.potionID].potionIDs[this.player.potionTier]];
                     potionCharges = potion.potionCharges + MICSR.getModifierValue(this.player.modifiers, 'PotionChargesFlat');
                 }
-                (data as any).potionsUsedPerSecond = gps.usedPotionCharges / potionCharges; // TODO: divide by potion capacity
-                (data as any).tabletsUsedPerSecond = gps.usedSummoningCharges;
-                (data as any).atePerSecond = gps.usedFood;
-                // survivability
-                (data as any).deathRate = simResult.deathCount / trials;
-                (data as any).highestDamageTaken = gps.highestDamageTaken;
-                (data as any).lowestHitpoints = gps.lowestHitpoints;
-                // kill time
-                (data as any).killTimeS = simResult.tickCount / ticksPerSecond / simResult.killCount;
-                (data as any).killsPerSecond = 1 / (data as any).killTimeS;
-                // loot gains
-                (data as any).baseGpPerSecond = gps.gp; // gpPerSecond is computed from this
-                (data as any).dropChance = NaN;
-                (data as any).signetChance = NaN;
-                (data as any).petChance = NaN;
-                (data as any).petRolls = gps.petRolls;
-                (data as any).slayerCoinsPerSecond = gps.slayercoins;
-                // not displayed -> TODO: remove?
-                (data as any).simulationTime = NaN;
-                if (targetTrials - trials > 0) {
-                    (data as any).reason = `simulated ${trials}/${targetTrials} trials`;
+                return {
+                    // success
+                    simSuccess: simResult.success,
+                    reason: reason,
+                    tickCount: simResult.tickCount,
+                    // xp rates
+                    xpPerSecond: gps.skillXP[MICSR.skillIDs.Attack]
+                        + gps.skillXP[MICSR.skillIDs.Strength]
+                        + gps.skillXP[MICSR.skillIDs.Defence]
+                        + gps.skillXP[MICSR.skillIDs.Ranged]
+                        + gps.skillXP[MICSR.skillIDs.Magic], // TODO: this depends on attack style
+                    hpXpPerSecond: gps.skillXP[MICSR.skillIDs.Hitpoints],
+                    slayerXpPerSecond: gps.skillXP[MICSR.skillIDs.Slayer],
+                    prayerXpPerSecond: gps.skillXP[MICSR.skillIDs.Prayer],
+                    summoningXpPerSecond: gps.skillXP[MICSR.skillIDs.Summoning],
+                    // consumables
+                    ppConsumedPerSecond: gps.usedPrayerPoints,
+                    ammoUsedPerSecond: gps.usedAmmo,
+                    runesUsedPerSecond: gps.usedRunes,
+                    usedRunesBreakdown: gps.usedRunesBreakdown,
+                    combinationRunesUsedPerSecond: gps.usedCombinationRunes,
+                    potionsUsedPerSecond: gps.usedPotionCharges / potionCharges, // TODO: divide by potion capacity
+                    tabletsUsedPerSecond: gps.usedSummoningCharges,
+                    atePerSecond: gps.usedFood,
+                    // survivability
+                    deathRate: simResult.deathCount / trials,
+                    highestDamageTaken: gps.highestDamageTaken,
+                    lowestHitpoints: gps.lowestHitpoints,
+                    // kill time
+                    killTimeS: killTimeS,
+                    killsPerSecond: 1 / killTimeS,
+                    // loot gains
+                    baseGpPerSecond: gps.gp, // gpPerSecond is computed from this
+                    dropChance: NaN,
+                    signetChance: NaN,
+                    petChance: NaN,
+                    petRolls: gps.petRolls,
+                    slayerCoinsPerSecond: gps.slayercoins,
+                    // not displayed -> TODO: remove?
+                    simulationTime: NaN,
                 }
-                return data;
             }
 
             // track kills and deaths
@@ -278,8 +273,7 @@
                     slayerXPReward += this.enemy.stats.maxHitpoints / numberMultiplier;
                 }
                 if (slayerXPReward > 0)
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.player.addXP(Skills.Slayer, slayerXPReward);
+                    this.player.addXP(MICSR.skillIDs.Slayer, slayerXPReward);
             }
 
             selectMonster(monsterID: any, areaData: any) {
@@ -328,11 +322,9 @@
             runTrials(monsterID: any, dungeonID: any, trials: any, tickLimit: any, verbose = false) {
                 this.resetSimStats();
                 const startTimeStamp = performance.now();
-                // @ts-expect-error TS(2304): Cannot find name 'getMonsterArea'.
-                let areaData = getMonsterArea(monsterID);
+                let areaData = MICSR.game.getMonsterArea(monsterID);
                 if (dungeonID !== undefined) {
-                    // @ts-expect-error TS(2304): Cannot find name 'DUNGEONS'.
-                    areaData = DUNGEONS[dungeonID];
+                    areaData = MICSR.dungeons[dungeonID];
                     this.dungeonProgress = 0;
                     while (areaData.monsters[this.dungeonProgress] !== monsterID) {
                         this.dungeonProgress++;
@@ -360,10 +352,6 @@
                 }
                 return simResult;
             }
-
-            get onSlayerTask() {
-                return this.player.isSlayerTask && this.areaType !== 'Dungeon' && this.areaType !== 'None';
-            }
         }
     }
 
@@ -374,7 +362,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -382,8 +371,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');

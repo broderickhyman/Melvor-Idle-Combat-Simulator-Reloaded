@@ -31,21 +31,30 @@
          */
         // @ts-expect-error TS(2304): Cannot find name 'Enemy'.
         MICSR.SimEnemy = class extends Enemy {
-            effectRenderer: any;
-            splashManager: any;
-
-            constructor(data: any, simManager: any) {
-                super(data, simManager);
+            constructor(simManager: any, simGame: any) {
+                super(simManager, simGame);
                 this.detachGlobals();
+            }
+
+            _effectRenderer: any;
+
+            get effectRenderer() {
+                return this._effectRenderer;
+            }
+
+            _splashManager: any;
+
+            get splashManager() {
+                return this._splashManager;
             }
 
             // detach globals attached by parent constructor
             detachGlobals() {
-                this.splashManager = {
+                this._splashManager = {
                     add: () => {
                     },
                 };
-                this.effectRenderer = {
+                this._effectRenderer = {
                     queueRemoval: () => {
                     },
                     queueRemoveAll: () => {
@@ -78,7 +87,8 @@
             return;
         }
         // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (characterSelected && !characterLoading) {
+        let reqMet = characterSelected && confirmedLoaded;
+        if (reqMet) {
             loadCounter++;
         }
         if (loadCounter > 100) {
@@ -86,8 +96,6 @@
             return;
         }
         // check requirements
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && !characterLoading;
         if ((window as any).MICSR === undefined) {
             reqMet = false;
             console.log(id + ' is waiting for the MICSR object');
