@@ -68,10 +68,10 @@
                 this.parent = parent;
                 // Simulation settings
                 /** @type {boolean[]} */
-                this.monsterSimFilter = [];
+                this.monsterSimFilter = {};
                 /** @type {boolean[]} */
-                this.dungeonSimFilter = [];
-                this.slayerSimFilter = [];
+                this.dungeonSimFilter = {};
+                this.slayerSimFilter = {};
                 // not simulated reason
                 this.notSimulatedReason = 'entity not simulated';
                 // Simulation data;
@@ -88,31 +88,29 @@
                     return data
                 }
                 this.monsterSimData = {};
-                for (let monsterID = 0; monsterID < MICSR.monsters.length; monsterID++) {
-                    this.monsterSimData[monsterID] = this.newSimData(true);
-                    this.monsterSimFilter.push(true);
-                }
-                /** @type {MonsterSimResult[]} */
-                this.dungeonSimData = [];
-                for (let dungeonID = 0; dungeonID < MICSR.dungeons.length; dungeonID++) {
-                    this.dungeonSimData.push(this.newSimData(false));
-                    this.dungeonSimFilter.push(true);
-                    MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
-                        const simID = this.simID(monsterID, dungeonID);
+                MICSR.monsters.allObjects.forEach((monster:any) => {
+                    this.monsterSimData[monster.id] = this.newSimData(true);
+                    this.monsterSimFilter[monster.id] = true;
+                });
+                this.dungeonSimData = {};
+                MICSR.dungeons.allObjects.forEach((dungeon:any) => {
+                    this.dungeonSimData[dungeon.id] = this.newSimData(false);
+                    this.dungeonSimFilter[dungeon.id] = true;
+                    dungeon.monsters.forEach((monster: any) => {
+                        const simID = this.simID(monster.id, dungeon.id);
                         if (!this.monsterSimData[simID]) {
                             this.monsterSimData[simID] = this.newSimData(true);
                         }
                     });
-                }
+                });
                 //
-                this.slayerTaskMonsters = [];
-                this.slayerSimData = [];
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                for (let taskID = 0; taskID < SlayerTask.data.length; taskID++) {
-                    this.slayerTaskMonsters.push([]);
-                    this.slayerSimData.push(this.newSimData(false));
-                    this.slayerSimFilter.push(true);
-                }
+                this.slayerTaskMonsters = {};
+                this.slayerSimData = {};
+                MICSR.slayerTaskData.forEach((task: any) => {
+                    this.slayerTaskMonsters[task.display] = [];
+                    this.slayerSimData[task.display] = this.newSimData(false);
+                    this.slayerSimFilter[task.display] = true;
+                });
                 /** Variables of currently stored simulation */
                 this.currentSim = this.initCurrentSim();
                 // Options for time multiplier
@@ -414,10 +412,8 @@
                     });
                 });
                 // Wandering Bard
-                const bardID = 139;
-                if (this.monsterSimFilter[bardID]) {
-                    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-                    this.pushMonsterToQueue(bardID);
+                if (this.monsterSimFilter[MICSR.bardID]) {
+                    this.pushMonsterToQueue(MICSR.bardID, undefined);
                 }
                 // Queue simulation of monsters in slayer areas
                 // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
@@ -867,20 +863,17 @@
             getEnterSet() {
                 const enterSet = [];
                 // Compile data from monsters in combat zones
-                // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                for (let i = 0; i < combatAreas.length; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                    for (let j = 0; j < combatAreas[i].monsters.length; j++) {
+                for (const area of MICSR.combatAreas.allObjects) {
+                    for (const monster of area.monsters) {
                         enterSet.push(true);
                     }
                 }
                 // Wandering Bard
                 enterSet.push(true);
                 // Check which slayer areas we can access with current stats and equipment
-                // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                for (const area of slayerAreas) {
+                for (const area of MICSR.slayerAreas.allObjects) {
                     // push `canEnter` for every monster in this zone
-                    for (let j = 0; j < area.monsters.length; j++) {
+                    for (const monster of area.monsters) {
                         enterSet.push(this.parent.player.checkRequirements(area.entryRequirements));
                     }
                 }

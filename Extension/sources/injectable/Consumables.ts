@@ -93,71 +93,12 @@
                 this.card.addTabMenu();
                 // potions
                 const potionCard = new MICSR.Card(this.card.container, '', '100px');
-                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                Herblore.potions.filter((data: any) => data.category === 0).map((data: any) => data.potionIDs[0]).forEach((potionID: any) => this.addConsumableInput(potionCard, potionID, items[potionID].name.replace('Potion I', 'Potion'), () => this.player.potionID !== -1 && potionID === Herblore.potions[this.player.potionID].potionIDs[0], 'potion')
-                );
                 // food
                 const foodCard = new MICSR.Card(this.card.container, '', '100px');
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                items.filter((item: any) => this.app.filterIfHasKey('healsFor', item)).map((food: any) => food.id).forEach((foodID: any) => this.addItemInput(foodCard, foodID, () => foodID === this.player.food.currentSlot.item.id, 'food')
-                );
-                // runes
-                const runesCard = new MICSR.Card(this.card.container, '', '100px');
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                items.filter((x: any) => x.type === 'Rune' && x.masteryID[0] === 15 && !x.providesRune).map((rune: any) => rune.id).forEach((runeID: any) => this.addItemInput(runesCard, runeID, () => this.runesInUse[runeID], 'rune')
-                );
-                // combination runes
-                const combinationCard = new MICSR.Card(this.card.container, '', '100px');
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                items.filter((x: any) => x.type === 'Rune' && x.providesRune).forEach((combinationRune: any) => this.addItemInput(combinationCard, combinationRune.id, () => this.runesInUse[combinationRune.id], 'combination')
-                );
-                // ammo
-                const ammoCard = new MICSR.Card(this.card.container, '', '100px');
-                [
-                    {
-                        id: 'arrow',
-                        name: 'Arrows',
-                        ammoType: 0,
-                    },
-                    {
-                        id: 'bolt',
-                        name: 'Bolts',
-                        ammoType: 1,
-                    },
-                    {
-                        id: 'knife',
-                        name: 'Knives',
-                        ammoType: 2,
-                    },
-                    {
-                        id: 'javelin',
-                        name: 'Javelins',
-                        ammoType: 3,
-                    },
-                ].forEach(ammoInfo => {
-                    this.addConsumableInput(ammoCard, ammoInfo.id, ammoInfo.name, () => false, 'ammo');
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    items.filter((x: any) => x.ammoType === ammoInfo.ammoType).map((ammo: any) => ammo.id).forEach((ammoID: any) => this.addItemInput(ammoCard, ammoID, () => ammoID === this.player.equipmentID(equipmentSlotData.Quiver.id), ammoInfo.id)
-                    );
-                });
-                // other quiver items
-                this.addConsumableInput(ammoCard, 'otherQuiver', 'Other Quiver Items', () => false, 'ammo');
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                items.filter((x: any) => x.validSlots && x.validSlots.includes('Quiver') && x.ammoType === undefined).map((x: any) => x.id).forEach((quiverID: any) => this.addItemInput(ammoCard, quiverID, () => quiverID === this.player.equipmentID(equipmentSlotData.Quiver.id), 'otherQuiver')
-                );
-                // summons
-                const summonCard = new MICSR.Card(this.card.container, '', '100px');
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                items.filter((x: any) => x.equipmentStats && x.equipmentStats.find((y: any) => y.key === 'summoningMaxhit')).map((x: any) => x.id).forEach((summonID: any) => this.addItemInput(summonCard, summonID, () => this.player.equipmentIDs().includes(summonID), 'summon')
-                );
                 // add the tab cards
                 [
                     {name: 'Potions', media: this.app.media.herblore, card: potionCard,},
                     {name: 'Food', media: this.app.media.cooking, card: foodCard,},
-                    {name: 'Runes', media: this.app.media.airRune, card: runesCard,},
-                    {name: 'Combination Runes', media: this.app.media.mistRune, card: combinationCard,},
-                    {name: 'Ammunition', media: this.app.media.fletching, card: ammoCard,},
-                    {name: 'Familiars', media: this.app.media.summoning, card: summonCard},
                 ].forEach(cardInfo =>
                     this.card.addPremadeTab(
                         cardInfo.name,
@@ -312,12 +253,11 @@
 
             setRunesInUse() {
                 this.runesInUse = {};
-                for (const spellType in this.player.spellSelection) {
-                    const spellSelection = this.player.spellSelection[spellType];
-                    if (spellSelection === -1) {
+                for (const spellType in this.app.combatData.spells) {
+                    const spell = this.player.spellSelection[spellType];
+                    if (spell === undefined) {
                         continue;
                     }
-                    const spell = this.app.combatData.spells[spellType][spellSelection];
                     const costs = this.player.getRuneCosts(spell).map((x: any) => x.itemID);
                     for (const runeID of costs) {
                         this.runesInUse[runeID] = true;

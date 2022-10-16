@@ -117,8 +117,7 @@
             if (itemID === -1) {
                 return MICSR.emptyItems[slotName];
             }
-            // @ts-expect-error TS(2304): Cannot find name 'items'.
-            return items[itemID];
+            return MICSR.items.getObjectByID(itemID);
         }
 
         // @ts-expect-error TS(2304): Cannot find name 'game'.
@@ -138,54 +137,33 @@
             MICSR.skillNamesLC.push(x.name.toLowerCase());
         });
         // pets array
-        MICSR.pets = MICSR.game.pets.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.pets = MICSR.game.pets;
         // dg array
-        MICSR.dungeons = MICSR.game.dungeons.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.dungeons = MICSR.game.dungeons;
         // TODO filter special dungeons
         //  MICSR.dungeons = MICSR.dungeons.filter((dungeon) => dungeon.id !== Dungeons.Impending_Darkness);
         // TODO filter special monsters
         //  MICSR.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
         // monster array
-        MICSR.monsters = MICSR.game.monsters.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.monsters = MICSR.game.monsters;
+        MICSR.bardID = 'melvorF:WanderingBard';
         // areas
-        MICSR.combatAreas = MICSR.game.combatAreas.allObjects.map((x: any) => {
-            return {...x}
-        });
-        MICSR.slayerAreas = MICSR.game.slayerAreas.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.combatAreas = MICSR.game.combatAreas;
+        MICSR.slayerAreas = MICSR.game.slayerAreas;
         // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
         MICSR.slayerTaskData = SlayerTask.data
         // potions
-        MICSR.herblorePotions = MICSR.game.herblore.actions.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.herblorePotions = MICSR.game.herblore.actions;
         // items
-        MICSR.items = MICSR.game.items.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.items = MICSR.game.items;
         // spells
-        MICSR.standardSpells = MICSR.game.standardSpells.allObjects.map((x: any) => {
-            return {...x}
-        });
-        MICSR.curseSpells = MICSR.game.curseSpells.allObjects.map((x: any) => {
-            return {...x}
-        });
-        MICSR.auroraSpells = MICSR.game.auroraSpells.allObjects.map((x: any) => {
-            return {...x}
-        });
-        MICSR.ancientSpells = MICSR.game.ancientSpells.allObjects.map((x: any) => {
-            return {...x}
-        });
-        MICSR.archaicSpells = MICSR.game.archaicSpells.allObjects.map((x: any) => {
-            return {...x}
-        });
+        MICSR.standardSpells = MICSR.game.standardSpells;
+        MICSR.curseSpells = MICSR.game.curseSpells;
+        MICSR.auroraSpells = MICSR.game.auroraSpells;
+        MICSR.ancientSpells = MICSR.game.ancientSpells;
+        MICSR.archaicSpells = MICSR.game.archaicSpells;
+        // prayers
+        MICSR.prayers = MICSR.game.prayers;
 
         /**
          }

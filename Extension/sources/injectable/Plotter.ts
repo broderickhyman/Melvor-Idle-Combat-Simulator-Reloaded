@@ -85,37 +85,36 @@
 
                 let totBars = 0;
 
-                for (let i = 0; i < MICSR.combatAreas.length; i++) {
-                    totBars += MICSR.combatAreas[i].monsters.length;
-                    this.barBottomNames.push(MICSR.combatAreas[i].name);
-                    this.barBottomLength.push(MICSR.combatAreas[i].monsters.length);
-                    for (let j = 0; j < MICSR.combatAreas[i].monsters.length; j++) {
-                        this.barNames.push(this.parent.getMonsterName(MICSR.combatAreas[i].monsters[j]));
-                        this.barImageSrc.push(MICSR.combatAreas[i].monsters[j].media);
+                for (const area of MICSR.combatAreas.allObjects) {
+                    totBars += area.monsters.length;
+                    this.barBottomNames.push(area.name);
+                    this.barBottomLength.push(area.monsters.length);
+                    for (const monster of area.monsters) {
+                        this.barNames.push(this.parent.getMonsterName(monster));
+                        this.barImageSrc.push(monster.media);
                     }
                 }
-                const bardID = 139;
                 totBars += 1;
                 this.barBottomNames.push('');
                 this.barBottomLength.push(1);
-                this.barNames.push(this.parent.getMonsterName(bardID));
-                this.barImageSrc.push(MICSR.monsters[bardID].media);
-                for (let i = 0; i < MICSR.slayerAreas.length; i++) {
-                    totBars += MICSR.slayerAreas[i].monsters.length;
-                    this.barBottomNames.push(MICSR.slayerAreas[i].name);
-                    this.barBottomLength.push(MICSR.slayerAreas[i].monsters.length);
-                    for (let j = 0; j < MICSR.slayerAreas[i].monsters.length; j++) {
-                        this.barNames.push(this.parent.getMonsterName(MICSR.slayerAreas[i].monsters[j]));
-                        this.barImageSrc.push(MICSR.slayerAreas[i].monsters[j].media);
+                this.barNames.push(this.parent.getMonsterName(MICSR.bardID));
+                this.barImageSrc.push(MICSR.monsters.getObjectByID(MICSR.bardID).media);
+                for (const area of MICSR.slayerAreas.allObjects) {
+                    totBars += area.monsters.length;
+                    this.barBottomNames.push(area.name);
+                    this.barBottomLength.push(area.monsters.length);
+                    for (const monster of area.monsters) {
+                        this.barNames.push(this.parent.getMonsterName(monster));
+                        this.barImageSrc.push(monster.media);
                     }
                 }
 
                 this.barBottomNames.push('Dungeons');
-                this.barBottomLength.push(MICSR.dungeons.length);
-                totBars += MICSR.dungeons.length;
-                for (let i = 0; i < MICSR.dungeons.length; i++) {
-                    this.barNames.push(this.parent.getDungeonName(i));
-                    this.barImageSrc.push(MICSR.dungeons[i].media);
+                this.barBottomLength.push(MICSR.dungeons.allObjects.length);
+                totBars += MICSR.dungeons.allObjects.length;
+                for (const area of MICSR.dungeons.allObjects) {
+                    this.barNames.push(this.parent.getDungeonName(area));
+                    this.barImageSrc.push(area.media);
                 }
 
                 this.barBottomNames.push('Auto Slayer');
@@ -369,12 +368,13 @@
                 for (let i = 0; i < numData; i++) {
                     const dataIndex = numData - i - 1;
                     const barIndex = numBars - i - 1;
-                    let tooltipText = MICSR.mcsFormatNum(barData[dataIndex], 4);
+                    let tooltipText;
                     if (isNaN(barData[dataIndex]) || !isFinite(barData[dataIndex])) {
                         this.bars[barIndex].style.height = `0%`;
                         tooltipText = 'N/A';
                     } else {
                         this.bars[barIndex].style.height = `${barData[dataIndex] / divMax * 100}%`;
+                        tooltipText = MICSR.mcsFormatNum(barData[dataIndex], 4);
                     }
 
                     let barName = '';
@@ -384,11 +384,11 @@
                         barName = MICSR.monsters[monsterID].name;
                     } else {
                         if (this.parent.barIsDungeon(barIndex)) {
-                            barName = MICSR.dungeons[this.parent.barMonsterIDs[barIndex]].name;
+                            barName = this.parent.barMonsterIDs[barIndex].name;
                         } else if (this.parent.barIsTask(barIndex)) {
-                            barName = MICSR.slayerTaskData[this.parent.barMonsterIDs[barIndex] - MICSR.dungeons.length].display;
+                            barName = this.parent.barMonsterIDs[barIndex].display;
                         } else {
-                            barName = MICSR.monsters[this.parent.barMonsterIDs[barIndex]].name;
+                            barName = this.parent.barMonsterIDs[barIndex].name;
                         }
                     }
                     // open tooltip and set tooltip title
@@ -550,11 +550,11 @@
              */
             crossImagesPerSetting() {
                 for (let i = 0; i < this.parent.barType.length; i++) {
-                    if (this.parent.barIsMonster(i) && !this.parent.simulator.monsterSimFilter[this.parent.barMonsterIDs[i]]) {
+                    if (this.parent.barIsMonster(i) && !this.parent.simulator.monsterSimFilter[this.parent.barMonsterIDs[i].id]) {
                         this.xAxisCrosses[i].style.display = '';
-                    } else if (this.parent.barIsDungeon(i) && !this.parent.simulator.dungeonSimFilter[this.parent.barMonsterIDs[i]]) {
+                    } else if (this.parent.barIsDungeon(i) && !this.parent.simulator.dungeonSimFilter[this.parent.barMonsterIDs[i].id]) {
                         this.xAxisCrosses[i].style.display = '';
-                    } else if (this.parent.barIsTask(i) && !this.parent.simulator.slayerSimFilter[this.parent.barMonsterIDs[i] - MICSR.dungeons.length]) {
+                    } else if (this.parent.barIsTask(i) && !this.parent.simulator.slayerSimFilter[this.parent.barMonsterIDs[i].display]) {
                         this.xAxisCrosses[i].style.display = '';
                     } else {
                         this.xAxisCrosses[i].style.display = 'none';

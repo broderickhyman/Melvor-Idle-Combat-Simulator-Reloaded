@@ -226,21 +226,24 @@
                 };
 
                 // monster IDs
-                const bardID = 139;
                 this.monsterIDs = [
-                    ...MICSR.combatAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
-                    bardID,
-                    ...MICSR.slayerAreas.map((area: any) => area.monsters).reduce((a: any, b: any) => a.concat(b), []),
+                    ...MICSR.combatAreas.allObjects
+                        .map((area: any) => area.monsters.map((monster: any) => monster.id))
+                        .reduce((a: any, b: any) => a.concat(b), []),
+                    MICSR.bardID,
+                    ...MICSR.slayerAreas.allObjects
+                        .map((area: any) => area.monsters.map((monster: any) => monster.id))
+                        .reduce((a: any, b: any) => a.concat(b), []),
                 ]
 
                 // combat pet IDs
                 this.petIDs = [
-                    2, // FM pet
-                    12, 13, 14, 15, 16, 17, 18, 19, 20, // cb skill pets
-                    22, 23, // slayer area pets
-                    25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, // dungeon pets
-                    45, // Mark
-                    46, // Bone
+                    'melvorD:Pyro', // FM pet
+                    // cb skill pets
+                    // slayer area pets
+                    // dungeon pets
+                    // Mark
+                    // Bone
                 ];
 
                 // Forced equipment sorting
@@ -340,9 +343,9 @@
                 this.createPrayerSelectCard();
                 this.createPotionSelectCard();
                 this.createPetSelectCard();
-                this.createAgilitySelectCard();
-                this.createAstrologySelectCard();
-                this.createLootOptionsCard();
+                //TODO this.createAgilitySelectCard();
+                //TODO this.createAstrologySelectCard();
+                //TODO this.createLootOptionsCard();
                 this.createSimulationAndExportCard();
                 this.createCompareCard();
                 this.createConsumablesCard();
@@ -377,7 +380,7 @@
                         this.barType.push(this.barTypes.monster);
                     });
                 });
-                this.barMonsterIDs.push(bardID);
+                this.barMonsterIDs.push(MICSR.bardID);
                 this.barType.push(this.barTypes.monster);
                 MICSR.slayerAreas.forEach((area: any) => {
                     area.monsters.forEach((monster: any) => {
@@ -387,17 +390,16 @@
                 });
                 /** @type {number[]} */
                 this.dungeonBarIDs = [];
-                for (let i = 0; i < MICSR.dungeons.length; i++) {
+                MICSR.dungeons.allObjects.forEach((dungeon: any) => {
                     this.dungeonBarIDs.push(this.barMonsterIDs.length);
-                    this.barMonsterIDs.push(i);
+                    this.barMonsterIDs.push(dungeon);
                     this.barType.push(this.barTypes.dungeon);
-                }
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                for (let i = 0; i < SlayerTask.data.length; i++) {
+                });
+                MICSR.slayerTaskData.forEach((task: any) => {
                     this.dungeonBarIDs.push(this.barMonsterIDs.length);
-                    this.barMonsterIDs.push(MICSR.dungeons.length + i);
+                    this.barMonsterIDs.push(task);
                     this.barType.push(this.barTypes.task);
-                }
+                });
                 // Dungeon View Variables
                 this.isViewingDungeon = false;
                 this.viewedDungeonID = -1;
@@ -429,7 +431,7 @@
                 this.updateCombatStats();
                 this.updateHealing();
                 this.updatePlotData();
-                this.toggleAstrologySelectCard();
+                // TODO this.toggleAstrologySelectCard();
                 // slayer sim is off by default, so toggle auto slayer off
                 this.toggleSlayerSims(!this.slayerToggleState, false);
                 // load from local storage
@@ -603,10 +605,8 @@
                 // game mode
                 const gameModeNames = [];
                 const gameModeValues = [];
-                // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
-                for (const i in GAMEMODES) {
-                    // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
-                    gameModeNames.push(GAMEMODES[i].name);
+                for (const i in MICSR.game.gamemodes.allObjects) {
+                    gameModeNames.push(MICSR.game.gamemodes.allObjects[i].name);
                     gameModeValues.push(i);
                 }
                 const gameModeDropdown = this.equipmentSelectCard.createDropdown(gameModeNames, gameModeValues, 'MCS Game Mode Dropdown', (event: any) => {
@@ -621,8 +621,7 @@
                 // only create buttons for purchased equipment sets
                 let importButtonText = [];
                 let importButtonFunc = [];
-                // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                for (let i = 0; i < player.equipmentSets.length; i++) {
+                for (let i = 0; i < this.player.equipmentSets.length; i++) {
                     importButtonText.push(`${i + 1}`);
                     importButtonFunc.push(() => this.import.importButtonOnClick(i));
                 }
@@ -653,7 +652,7 @@
                     foodSelectPopup.className = 'mcsPopup';
                     const equipmentSelectCard = new MICSR.Card(foodSelectPopup, '', '600px');
                     equipmentSelectCard.addSectionTitle('Food');
-                    this.foodItems = [MICSR.emptyItems.Food, ...MICSR.items].filter((item) => this.filterIfHasKey('healsFor', item));
+                    this.foodItems = [MICSR.emptyItems.Food, ...MICSR.items.allObjects].filter((item) => this.filterIfHasKey('healsFor', item));
                     this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
                     const buttonMedia = this.foodItems.map((item: any) => item.media);
                     const buttonIds = this.foodItems.map((item: any) => this.getItemName(item.id));
@@ -680,13 +679,13 @@
                 wrapper.appendChild(label);
                 this.foodCCContainer.appendChild(wrapper);
                 // auto eat dropdown
-                let autoEatTierNames = ['No Auto Eat'];
-                let autoEatTierValues = [-1];
-                for (let i = 1; i < 4; i++) {
-                    // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
-                    autoEatTierNames.push(SHOP.General[i].name.replace(' - Tier', ''));
-                    autoEatTierValues.push(i - 1);
-                }
+                let autoEatTierNames = [
+                    'No Auto Eat',
+                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_I').name.replace(' - Tier', ''),
+                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_II').name.replace(' - Tier', ''),
+                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_III').name.replace(' - Tier', ''),
+                ];
+                let autoEatTierValues = [-1, 0, 1, 2];
                 const autoEatTierDropdown = this.equipmentSelectCard.createDropdown(autoEatTierNames, autoEatTierValues, 'MCS Auto Eat Tier Dropdown', (event: any) => {
                     this.player.autoEatTier = parseInt(event.currentTarget.selectedOptions[0].value);
                     this.updateCombatStats();
@@ -880,6 +879,11 @@
                     this.media.ancient,
                     this.createSpellSelectCard('Ancient Magicks', 'ancient'),
                 );
+                this.spellSelectCard.addPremadeTab(
+                    'Archaic Magic',
+                    this.media.ancient,
+                    this.createSpellSelectCard('Archaic Magic', 'archaic'),
+                );
 
                 // add combination rune toggle
                 this.spellSelectCard.addToggleRadio(
@@ -899,24 +903,22 @@
             createSpellSelectCard(title: any, spellType: any) {
                 const newCard = new MICSR.Card(this.spellSelectCard.container, '', '100px');
                 newCard.addSectionTitle(title);
-                const spells = this.combatData.spells[spellType];
-                const spellImages = spells.map((spell: any) => spell.media);
-                const spellNames = spells.map((spell: any) => spell.name);
-                const spellCallbacks = spells.map((_: any, spellID: any) => (event: any) => this.spellButtonOnClick(event, spellID, spellType));
+                const spells = this.combatData.spells[spellType].allObjects;
+                const spellImages = spells.map((spell: any) => spell.getMediaURL(spell.media));
+                const spellNames = spells.map((spell: any) => spell.localID);
+                const spellCallbacks = spells.map((spell: any) => (event: any) => this.spellButtonOnClick(event, spell.id, spellType));
                 const tooltips = spells.map((spell: any) => {
-                    let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
+                    let tooltip = `<div class="text-center">${spell.localID}<br><small><span class="text-info">`;
                     switch (spellType) {
                         case 'standard':
                             // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                             tooltip += `Spell Damage: ${spell.maxHit * numberMultiplier}`;
                             break;
                         case 'aurora':
-                            // @ts-expect-error TS(2304): Cannot find name 'describeAurora'.
-                            tooltip += describeAurora(spell);
+                            tooltip += spell.description;
                             break;
                         case 'ancient':
-                            // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
-                            tooltip += describeAttack(spell.specialAttack, youNoun, enemyNoun);
+                            tooltip += spell.specialAttack.description;
                             break;
                         default:
                             tooltip += spell.description;
@@ -937,14 +939,12 @@
                 const prayerNames: any = [];
                 const prayerCallbacks: any = [];
                 const tooltips: any = [];
-                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                PRAYER.map((x: any) => x).sort((a: any, b: any) => a.prayerLevel - b.prayerLevel)
-                    .forEach((prayer: any) => {
-                        prayerSources.push(prayer.media);
-                        prayerNames.push(this.getPrayerName(prayer.id));
-                        prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer.id));
-                        tooltips.push(this.createPrayerTooltip(prayer));
-                    });
+                MICSR.prayers.forEach((prayer: any) => {
+                    prayerSources.push(prayer.media);
+                    prayerNames.push(this.getPrayerName(prayer));
+                    prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer.id));
+                    tooltips.push(this.createPrayerTooltip(prayer));
+                });
                 this.prayerSelectCard.addImageButtons(prayerSources, prayerNames, 'Medium', prayerCallbacks, tooltips);
             }
 
@@ -994,7 +994,7 @@
             }
 
             createPetSelectCard() {
-                const combatPets = this.petIDs.map((id: any) => MICSR.pets[id]);
+                const combatPets = this.petIDs.map((id: any) => MICSR.pets.getObjectByID(id));
                 this.petSelectCard = this.mainTabCard.addTab('Pets', this.media.pet, '', '100px');
                 this.petSelectCard.addSectionTitle('Pets');
                 const petImageSources = combatPets.map((pet: any) => pet.media);
@@ -1006,7 +1006,7 @@
                     this.import.importPets(Array(MICSR.pets.length).fill(false));
                     this.updateCombatStats();
                 });
-                this.petSelectCard.addImage(MICSR.pets[4].media, 100, 'MCS Rock').style.display = 'none';
+                this.petSelectCard.addImage(MICSR.pets.getObjectByID('melvorD:CoolRock').media, 100, 'MCS Rock').style.display = 'none';
             }
 
             createAgilitySelectCard() {
@@ -2108,15 +2108,14 @@
             /**
              * Callback for when a prayer image button is clicked
              * @param {MouseEvent} event The onclick event for a button
-             * @param {number} prayerID Index of PRAYERS
+             * @param {number} prayerID Index of MICSR.prayersS
              */
-            prayerButtonOnClick(event: any, prayerID: any) {
+            prayerButtonOnClick(event: any, prayerID: string) {
                 // Escape if prayer level is not reached
-                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                const prayer = PRAYER[prayerID];
-                if (!this.player.activePrayers.has(prayerID) && this.player.skillLevel[MICSR.skillIDs.Prayer] < prayer.prayerLevel) {
+                const prayer = MICSR.game.prayers.getObjectByID(prayerID);
+                if (!this.player.activePrayers.has(prayerID) && this.player.skillLevel[MICSR.skillIDs.Prayer] < prayer.level) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Prayer, `${this.getPrayerName(prayerID)} requires level ${prayer.prayerLevel} Prayer.`, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Prayer, `${this.getPrayerName(prayer)} requires level ${prayer.level} Prayer.`, 'danger');
                     return;
                 }
                 let prayerChanged = false;
@@ -2198,13 +2197,14 @@
 
             disableSpell(spellType: any, spellID: any, message: any) {
                 // do nothing
-                if (spellID === -1 || this.player.spellSelection[spellType] !== spellID) {
+                if (spellID === undefined || this.player.spellSelection[spellType] !== spellID) {
                     return;
                 }
                 // get spell
+                console.log(this.combatData.spells, spellType, spellID)
                 const spell = this.combatData.spells[spellType][spellID];
                 // unselect spell
-                this.unselectButton(document.getElementById(`MCS ${spell.name} Button`));
+                this.unselectButton(document.getElementById(`MCS ${spell.localID} Button`));
                 this.player.spellSelection[spellType] = -1;
                 // send message if required
                 if (message) {
@@ -2223,12 +2223,12 @@
                 // Escape for not meeting the level/item requirement
                 if (this.player.skillLevel[MICSR.skillIDs.Magic] < spell.level) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.localID} requires level ${spell.level} Magic.`, 'danger');
                     return;
                 }
                 if (this.checkRequiredItem(spell)) {
                     // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.name} requires ${this.getItemName(spell.requiredItem)}.`, 'danger');
+                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.localID} requires ${this.getItemName(spell.requiredItem)}.`, 'danger');
                     return;
                 }
                 // remove previous selection
@@ -2241,7 +2241,7 @@
                     this.disableSpell('ancient', this.player.spellSelection.ancient, 'Disabled ancient magick spell.');
                 }
                 // select spell
-                this.selectButton(document.getElementById(`MCS ${spell.name} Button`));
+                this.selectButton(document.getElementById(`MCS ${spell.localID} Button`));
                 this.player.spellSelection[spellType] = spellID;
                 // send message if required
                 if (message) {
@@ -2945,11 +2945,13 @@
             checkForSpellLevel() {
                 const magicLevel = this.player.skillLevel[MICSR.skillIDs.Magic];
                 const setSpellsPerLevel = (spell: any, spellID: any, spellType: any) => {
+                    const id = `MCS ${spell.localID} Button Image`;
+                    const elt = document.getElementById(id);
                     if (magicLevel < spell.level) {
-                        (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = this.media.question;
-                        this.disableSpell(spellType, spellID, `${spell.name} has been de-selected. It requires level ${spell.level} Magic.`);
+                        (elt as any).src = this.media.question;
+                        this.disableSpell(spellType, spellID, `${spell.localID} has been de-selected. It requires level ${spell.level} Magic.`);
                     } else {
-                        (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = spell.media;
+                        (elt as any).src = spell.media;
                     }
                 };
                 MICSR.standardSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'standard'));
@@ -2969,8 +2971,8 @@
             checkForSpellItem() {
                 const disableSpellsForItem = (spell: any, spellID: any, spellType: any) => {
                     if (this.checkRequiredItem(spell)) {
-                        (document.getElementById(`MCS ${spell.name} Button Image`) as any).src = this.media.question;
-                        this.disableSpell(spellType, spellID, `${spell.name} has been de-selected. It requires ${this.getItemName(spell.requiredItem)}.`);
+                        (document.getElementById(`MCS ${spell.localID} Button Image`) as any).src = this.media.question;
+                        this.disableSpell(spellType, spellID, `${spell.localID} has been de-selected. It requires ${this.getItemName(spell.requiredItem)}.`);
                     }
                 };
                 MICSR.standardSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'standard'));
@@ -2985,9 +2987,8 @@
              */
             updatePrayerOptions() {
                 const prayerLevel = this.player.skillLevel[MICSR.skillIDs.Prayer];
-                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                PRAYER.forEach((prayer: any) => {
-                    const prayerName = this.getPrayerName(prayer.id);
+                MICSR.prayers.forEach((prayer: any) => {
+                    const prayerName = this.getPrayerName(prayer);
                     if (prayer.prayerLevel > prayerLevel) {
                         (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = this.media.question;
                         if (this.player.activePrayers.has(prayer.id)) {
@@ -3142,12 +3143,11 @@
 
             /**
              * Removes HTML from a prayer name
-             * @param {number} prayerID The index of PRAYER
+             * @param {number} prayerID The index of MICSR.prayers
              * @return {string} the name of a prayer
              */
-            getPrayerName(prayerID: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                return this.replaceApostrophe(PRAYER[prayerID].name);
+            getPrayerName(prayer: any) {
+                return this.replaceApostrophe(prayer.name);
             }
 
             /**
@@ -3158,11 +3158,13 @@
             getItemName(itemID: any) {
                 if (itemID === -1) {
                     return 'None';
-                } else if (!MICSR.items[itemID]) {
+                }
+                const item = MICSR.items.getObjectByID(itemID);
+                if (!item) {
                     MICSR.warn(`Invalid itemID ${itemID} in getItemName`);
                     return 'None';
                 } else {
-                    return this.replaceApostrophe(MICSR.items[itemID].name);
+                    return this.replaceApostrophe(item._localID);
                 }
             }
 
@@ -3177,8 +3179,9 @@
              */
             getMonsterName(monsterID: any) {
                 let name = undefined;
-                if (MICSR.monsters[monsterID]) {
-                    name = MICSR.monsters[monsterID]._localID;
+                const monster = MICSR.monsters.getObjectByID(monsterID);
+                if (monster) {
+                    name = monster._localID;
                 } else if (monsterID && monsterID._localID) {
                     name = monsterID._localID;
                 }

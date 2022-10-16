@@ -48,8 +48,6 @@
             chargesUsed: any;
             combinations: any;
             computeAllStats: any;
-            conditionalListeners: any;
-            conditionalModifiers: any;
             cookingMastery: any;
             cookingPool: any;
             course: any;
@@ -106,7 +104,7 @@
                 this.detachGlobals();
                 this.replaceGlobals();
                 // remove standard spell selection
-                this.spellSelection.standard = -1
+                this.spellSelection.standard = undefined;
                 // overwrite food consumption
                 this.food.consume = (quantity = 1) => {
                     this.usedFood += quantity;
@@ -317,7 +315,8 @@
                 // currentGamemode, numberMultiplier
                 this.currentGamemode = MICSR.game.currentGamemode;
                 // petUnlocked
-                this.petUnlocked = MICSR.pets.map((x: any) => false);
+                this.petUnlocked = {};
+                MICSR.pets.allObjects.forEach((pet: any) => this.petUnlocked[pet.id] = false);
                 // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
                 this.course = Array(10).fill(-1);
                 this.courseMastery = Array(10).fill(false);
@@ -349,32 +348,6 @@
             }
 
             rollForSummoningMarks() {
-            }
-
-            // this method does not care about overeating
-
-            computeConditionalListeners() {
-                // Reset the listener sets
-                Object.values(this.conditionalListeners).forEach((list: any) => list.clear());
-                // Equipped Items
-                this.equipment.slotArray.forEach((slot: any) => {
-                    const item = slot.item;
-                    if (slot.providesStats) {
-                        const conditionals = this.conditionalModifiers.get(item.id);
-                        if (conditionals !== undefined) {
-                            this.registerConditionalListeners(conditionals);
-                        }
-                    }
-                });
-                // Summoning Synergy
-                const synergy = this.activeSummoningSynergy;
-                if ((synergy === null || synergy === void 0 ? void 0 : synergy.conditionalModifiers) !== undefined)
-                    this.registerConditionalListeners(synergy.conditionalModifiers);
-                // Equipment Synergy
-                this.activeItemSynergies.forEach((synergy: any) => {
-                    if (synergy.conditionalModifiers !== undefined)
-                        this.registerConditionalListeners(synergy.conditionalModifiers);
-                });
             }
 
             resetGains() {
@@ -524,28 +497,9 @@
             }
 
             addPetModifiers() {
-                MICSR.pets.forEach((pet: any, i: any) => {
-                    if (this.petUnlocked[i] && !pet.activeInRaid && pet.modifiers !== undefined) {
+                MICSR.pets.allObjects.forEach((pet: any, i: any) => {
+                    if (this.petUnlocked[pet.id] && !pet.activeInRaid && pet.modifiers !== undefined) {
                         this.modifiers.addModifiers(pet.modifiers);
-                    }
-                });
-            }
-
-            addConditionalModifiers() {
-                this.conditionalListeners.All.forEach((conditional: any) => {
-                    // @ts-expect-error TS(2304): Cannot find name 'ModifierTarget'.
-                    if (conditional.target === ModifierTarget.Player &&
-                        !conditional.hooks.includes('PlayerHitpoints') &&
-                        (
-                            // for the combat simulator we always assume the bank and glove conditions are true
-                            // instead of skipping the entire conditional, we set condition.active to true in case this is used elsewhere
-                            conditional.hooks.includes('BankItem')
-                            || conditional.hooks.includes('GloveCharges')
-                            // other conditions are still checked, TODO: if there are multiple conditions, one of which is bank or glove charge, the others are not checked
-                            || conditional.condition(this)
-                        )) {
-                        this.modifiers.addModifiers(conditional.modifiers);
-                        conditional.isActive = true;
                     }
                 });
             }
@@ -619,8 +573,7 @@
                 // Prayer
                 let prayerRatio = 0;
                 this.activePrayers.forEach((pID: any) => {
-                    // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                    return (prayerRatio += PRAYER[pID].pointsPerPlayer);
+                    return (prayerRatio += MICSR.prayers.getObjectByID(pID).pointsPerPlayer);
                 });
                 prayerRatio /= 3;
                 if (prayerRatio > 0) {
@@ -643,7 +596,7 @@
             }
 
             getPotion() {
-                return MICSR.items[MICSR.herblorePotions[this.potionID].potionIDs[this.potionTier]];
+                return MICSR.items.getObjectByID(MICSR.herblorePotions[this.potionID].potionIDs[this.potionTier]);
             }
 
             // track potion usage instead of consuming
@@ -738,24 +691,22 @@
             }
 
             equipItem(itemID: any, set: any, slot = "Default", quantity = 1) {
-                const equipment = this.equipmentSets[set];
-                // @ts-expect-error TS(2304): Cannot find name 'emptyItem'.
-                const itemToEquip = itemID === -1 ? emptyItem : MICSR.items[itemID];
+                const itemToEquip = itemID === -1 ? MICSR.emptyItems[slot] : MICSR.items.getObjectByID(itemID);
                 if (slot === "Default") {
                     slot = itemToEquip.validSlots[0];
                 }
                 // clear other slots occupied by current slot
-                equipment.slotArray.forEach((x: any) => {
+                this.equipment.slotArray.forEach((x: any) => {
                     if (x.occupiedBy === slot) {
                         x.occupiedBy = "None";
                     }
                 });
-                equipment.equipItem(itemToEquip, slot, quantity);
+                this.equipment.equipItem(itemToEquip, slot, quantity);
             }
 
             unequipItem(set: any, slot: any) {
-                const equipment = this.equipmentSets[set];
-                equipment.unequipItem(slot);
+                this.equipment.unequipItem(slot);
+                this.updateForEquipmentChange();
             }
 
             equipFood(itemID: any) {

@@ -378,8 +378,7 @@
                 // toggle old prayers off
                 this.player.activePrayers.clear();
                 // Update prayers
-                // @ts-expect-error TS(2304): Cannot find name 'PRAYER'.
-                PRAYER.forEach((prayer: any) => {
+                MICSR.prayers.forEach((prayer: any) => {
                     const prayButton = this.document.getElementById(`MCS ${this.app.getPrayerName(prayer.id)} Button`);
                     if (prayerSelected.includes(prayer.id)) {
                         this.app.selectButton(prayButton);
