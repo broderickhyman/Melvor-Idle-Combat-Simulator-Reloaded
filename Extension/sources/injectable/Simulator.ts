@@ -41,6 +41,7 @@
             isTestMode: any;
             maxThreads: any;
             monsterSimData: any;
+            monsterSimIDs: any;
             monsterSimFilter: any;
             newSimData: any;
             notSimulatedReason: any;
@@ -59,23 +60,15 @@
             testMax: any;
             workerURL: any;
 
-            /**
-             *
-             * @param {McsApp} parent Reference to container class
-             * @param {string} workerURL URL to simulator web worker
-             */
             constructor(parent: any, workerURL: any) {
                 this.parent = parent;
                 // Simulation settings
-                /** @type {boolean[]} */
                 this.monsterSimFilter = {};
-                /** @type {boolean[]} */
                 this.dungeonSimFilter = {};
                 this.slayerSimFilter = {};
                 // not simulated reason
                 this.notSimulatedReason = 'entity not simulated';
                 // Simulation data;
-                /** @type {Object} */
                 this.newSimData = (isMonster: any) => {
                     const data = {
                         simSuccess: false,
@@ -87,19 +80,22 @@
                     }
                     return data
                 }
+                this.monsterSimIDs = [];
                 this.monsterSimData = {};
-                MICSR.monsters.allObjects.forEach((monster: any) => {
+                MICSR.monsters.forEach((monster: any) => {
                     this.monsterSimData[monster.id] = this.newSimData(true);
+                    this.monsterSimIDs.push(monster.id);
                     this.monsterSimFilter[monster.id] = true;
                 });
                 this.dungeonSimData = {};
-                MICSR.dungeons.allObjects.forEach((dungeon: any) => {
+                MICSR.dungeons.forEach((dungeon: any) => {
                     this.dungeonSimData[dungeon.id] = this.newSimData(false);
                     this.dungeonSimFilter[dungeon.id] = true;
                     dungeon.monsters.forEach((monster: any) => {
                         const simID = this.simID(monster.id, dungeon.id);
                         if (!this.monsterSimData[simID]) {
                             this.monsterSimData[simID] = this.newSimData(true);
+                            this.monsterSimIDs.push(simID);
                         }
                     });
                 });
@@ -124,9 +120,7 @@
                 this.workerURL = workerURL;
                 this.currentJob = 0;
                 this.simInProgress = false;
-                /** @type {SimulationJob[]} */
                 this.simulationQueue = [];
-                /** @type {SimulationWorker[]} */
                 this.simulationWorkers = [];
                 this.maxThreads = 1; // TODO: window.navigator.hardwareConcurrency;
                 this.simStartTime = 0;
@@ -138,8 +132,6 @@
 
             /**
              * Initializes a performance test
-             * @param {number} numSims number of simulations to run in a row
-             * @memberof McsSimulator
              */
             runTest(numSims: any) {
                 this.testCount = 0;
@@ -322,7 +314,7 @@
                 let dungeonID: any = undefined;
                 if (!this.parent.isViewingDungeon && this.parent.barIsDungeon(this.parent.selectedBar)) {
                     dungeonID = this.parent.barMonsterIDs[this.parent.selectedBar];
-                } else if (this.parent.isViewingDungeon && this.parent.viewedDungeonID < MICSR.dungeons.length) {
+                } else if (this.parent.isViewingDungeon && MICSR.isDungeonID(this.parent.viewedDungeonID)) {
                     dungeonID = this.parent.viewedDungeonID;
                 }
                 if (dungeonID !== undefined) {
@@ -342,9 +334,9 @@
                 // slayer area
                 let taskID = undefined;
                 if (!this.parent.isViewingDungeon && this.parent.barIsTask(this.parent.selectedBar)) {
-                    taskID = this.parent.barMonsterIDs[this.parent.selectedBar] - MICSR.dungeons.length;
-                } else if (this.parent.isViewingDungeon && this.parent.viewedDungeonID >= MICSR.dungeons.length) {
-                    taskID = this.parent.viewedDungeonID - MICSR.dungeons.length;
+                    taskID = this.parent.barMonsterIDs[this.parent.selectedBar];
+                } else if (this.parent.isViewingDungeon && MICSR.isDungeonID(this.parent.viewedDungeonID)) {
+                    taskID = this.parent.viewedDungeonID;
                 }
                 if (taskID !== undefined) {
                     if (this.slayerSimFilter[taskID]) {
@@ -359,37 +351,36 @@
             }
 
             queueSlayerTask(i: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                const task = SlayerTask.data[i];
+                const task = MICSR.slayerTaskData[i];
                 this.slayerTaskMonsters[i] = [];
                 if (!this.slayerSimFilter[i]) {
                     return;
                 }
                 const minLevel = task.minLevel;
                 const maxLevel = task.maxLevel === -1 ? 6969 : task.maxLevel;
-                for (let monsterID = 0; monsterID < MICSR.monsters.length; monsterID++) {
+                MICSR.monsters.forEach((monster: any) => {
                     // check if it is a slayer monster
-                    if (!MICSR.monsters[monsterID].canSlayer) {
-                        continue;
+                    if (!monster.canSlayer) {
+                        return;
                     }
                     // check if combat level fits the current task type
                     // @ts-expect-error TS(2304): Cannot find name 'getMonsterCombatLevel'.
                     const cbLevel = getMonsterCombatLevel(monsterID);
                     if (cbLevel < minLevel || cbLevel > maxLevel) {
-                        continue;
+                        return;
                     }
                     // check if the area is accessible, this only works for auto slayer
                     // without auto slayer you can get some tasks for which you don't wear/own the gear
                     // @ts-expect-error TS(2304): Cannot find name 'getMonsterArea'.
                     let area = getMonsterArea(monsterID);
                     if (!this.parent.player.checkRequirements(area.entryRequirements)) {
-                        continue;
+                        return;
                     }
                     // all checks passed
                     // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
                     this.pushMonsterToQueue(monsterID);
-                    this.slayerTaskMonsters[i].push(monsterID);
-                }
+                    this.slayerTaskMonsters[i].push(monster);
+                });
             }
 
             resetSimulationData(single: any) {
@@ -436,14 +427,14 @@
                     });
                 });
                 // Queue simulation of monsters in dungeons
-                for (let dungeonID = 0; dungeonID < MICSR.dungeons.length; dungeonID++) {
-                    if (this.dungeonSimFilter[dungeonID]) {
-                        for (let j = 0; j < MICSR.dungeons[dungeonID].monsters.length; j++) {
-                            const monsterID = MICSR.dungeons[dungeonID].monsters[j];
-                            this.pushMonsterToQueue(monsterID, dungeonID);
+                MICSR.dungeons.forEach((dungeon: any) => {
+                    if (this.dungeonSimFilter[dungeon]) {
+                        for (let j = 0; j < dungeon.monsters.length; j++) {
+                            const monsterID = dungeon.monsters[j];
+                            this.pushMonsterToQueue(monsterID, dungeon);
                         }
                     }
-                }
+                });
                 // Queue simulation of monsters in slayer tasks
                 for (let taskID = 0; taskID < this.slayerTaskMonsters.length; taskID++) {
                     this.queueSlayerTask(taskID);
@@ -481,7 +472,7 @@
                 return false;
             }
 
-            computeAverageSimData(filter: any, data: any, monsterIDs: any, dungeonID: any) {
+            computeAverageSimData(filter: any, data: any, monsterIDs: any, dungeonID: any = undefined) {
                 // check filter
                 if (!filter) {
                     data.simSuccess = false;
@@ -568,15 +559,14 @@
             /** Performs all data analysis post queue completion */
             performPostSimAnalysis(isNewRun = false) {
                 // Perform calculation of dungeon stats
-                for (let dungeonID = 0; dungeonID < MICSR.dungeons.length; dungeonID++) {
-                    this.computeAverageSimData(this.dungeonSimFilter[dungeonID], this.dungeonSimData[dungeonID], MICSR.dungeons[dungeonID].monsters, dungeonID);
-                }
-                for (let slayerTaskID = 0; slayerTaskID < this.slayerTaskMonsters.length; slayerTaskID++) {
-                    // @ts-expect-error TS(2554): Expected 4 arguments, but got 3.
-                    this.computeAverageSimData(this.slayerSimFilter[slayerTaskID], this.slayerSimData[slayerTaskID], this.slayerTaskMonsters[slayerTaskID]);
+                MICSR.dungeons.forEach((dungeon: any) => {
+                    this.computeAverageSimData(this.dungeonSimFilter[dungeon], this.dungeonSimData[dungeon], dungeon.monsters, dungeon);
+                });
+                MICSR.slayerTaskData.forEach((task: any) => {
+                    this.computeAverageSimData(this.slayerSimFilter[task.display], this.slayerSimData[task.display], this.slayerTaskMonsters[task.display]);
                     // correct average kps for auto slayer
-                    this.slayerSimData[slayerTaskID].killsPerSecond *= this.slayerTaskMonsters[slayerTaskID].length;
-                }
+                    this.slayerSimData[task.display].killsPerSecond *= this.slayerTaskMonsters[task.display].length;
+                });
                 // correct average kill time for auto slayer
                 for (let slayerTaskID = 0; slayerTaskID < this.slayerTaskMonsters.length; slayerTaskID++) {
                     this.slayerSimData[slayerTaskID].killTimeS /= this.slayerTaskMonsters[slayerTaskID].length;
@@ -750,18 +740,18 @@
                 const isSignet = keyValue === 'signetChance';
                 if (!this.parent.isViewingDungeon) {
                     // Compile data from monsters in combat zones
-                    this.parent.monsterIDs.forEach((monsterID: any) => {
+                    MICSR.monsterIDs.forEach((monsterID: any) => {
                         dataSet.push(this.getBarValue(this.monsterSimFilter[monsterID], this.monsterSimData[monsterID], keyValue));
                     });
                     // Perform simulation of monsters in dungeons
-                    for (let dungeonID = 0; dungeonID < MICSR.dungeons.length; dungeonID++) {
+                    MICSR.dungeonIDs.forEach((dungeonID: any) => {
                         dataSet.push(this.getBarValue(this.dungeonSimFilter[dungeonID], this.dungeonSimData[dungeonID], keyValue));
-                    }
+                    });
                     // Perform simulation of monsters in slayer tasks
-                    for (let taskID = 0; taskID < this.slayerTaskMonsters.length; taskID++) {
+                    MICSR.taskIDs.forEach((taskID: any) => {
                         dataSet.push(this.getBarValue(this.slayerSimFilter[taskID], this.slayerSimData[taskID], keyValue));
-                    }
-                } else if (this.parent.viewedDungeonID < MICSR.dungeons.length) {
+                    });
+                } else if (MICSR.isDungeonID(this.parent.viewedDungeonID)) {
                     // dungeons
                     const dungeonID = this.parent.viewedDungeonID;
                     MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
@@ -779,7 +769,7 @@
                     }
                 } else {
                     // slayer tasks
-                    const taskID = this.parent.viewedDungeonID - MICSR.dungeons.length;
+                    const taskID = this.parent.viewedDungeonID;
                     this.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
                         if (!isSignet) {
                             dataSet.push(this.getBarValue(true, this.monsterSimData[monsterID], keyValue));
@@ -826,21 +816,21 @@
             }
 
             getRawData() {
-                const dataSet = [];
+                const dataSet: any[] = [];
                 if (!this.parent.isViewingDungeon) {
                     // Compile data from monsters in combat zones
-                    this.parent.monsterIDs.forEach((monsterID: any) => {
+                    MICSR.monsterIDs.forEach((monsterID: any) => {
                         dataSet.push(this.monsterSimData[monsterID]);
                     });
                     // Perform simulation of monsters in dungeons
-                    for (let i = 0; i < MICSR.dungeons.length; i++) {
-                        dataSet.push(this.dungeonSimData[i]);
-                    }
+                    MICSR.dungeonIDs.forEach((dungeonID: any) => {
+                        dataSet.push(this.dungeonSimData[dungeonID]);
+                    });
                     // Perform simulation of monsters in slayer tasks
-                    for (let i = 0; i < this.slayerTaskMonsters.length; i++) {
-                        dataSet.push(this.slayerSimData[i]);
-                    }
-                } else if (this.parent.viewedDungeonID < MICSR.dungeons.length) {
+                    MICSR.taskIDs.forEach((taskID: any) => {
+                        dataSet.push(this.slayerSimData[taskID]);
+                    });
+                } else if (MICSR.isDungeonID(this.parent.viewedDungeonID)) {
                     // dungeons
                     const dungeonID = this.parent.viewedDungeonID;
                     MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
@@ -848,7 +838,7 @@
                     });
                 } else {
                     // slayer tasks
-                    const taskID = this.parent.viewedDungeonID - MICSR.dungeons.length;
+                    const taskID = this.parent.viewedDungeonID;
                     this.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
                         dataSet.push(this.monsterSimData[monsterID]);
                     });
@@ -878,12 +868,12 @@
                     }
                 }
                 // Perform simulation of monsters in dungeons and auto slayer
-                for (let i = 0; i < MICSR.dungeons.length; i++) {
+                MICSR.dungeonIDs.forEach((_: string) => {
                     enterSet.push(true);
-                }
-                for (let i = 0; i < this.slayerTaskMonsters.length; i++) {
+                });
+                MICSR.taskIDs.forEach((taskID: string) => this.slayerTaskMonsters[taskID].forEach((_: string) => {
                     enterSet.push(true);
-                }
+                }));
                 return enterSet;
             }
         }

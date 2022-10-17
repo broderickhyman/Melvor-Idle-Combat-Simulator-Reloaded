@@ -89,7 +89,6 @@
             media: any;
             menuItemId: any;
             modalID: any;
-            monsterIDs: any;
             monsterToggleState: any;
             petIDs: any;
             petSelectCard: any;
@@ -229,17 +228,6 @@
                 // default spell is wind strike
                 this.defaultSpell = MICSR.standardSpells.getObjectByID('melvorD:WindStrike');
 
-                // monster IDs
-                this.monsterIDs = [
-                    ...MICSR.combatAreas.allObjects
-                        .map((area: any) => area.monsters.map((monster: any) => monster.id))
-                        .reduce((a: any, b: any) => a.concat(b), []),
-                    MICSR.bardID,
-                    ...MICSR.slayerAreas.allObjects
-                        .map((area: any) => area.monsters.map((monster: any) => monster.id))
-                        .reduce((a: any, b: any) => a.concat(b), []),
-                ]
-
                 // combat pet IDs
                 this.petIDs = [
                     'melvorD:Pyro', // FM pet
@@ -341,7 +329,7 @@
                 this.createPetSelectCard();
                 //TODO this.createAgilitySelectCard();
                 //TODO this.createAstrologySelectCard();
-                //TODO this.createLootOptionsCard();
+                this.createLootOptionsCard();
                 this.createSimulationAndExportCard();
                 this.createCompareCard();
                 this.createConsumablesCard();
@@ -370,35 +358,24 @@
                     task: 2,
                 }
 
-                MICSR.combatAreas.forEach((area: any) => {
-                    area.monsters.forEach((monster: any) => {
-                        this.barMonsterIDs.push(monster);
-                        this.barType.push(this.barTypes.monster);
-                    });
+                MICSR.monsterIDs.forEach((monsterID: string) => {
+                    this.barMonsterIDs.push(monsterID);
+                    this.barType.push(this.barTypes.monster);
                 });
-                this.barMonsterIDs.push(MICSR.bardID);
-                this.barType.push(this.barTypes.monster);
-                MICSR.slayerAreas.forEach((area: any) => {
-                    area.monsters.forEach((monster: any) => {
-                        this.barMonsterIDs.push(monster);
-                        this.barType.push(this.barTypes.monster);
-                    });
-                });
-                /** @type {number[]} */
                 this.dungeonBarIDs = [];
-                MICSR.dungeons.allObjects.forEach((dungeon: any) => {
+                MICSR.dungeonIDs.forEach((dungeonID: any) => {
                     this.dungeonBarIDs.push(this.barMonsterIDs.length);
-                    this.barMonsterIDs.push(dungeon);
+                    this.barMonsterIDs.push(dungeonID);
                     this.barType.push(this.barTypes.dungeon);
                 });
                 MICSR.slayerTaskData.forEach((task: any) => {
                     this.dungeonBarIDs.push(this.barMonsterIDs.length);
-                    this.barMonsterIDs.push(task);
+                    this.barMonsterIDs.push(task.display);
                     this.barType.push(this.barTypes.task);
                 });
                 // Dungeon View Variables
                 this.isViewingDungeon = false;
-                this.viewedDungeonID = -1;
+                this.viewedDungeonID = undefined;
 
                 // Now that everything is done we add the menu and modal to the document
 
@@ -1300,12 +1277,12 @@
                 let index = droppedItems.indexOf(this.combatData.dropSelected);
                 if (index === -1) {
                     index = 0;
-                    this.combatData.dropSelected = -1;
+                    this.combatData.dropSelected = 'micsr:none';
                     this.updatePlotForLoot();
                 }
                 const dropdown = this.lootSelectCard.addDropdown(
                     'Choose Item',
-                    droppedItems.map((itemID) => MICSR.items.getObjectByID(itemID).name),
+                    droppedItems.map((itemID) => itemID === 'micsr:none' ? 'None' : MICSR.items.getObjectByID(itemID).name),
                     droppedItems,
                     (event: any) => this.dropChanceOnChange(event),
                 );
@@ -1356,81 +1333,76 @@
                 );
             }
 
+            addToLootMap(monster: any, lootMap: any) {
+                if (monster.lootTable) {
+                    monster.lootTable.drops.forEach((drop: any) => {
+                        const itemID: string = drop.item.id;
+                        lootMap.set(itemID, true);
+                        const dropTable = drop.item.dropTable;
+                        if (dropTable) {
+                            dropTable.drops.forEach((drp: any) => lootMap.set(drp.item.id, true));
+                        }
+                    });
+                }
+                if (monster.bones) {
+                    lootMap.set(monster.bones.item.id, true);
+                    // TODO: some bones are upgradable, e.g. Earth_Shard
+                }
+                return lootMap;
+            }
+
             buildItemDropList() {
                 // construct map
-                const lootMap = {};
-                const addToLootMap = (monster: any) => {
-                    if (monster.lootTable) {
-                        monster.lootTable.forEach((entry: any) => {
-                            const itemID = entry[0];
-                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                            lootMap[itemID] = true;
-                            const dropTable = MICSR.items[itemID].dropTable;
-                            if (dropTable) {
-                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                                dropTable.forEach((x: any) => lootMap[x[0]] = true);
-                            }
-                        });
-                    }
-                    if (monster.bones > -1) {
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        lootMap[monster.bones] = true;
-                        const upgradeID = MICSR.items[monster.bones].trimmedItemID;
-                        if (upgradeID) {
-                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                            lootMap[upgradeID] = true;
-                            const dropTable = MICSR.items[upgradeID].dropTable;
-                            if (dropTable) {
-                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                                dropTable.forEach((x: any) => lootMap[x[0]] = true);
-                            }
-                        }
-                    }
-                };
+                let lootMap = new Map();
                 if (this.dropListFilters.selectedMonster) {
                     if (!this.isViewingDungeon) {
                         if (this.barIsDungeon(this.selectedBar)) {
                             const dungeonID = this.barMonsterIDs[this.selectedBar];
-                            const monsters = MICSR.dungeons[dungeonID].monsters;
-                            const bossID = monsters[monsters.length - 1];
-                            addToLootMap(MICSR.monsters[bossID]);
+                            const monsters = MICSR.dungeons.getObjectByID(dungeonID).monsters;
+                            const boss = monsters[monsters.length - 1];
+                            lootMap = this.addToLootMap(boss, lootMap);
                         } else if (this.barIsTask(this.selectedBar)) {
-                            const taskID = this.barMonsterIDs[this.selectedBar] - MICSR.dungeons.length;
+                            const taskID = this.barMonsterIDs[this.selectedBar];
                             const monsters = this.simulator.slayerTaskMonsters[taskID];
-                            monsters.map((id: any) => MICSR.monsters[id]).forEach((monster: any) => addToLootMap(monster));
+                            monsters.map((id: any) => MICSR.monsters.getObjectByID(id)).forEach((monster: any) => lootMap = this.addToLootMap(monster, lootMap));
                         } else {
-                            addToLootMap(MICSR.monsters[this.barMonsterIDs[this.selectedBar]]);
+                            lootMap = this.addToLootMap(MICSR.monsters.getObjectByID(this.barMonsterIDs[this.selectedBar]), lootMap);
                         }
                     } else if (this.loot.godDungeonIDs.includes(this.viewedDungeonID)) {
                         const monsterID = this.getSelectedDungeonMonsterID();
-                        addToLootMap(MICSR.monsters[monsterID]);
+                        lootMap = this.addToLootMap(MICSR.monsters.getObjectByID(monsterID), lootMap);
                     }
                 } else {
-                    MICSR.monsters.forEach((monster: any) => addToLootMap(monster));
+                    MICSR.monsters.forEach((monster: any) => lootMap = this.addToLootMap(monster, lootMap));
                 }
                 // construct list
-                let lootList = Object.getOwnPropertyNames(lootMap).map(x => parseInt(x));
-                // apply undiscovered filter
-                if (this.dropListFilters.onlyUndiscovered) {
-                    lootList = lootList.filter(itemID => {
-                        // @ts-expect-error TS(2304): Cannot find name 'ItemStats'.
-                        return MICSR.game.stats.Items.get(itemID, ItemStats.TimesFound) === 0;
-                    });
-                }
+                let lootList: any[] = [];
+                lootMap.forEach((_: boolean, itemID: any) => {
+                    // apply undiscovered filter
+                    if (this.dropListFilters.onlyUndiscovered) {
+                        const item = MICSR.items.getObjectByID(itemID);
+                        if (MICSR.actualGame.stats.itemFindCount(item) === 0) {
+                            lootList.push(itemID);
+                        }
+                    } else {
+                        lootList.push(itemID);
+                    }
+                });
                 // sort by name
-                return [-1, ...lootList.sort((a, b) => MICSR.items[a].name > MICSR.items[b].name ? 1 : -1)];
+                return ['micsr:none', ...lootList.sort((a, b) => MICSR.items.getObjectByID(a).name > MICSR.items.getObjectByID(b).name ? 1 : -1)];
             }
 
             dropChanceOnChange(event: any) {
-                this.combatData.dropSelected = parseInt(event.currentTarget.selectedOptions[0].value);
+                this.combatData.dropSelected = event.currentTarget.selectedOptions[0].value;
                 this.updatePlotForLoot();
             }
 
             getSelectedDropLabel() {
-                if (this.combatData.dropSelected === undefined) {
+                if (this.combatData.dropSelected === 'micsr:none') {
                     return `Drops/${this.selectedTimeShorthand}`;
                 }
-                return `${this.combatData.dropSelected.name}/${this.selectedTimeShorthand}`;
+                const item = MICSR.items.getObjectByID(this.combatData.dropSelected);
+                return `${item.name}/${this.selectedTimeShorthand}`;
             }
 
             createSimulationAndExportCard() {
@@ -2605,7 +2577,7 @@
                     }
                     this.simulator.dungeonSimFilter[this.barMonsterIDs[imageID]] = newState;
                 } else if (this.barIsTask(imageID)) {
-                    const taskID = this.barMonsterIDs[imageID] - MICSR.dungeons.length;
+                    const taskID = this.barMonsterIDs[imageID];
                     newState = !this.simulator.slayerSimFilter[taskID];
                     if (newState && !this.player.isSlayerTask) {
                         this.notify('no auto slayer simulation off slayer task', 'danger');
@@ -2642,9 +2614,9 @@
                     newState = false;
                 }
                 this.dungeonToggleState = newState;
-                for (let i = 0; i < MICSR.dungeons.length; i++) {
-                    this.simulator.dungeonSimFilter[i] = newState;
-                }
+                MICSR.dungeonIDs.forEach((dungeonID: any) => {
+                    this.simulator.dungeonSimFilter[dungeonID] = newState;
+                });
                 this.updatePlotData();
                 this.plotter.crossImagesPerSetting();
             }
@@ -2660,10 +2632,9 @@
                     newState = false;
                 }
                 this.slayerToggleState = newState;
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                for (let i = 0; i < SlayerTask.data.length; i++) {
-                    this.simulator.slayerSimFilter[i] = newState;
-                }
+                MICSR.taskIDs.forEach((taskID: string) => {
+                    this.simulator.slayerSimFilter[taskID] = newState;
+                });
                 this.updatePlotData();
                 this.plotter.crossImagesPerSetting();
             }
@@ -2675,7 +2646,7 @@
                 const newState = !this.monsterToggleState;
                 this.monsterToggleState = newState;
                 // Set all non-dungeon monsters to newState
-                this.monsterIDs.forEach((monsterID: any) => {
+                MICSR.monsterIDs.forEach((monsterID: any) => {
                     this.simulator.monsterSimFilter[monsterID] = newState;
                 });
                 this.updatePlotData();
@@ -2705,7 +2676,7 @@
 
             setZoneInfoCard(title: any, id: any, media: any, data: any) {
                 // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MCS Zone Info Title').textContent = `${title} (id ${id})`;
+                document.getElementById('MCS Zone Info Title').textContent = `${title}`;
                 (document.getElementById('MCS Info Image') as any).src = media;
                 this.failureLabel.textContent = this.getSimFailureText(data);
                 const updateInfo = data.simSuccess;
@@ -2810,14 +2781,13 @@
                         this.setZoneInfoCard(
                             this.getDungeonName(dungeonID),
                             dungeonID,
-                            MICSR.dungeons[dungeonID].media,
+                            MICSR.dungeons.getObjectByID(dungeonID).media,
                             this.simulator.dungeonSimData[dungeonID],
                         );
                     } else if (!this.isViewingDungeon && this.barIsTask(this.selectedBar)) {
-                        const taskID = this.barMonsterIDs[this.selectedBar] - MICSR.dungeons.length;
+                        const taskID = this.barMonsterIDs[this.selectedBar];
                         this.setZoneInfoCard(
-                            // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-                            SlayerTask.data[taskID].display,
+                            taskID,
                             taskID,
                             MICSR.game.slayer.media,
                             this.simulator.slayerSimData[taskID],
@@ -2834,10 +2804,10 @@
                         this.setZoneInfoCard(
                             this.getMonsterName(monsterID),
                             monsterID,
-                            MICSR.monsters[monsterID].media,
+                            MICSR.monsters.getObjectByID(monsterID).media,
                             this.simulator.monsterSimData[this.simulator.simID(
                                 monsterID,
-                                dungeonID >= MICSR.dungeons.length ? undefined : dungeonID,
+                                dungeonID >= MICSR.dungeonCount ? undefined : dungeonID,
                             )],
                         );
                     }
@@ -2850,19 +2820,19 @@
             }
 
             getSelectedDungeonMonsterID() {
-                const selection = this.getMonsterList(this.viewedDungeonID);
-                return selection[this.selectedBar + selection.length - this.plotter.bars.length];
+                const monsters = this.getMonsterList(this.viewedDungeonID);
+                console.log(monsters, this.viewedDungeonID)
+                return monsters[this.selectedBar + monsters.length - this.plotter.bars.length];
             }
 
             /**
-             * get list of monsters for dungeon (or slayer task, where task IDs start at MICSR.dungeons.length)
+             * get list of monsters for dungeon (or slayer task, where task IDs start at MICSR.dungeonCount)
              */
             getMonsterList(dungeonID: any) {
-                if (dungeonID < MICSR.dungeons.length) {
-                    return MICSR.dungeons[this.viewedDungeonID].monsters;
+                if (MICSR.isDungeonID(dungeonID)) {
+                    return MICSR.dungeons.getObjectByID(this.viewedDungeonID).monsters;
                 }
-                const taskID = dungeonID - MICSR.dungeons.length;
-                return this.simulator.slayerTaskMonsters[taskID];
+                return this.simulator.slayerTaskMonsters[dungeonID];
             }
 
             // Functions that manipulate the UI
@@ -2993,8 +2963,12 @@
              * Updates the simulator display for when a loot option is changed
              */
             updatePlotForLoot() {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MCS Drops/h Label').textContent = this.getSelectedDropLabel();
+                const elt = document.getElementById('MCS Drops/h Label');
+                if (elt === null) {
+                    MICSR.error('Could not find element with id "MCS Drops/h Label".');
+                    return;
+                }
+                elt.textContent = this.getSelectedDropLabel();
                 this.loot.updateDropChance();
                 this.consumables.update();
                 if (this.plotter.plotType === 'dropChance') {
@@ -3075,8 +3049,8 @@
              */
             getDungeonName(dungeonID: any) {
                 let name = undefined;
-                if (MICSR.dungeons[dungeonID]) {
-                    name = MICSR.dungeons[dungeonID].name;
+                if (MICSR.dungeons.getObjectByID(dungeonID)) {
+                    name = MICSR.dungeons.getObjectByID(dungeonID).name;
                 } else if (dungeonID && dungeonID.name) {
                     name = dungeonID.name;
                 }

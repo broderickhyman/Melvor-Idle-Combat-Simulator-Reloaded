@@ -113,18 +113,31 @@
         MICSR.pets = MICSR.actualGame.pets;
         // dg array
         MICSR.dungeons = MICSR.actualGame.dungeons;
+        MICSR.dungeonIDs = MICSR.dungeons.allObjects.map((dungeon: any) => dungeon.id);
+        MICSR.dungeonCount = MICSR.dungeonIDs.length;
+        MICSR.isDungeonID = (id: string) => MICSR.monsters.getObjectByID(id) !== undefined;
         // TODO filter special dungeons
         //  MICSR.dungeons = MICSR.dungeons.filter((dungeon) => dungeon.id !== Dungeons.Impending_Darkness);
         // TODO filter special monsters
         //  MICSR.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
-        // monster array
-        MICSR.monsters = MICSR.actualGame.monsters;
+        // monsters
         MICSR.bardID = 'melvorF:WanderingBard';
-        // areas
+        MICSR.monsters = MICSR.actualGame.monsters;
+        MICSR.monsterList = MICSR.actualGame.monsters.allObjects;
         MICSR.combatAreas = MICSR.actualGame.combatAreas;
         MICSR.slayerAreas = MICSR.actualGame.slayerAreas;
+        MICSR.monsterIDs = [
+            ...MICSR.combatAreas.allObjects
+                .map((area: any) => area.monsters.map((monster: any) => monster.id))
+                .reduce((a: any, b: any) => a.concat(b), []),
+            MICSR.bardID,
+            ...MICSR.slayerAreas.allObjects
+                .map((area: any) => area.monsters.map((monster: any) => monster.id))
+                .reduce((a: any, b: any) => a.concat(b), []),
+        ]
         // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
         MICSR.slayerTaskData = SlayerTask.data
+        MICSR.taskIDs = MICSR.slayerTaskData.map((task: any) => task.display);
         // potions
         MICSR.herblorePotions = MICSR.actualGame.herblore.actions;
         // items

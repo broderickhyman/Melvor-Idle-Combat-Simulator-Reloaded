@@ -267,16 +267,19 @@
 
             update() {
                 for (const simID in this.simulator.monsterSimData) {
-                    this.updateSingleResult(this.simulator.monsterSimData[simID]);
+                    const simResult = this.simulator.monsterSimData[simID];
+                    this.updateSingleResult(simResult);
                 }
-                for (const dData of this.simulator.dungeonSimData) {
-                    this.updateSingleResult(dData);
+                for (const dungeonID in this.simulator.dungeonSimData) {
+                    const simResult = this.simulator.dungeonSimData[dungeonID];
+                    this.updateSingleResult(simResult);
                 }
-                this.simulator.slayerSimData.forEach((sData: any, slayerTaskID: any) => {
-                    this.updateSingleResult(sData);
+                for (const taskID in this.simulator.slayerSimData) {
+                    const simResult = this.simulator.slayerSimData[taskID];
+                    this.updateSingleResult(simResult);
                     // correct average kill time for auto slayer
-                    sData.adjustedRates.killTimeS /= this.simulator.slayerTaskMonsters[slayerTaskID].length;
-                });
+                    simResult.adjustedRates.killTimeS /= this.simulator.slayerTaskMonsters[taskID].length;
+                }
             }
 
             updateSingleResult(data: any) {

@@ -80,7 +80,7 @@
                 // combat stats
                 this.combatStats = {};
                 // selected item drop
-                this.dropSelected = -1;
+                this.dropSelected = 'micsr:none';
             }
 
             /**
