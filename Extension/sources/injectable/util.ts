@@ -94,6 +94,9 @@
         if (MICSR.namespace === undefined) {
             MICSR.namespace = MICSR.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
         }
+        //gamemodes
+        MICSR.gamemodes = MICSR.game.gamemodes.allObjects.filter((x: any) => x.id !== 'melvorD:Unset');
+
         // empty items
         MICSR.emptyItem = MICSR.game.emptyEquipmentItem;
 
@@ -107,36 +110,49 @@
             MICSR.skillNamesLC.push(x.name.toLowerCase());
         });
         // pets array
-        MICSR.pets = MICSR.game.pets;
+        MICSR.pets = MICSR.actualGame.pets;
         // dg array
-        MICSR.dungeons = MICSR.game.dungeons;
+        MICSR.dungeons = MICSR.actualGame.dungeons;
         // TODO filter special dungeons
         //  MICSR.dungeons = MICSR.dungeons.filter((dungeon) => dungeon.id !== Dungeons.Impending_Darkness);
         // TODO filter special monsters
         //  MICSR.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
         // monster array
-        MICSR.monsters = MICSR.game.monsters;
+        MICSR.monsters = MICSR.actualGame.monsters;
         MICSR.bardID = 'melvorF:WanderingBard';
         // areas
-        MICSR.combatAreas = MICSR.game.combatAreas;
-        MICSR.slayerAreas = MICSR.game.slayerAreas;
+        MICSR.combatAreas = MICSR.actualGame.combatAreas;
+        MICSR.slayerAreas = MICSR.actualGame.slayerAreas;
         // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
         MICSR.slayerTaskData = SlayerTask.data
         // potions
-        MICSR.herblorePotions = MICSR.game.herblore.actions;
+        MICSR.herblorePotions = MICSR.actualGame.herblore.actions;
         // items
-        MICSR.items = MICSR.game.items;
+        MICSR.items = MICSR.actualGame.items;
         // spells
-        MICSR.standardSpells = MICSR.game.standardSpells;
-        MICSR.curseSpells = MICSR.game.curseSpells;
-        MICSR.auroraSpells = MICSR.game.auroraSpells;
-        MICSR.ancientSpells = MICSR.game.ancientSpells;
-        MICSR.archaicSpells = MICSR.game.archaicSpells;
+        MICSR.standardSpells = MICSR.actualGame.standardSpells;
+        MICSR.curseSpells = MICSR.actualGame.curseSpells;
+        MICSR.auroraSpells = MICSR.actualGame.auroraSpells;
+        MICSR.ancientSpells = MICSR.actualGame.ancientSpells;
+        MICSR.archaicSpells = MICSR.actualGame.archaicSpells;
         // prayers
-        MICSR.prayers = MICSR.game.prayers;
+        MICSR.prayers = MICSR.actualGame.prayers;
+        // attackStyles
+        MICSR.attackStylesIdx = {};
+        MICSR.actualGame.attackStyles.allObjects.forEach((x: any, i: number) => {
+            let j = i;
+            if (j > 3) {
+                j -= 3;
+            }
+            if (j > 2) {
+                j -= 2;
+            }
+            MICSR.attackStylesIdx[x] = j;
+        });
 
         // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
         MICSR.imageNotify = imageNotify;
+
 
         /**
          }

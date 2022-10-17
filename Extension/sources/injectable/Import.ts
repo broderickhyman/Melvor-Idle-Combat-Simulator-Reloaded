@@ -42,20 +42,21 @@
                 magic: 'Magic',
             },
             prayerSelected: [],
-            ancient: -1,
-            aurora: -1,
+            ancient: undefined,
+            archaic: undefined,
+            aurora: undefined,
             autoEatTier: -1,
             cookingMastery: false,
             cookingPool: false,
             currentGamemode: 0,
-            curse: -1,
-            foodSelected: -1,
+            curse: undefined,
+            foodSelected: undefined,
             healAfterDeath: true,
             isAncient: false,
             isManualEating: false,
             isSlayerTask: false,
-            pillar: -1,
-            potionID: -1,
+            pillar: undefined,
+            potionID: undefined,
             potionTier: 0,
             standard: 0,
             summoningSynergy: true,
@@ -88,6 +89,7 @@
              * @param {number} setID Index of equipmentSets from 0-2 to import
              */
             importButtonOnClick(setID: any) {
+                /* TODO
                 // get potion
                 let potionID = -1;
                 let potionTier = -1;
@@ -110,31 +112,19 @@
                         }
                     }
                 }
+                 */
                 // get foodSelected
-                // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                const foodSelected = player.food.currentSlot.item;
+                const foodSelected = MICSR.actualGame.combat.player.food.currentSlot.item;
                 // get cooking mastery for foodSelected
                 const foodMastery = foodSelected.masteryID;
                 // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                const cookingMastery = foodSelected.id > -1 && foodMastery && foodMastery[0] === Skills.Cooking
+                const cookingMastery = foodSelected !== 'melvorD:Empty_Food' && foodMastery && foodMastery[0] === Skills.Cooking
                     // @ts-expect-error TS(2304): Cannot find name 'exp'.
                     && exp.xp_to_level(MASTERY[Skills.Cooking].xp[foodMastery[1]]) > 99;
 
                 // get the player's auto eat tier
-                let autoEatTier = -1;
-                this.autoEatTiers.forEach((id: any) => {
-                    // @ts-expect-error TS(2304): Cannot find name 'shopItemsPurchased'.
-                    if (shopItemsPurchased.size === 0) {
-                        return;
-                    }
-                    // @ts-expect-error TS(2304): Cannot find name 'shopItemsPurchased'.
-                    const ae = shopItemsPurchased.get(`General:${id}`);
-                    if (ae === undefined || ae.quantity === 0) {
-                        return;
-                    }
-                    autoEatTier++;
-                });
-
+                const autoEatTier = -1 + this.autoEatTiers.filter((x: any) => MICSR.actualGame.shop.upgradesPurchased.get(x)).length;
+                /* TODO
                 // get the active astrology modifiers
                 const astrologyModifiers = [];
                 // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
@@ -173,7 +163,9 @@
                     }
                     astrologyModifiers.push(modifiers);
                 }
+                 */
 
+                /* TODO
                 // get the chosen agility obstacles
                 // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 const chosenAgilityObstacles = Array(1 + Math.max(...Agility.obstacles.map((x: any) => x.category))).fill(-1);
@@ -183,53 +175,46 @@
                         chosenAgilityObstacles[i] = obstacle.id;
                     }
                 }
+                 */
+                const equipment = MICSR.actualGame.combat.player.equipmentSets[setID].equipment;
 
                 // create settings object
                 const settings = {
                     version: MICSR.version,
                     // lists
-                    astrologyModifiers: astrologyModifiers,
-                    course: chosenAgilityObstacles,
-                    // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
-                    courseMastery: MASTERY[MICSR.skillIDs.Agility].xp.map((x: any) => x > 13034431),
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    equipment: player.equipmentSets[setID].slotArray.map((x: any) => x.occupiedBy === 'None' ? x.item.id : -1),
-                    // @ts-expect-error TS(2304): Cannot find name 'skillXP'.
-                    levels: skillXP.map((x: any) => Math.max(1, exp.xp_to_level(x) - 1)),
-                    // @ts-expect-error TS(2304): Cannot find name 'petUnlocked'.
-                    petUnlocked: petUnlocked,
+                    //TODO astrologyModifiers: astrologyModifiers,
+                    //TODO course: chosenAgilityObstacles,
+                    courseMastery: MICSR.actualGame.agility.actions.allObjects.map((action: any) => MICSR.actualGame.agility.getMasteryLevel(action) >= 99),
+                    equipment: equipment.slotArray.map((x: any) => x.item.id),
+                    levels: MICSR.actualGame.skills.allObjects.map((x: any) => x.level),
+                    // TODO petUnlocked: petUnlocked,
                     // objects
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    styles: {...player.attackStyles},
+                    styles: {
+                        magic: MICSR.actualGame.combat.player.attackStyles.melee.id,
+                        melee: MICSR.actualGame.combat.player.attackStyles.melee.id,
+                        ranged: MICSR.actualGame.combat.player.attackStyles.melee.id,
+                    },
                     // simple values
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    ancient: player.spellSelection.ancient,
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    aurora: player.spellSelection.aurora,
+                    ancient: MICSR.actualGame.combat.player.spellSelection.ancient,
+                    archaic: MICSR.actualGame.combat.player.spellSelection.archaic,
+                    aurora: MICSR.actualGame.combat.player.spellSelection.aurora,
                     autoEatTier: autoEatTier,
                     cookingMastery: cookingMastery,
-                    // @ts-expect-error TS(2304): Cannot find name 'getMasteryPoolProgress'.
-                    cookingPool: getMasteryPoolProgress(Skills.Cooking) >= 95,
-                    // @ts-expect-error TS(2304): Cannot find name 'currentGamemode'.
-                    currentGamemode: currentGamemode,
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    curse: player.spellSelection.curse,
-                    foodSelected: foodSelected.id,
+                    // TODO cookingPool: getMasteryPoolProgress(Skills.Cooking) >= 95,
+                    currentGamemode: MICSR.actualGame.currentGamemode,
+                    curse: MICSR.actualGame.combat.player.spellSelection.curse,
+                    foodSelected: foodSelected,
                     healAfterDeath: this.player.healAfterDeath,
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    isAncient: player.spellSelection.ancient !== -1,
+                    isAncient: MICSR.actualGame.combat.player.spellSelection.ancient !== undefined,
                     isManualEating: this.player.isManualEating,
                     isSlayerTask: this.player.isSlayerTask,
                     pillar: MICSR.game.agility.builtPassivePillar === undefined ? -1 : MICSR.game.agility.builtPassivePillar.id,
-                    potionID: potionID,
-                    potionTier: potionTier,
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    prayerSelected: [...player.activePrayers],
-                    // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-                    standard: player.spellSelection.standard,
+                    // TODO potionID: potionID,
+                    // TODO potionTier: potionTier,
+                    prayerSelected: [...MICSR.actualGame.combat.player.activePrayers],
+                    standard: MICSR.actualGame.combat.player.spellSelection.standard,
                     summoningSynergy: this.player.summoningSynergy, // TODO: import mark levels
-                    // @ts-expect-error TS(2304): Cannot find name 'useCombinationRunes'.
-                    useCombinationRunes: useCombinationRunes,
+                    useCombinationRunes: MICSR.actualGame.combat.player.useCombinationRunes,
                 };
 
                 // import settings
@@ -256,13 +241,14 @@
                     prayerSelected: [...this.player.activePrayers],
                     // simple values
                     ancient: this.player.spellSelection.ancient,
+                    archaic: this.player.spellSelection.archaic,
                     aurora: this.player.spellSelection.aurora,
                     autoEatTier: this.player.autoEatTier,
                     cookingMastery: this.player.cookingMastery,
                     cookingPool: this.player.cookingPool,
                     currentGamemode: this.player.currentGamemode,
                     curse: this.player.spellSelection.curse,
-                    foodSelected: this.player.food.currentSlot.item.id,
+                    foodSelected: this.player.food.currentSlot.item,
                     healAfterDeath: this.player.healAfterDeath,
                     isAncient: this.player.spellSelection.ancient > -1,
                     isManualEating: this.player.isManualEating,
@@ -283,7 +269,7 @@
                 // validate
                 for (const prop in MICSR.defaultSettings) {
                     if (settings[prop] === undefined) {
-                        MICSR.error(`No valid ${prop} data imported, using default ${MICSR.defaultSettings[prop]}.`)
+                        MICSR.log(`No valid ${prop} data imported, using default ${MICSR.defaultSettings[prop]}.`)
                         settings[prop] = MICSR.defaultSettings[prop];
                     }
                 }
@@ -293,22 +279,23 @@
                 this.importStyle(settings.styles);
                 this.importSpells({
                     ancient: settings.ancient,
+                    archaic: settings.archaic,
                     aurora: settings.aurora,
                     curse: settings.curse,
                     standard: settings.standard,
                 });
                 this.importPrayers(settings.prayerSelected);
-                this.importPotion(settings.potionID, settings.potionTier);
-                this.importPets(settings.petUnlocked);
+                // TODO this.importPotion(settings.potionID, settings.potionTier);
+                // TODO this.importPets(settings.petUnlocked);
                 this.importAutoEat(settings.autoEatTier, settings.foodSelected, settings.cookingPool, settings.cookingMastery);
                 this.importManualEating(settings.isManualEating);
                 this.importHealAfterDeath(settings.healAfterDeath);
                 this.importSlayerTask(settings.isSlayerTask);
                 this.importGameMode(settings.currentGamemode);
                 this.importUseCombinationRunes(settings.useCombinationRunes);
-                this.importAgilityCourse(settings.course, settings.courseMastery, settings.pillar);
+                // TODO this.importAgilityCourse(settings.course, settings.courseMastery, settings.pillar);
                 this.importSummoningSynergy(settings.summoningSynergy);
-                this.importAstrology(settings.astrologyModifiers);
+                // TODO this.importAstrology(settings.astrologyModifiers);
                 // notify completion
                 this.app.notify('Import completed.');
             }
@@ -323,22 +310,18 @@
             importEquipment(equipment: any) {
                 // clear previous items
                 this.player.equipment.unequipAll();
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                for (const slot in equipmentSlotData) {
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    const slotID = equipmentSlotData[slot].id;
-                    this.app.setEquipmentImage(slotID, -1);
+                for (const slot in MICSR.equipmentSlotData) {
+                    const slotID = MICSR.equipmentSlotData[slot].id;
+                    this.app.setEquipmentImage(slotID);
                 }
                 // load new items
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                for (const slot in equipmentSlotData) {
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    const slotID = equipmentSlotData[slot].id;
+                for (const slot in MICSR.equipmentSlotData) {
+                    const slotID = MICSR.equipmentSlotData[slot].id;
                     const itemID = equipment[slotID];
-                    if (itemID === -1) {
+                    if (itemID === 'melvorD:Empty_Equipment') {
                         continue;
                     }
-                    this.app.equipItem(slotID, itemID);
+                    this.app.equipItem(slotID, MICSR.items.getObjectByID(itemID));
                 }
                 // update style drop down
                 this.app.updateStyleDropdowns();
@@ -346,8 +329,7 @@
 
             importLevels(levels: any) {
                 this.app.skillKeys.forEach((key: any) => {
-                    // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-                    this.document.getElementById(`MCS ${key} Input`).value = levels[Skills[key]];
+                    this.document.getElementById(`MCS ${key} Input`).value = levels[MICSR.skillIDs[key]];
                 });
                 this.player.skillLevel = [...levels];
             }
@@ -357,10 +339,11 @@
                     'melee',
                     'ranged',
                     'magic',
-                ].forEach(style => {
-                    this.player.setAttackStyle(style, styles[style]);
-                    // @ts-expect-error TS(2304): Cannot find name 'attackStyles'.
-                    this.document.getElementById(`MCS ${style} Style Dropdown`).selectedIndex = attackStyles[styles[style]].id % 3;
+                ].forEach(cbStyle => {
+                    const attackStyle = MICSR.actualGame.attackStyles.getObjectByID(styles[cbStyle]);
+                    const index = MICSR.attackStylesIdx[cbStyle];
+                    this.player.setAttackStyle(cbStyle, attackStyle);
+                    this.document.getElementById(`MCS ${cbStyle} Style Dropdown`).selectedIndex = index % 3;
                 });
             }
 
@@ -379,7 +362,7 @@
                 this.player.activePrayers.clear();
                 // Update prayers
                 MICSR.prayers.forEach((prayer: any) => {
-                    const prayButton = this.document.getElementById(`MCS ${this.app.getPrayerName(prayer.id)} Button`);
+                    const prayButton = this.document.getElementById(`MCS ${this.app.getPrayerName(prayer)} Button`);
                     if (prayerSelected.includes(prayer.id)) {
                         this.app.selectButton(prayButton);
                         this.player.activePrayers.add(prayer.id);
@@ -431,10 +414,12 @@
                 this.player.autoEatTier = autoEatTier;
                 this.document.getElementById('MCS Auto Eat Tier Dropdown').selectedIndex = autoEatTier + 1;
                 this.app.equipFood(foodSelected);
+                /* TODO
                 this.checkRadio('MCS 95% Cooking Pool', cookingPool);
                 this.player.cookingPool = cookingPool;
                 this.checkRadio('MCS 99 Cooking Mastery', cookingMastery);
                 this.player.cookingMastery = cookingMastery;
+                 */
             }
 
             importManualEating(isManualEating: any) {
@@ -454,9 +439,10 @@
                 this.app.slayerTaskSimsToggle();
             }
 
-            importGameMode(currentGamemode: any) {
-                this.player.currentGamemode = currentGamemode;
-                this.document.getElementById('MCS Game Mode Dropdown').selectedIndex = currentGamemode;
+            importGameMode(gamemode: any) {
+                this.player.currentGamemode = gamemode;
+                const index = MICSR.gamemodes.findIndex((x: any) => x.id === gamemode.id);
+                this.document.getElementById('MCS Game Mode Dropdown').selectedIndex = index;
             }
 
             importSummoningSynergy(summoningSynergy: any) {

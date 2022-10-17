@@ -590,14 +590,14 @@
                     1,
                 );
                 // game mode
-                const gameModeNames = [];
-                const gameModeValues = [];
-                for (const i in MICSR.game.gamemodes.allObjects) {
-                    gameModeNames.push(MICSR.game.gamemodes.allObjects[i].name);
+                const gameModeNames: any[] = [];
+                const gameModeValues: number[] = [];
+                MICSR.gamemodes.forEach((gamemode: any, i: number) => {
+                    gameModeNames.push(gamemode.name);
                     gameModeValues.push(i);
-                }
+                });
                 const gameModeDropdown = this.equipmentSelectCard.createDropdown(gameModeNames, gameModeValues, 'MCS Game Mode Dropdown', (event: any) => {
-                    this.player.currentGamemode = parseInt(event.currentTarget.selectedOptions[0].value);
+                    this.player.currentGamemode = MICSR.gamemodes[parseInt(event.currentTarget.selectedOptions[0].value)];
                 });
                 const gameModeContainer = this.equipmentSelectCard.createCCContainer();
                 gameModeContainer.appendChild(gameModeDropdown);
@@ -643,7 +643,7 @@
                     this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
                     const buttonMedia = this.foodItems.map((item: any) => item.media);
                     const buttonIds = this.foodItems.map((item: any) => item.name);
-                    const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item.id));
+                    const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item));
                     const tooltips = this.foodItems.map((item: any) => this.getFoodTooltip(item));
                     equipmentSelectCard.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
                     return foodSelectPopup;
@@ -682,19 +682,19 @@
                 this.equipmentSelectCard.container.appendChild(this.foodCCContainer);
             }
 
-            equipFood(itemID: any) {
-                this.player.equipFood(itemID);
+            equipFood(item: any) {
+                this.player.equipFood(item);
                 const img = document.getElementById('MCS Food Image');
-                if (itemID === -1) {
+                if (item === 'melvorD:Empty_Equipment') {
                     (img as any).src = 'assets/media/skills/combat/food_empty.svg';
                     // @ts-expect-error TS(2531): Object is possibly 'null'.
                     img.style.border = '1px solid red';
                 } else {
-                    (img as any).src = this.getItemMedia(itemID);
+                    (img as any).src = item.media;
                     // @ts-expect-error TS(2531): Object is possibly 'null'.
                     img.style.border = '';
                 }
-                this.setTooltip(img, this.getFoodTooltip(MICSR.items[itemID]));
+                this.setTooltip(img, this.getFoodTooltip(item));
                 this.updateHealing();
             }
 
@@ -2079,14 +2079,13 @@
              */
             styleDropdownOnChange(event: any, combatType: any) {
                 let idx = parseInt(event.currentTarget.selectedOptions[0].value);
-                if (this.player.attackType === 'ranged') {
+                if (this.player.attackType === 'magic') {
                     idx += 3;
                 }
-                if (this.player.attackType === 'magic') {
-                    idx += 6;
+                if (this.player.attackType === 'ranged') {
+                    idx += 5;
                 }
-                // @ts-expect-error TS(2304): Cannot find name 'AttackStyles'.
-                this.player.setAttackStyle(combatType, AttackStyles[idx]);
+                this.player.setAttackStyle(combatType, MICSR.actualGame.attackStyles.allObjects[idx]);
                 this.updateCombatStats();
             }
 

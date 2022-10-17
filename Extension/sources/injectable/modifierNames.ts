@@ -939,7 +939,7 @@
         }
         // end of ShowModifiers copy
 
-        MICSR.showModifiersInstance = new MICSR.ShowModifiers('', 'MICSR');
+        MICSR.showModifiersInstance = new MICSR.ShowModifiers('', 'MICSR', false /* TODO */);
     }
 
     let loadCounter = 0;

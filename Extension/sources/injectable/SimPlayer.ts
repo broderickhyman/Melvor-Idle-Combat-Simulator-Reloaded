@@ -676,15 +676,15 @@
                 this.updateForEquipmentChange();
             }
 
-            equipFood(itemID: any) {
-                if (itemID === -1) {
+            equipFood(item: any) {
+                if (item.id === 'melvorD:Empty_Equipment') {
                     this.unequipFood();
                     return;
                 }
                 // Unequip previous food
                 this.food.unequipSelected();
                 // Proceed to equip the food
-                this.food.equip(MICSR.items[itemID], Infinity);
+                this.food.equip(item, Infinity);
             }
 
             unequipFood() {
