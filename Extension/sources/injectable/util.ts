@@ -82,43 +82,10 @@
         MICSR.trials = 1e3;
         MICSR.maxTicks = 1e3;
 
-        // empty items
-        const makeEmptyItem = (img: any, slot: any) => {
-            return {
-                name: 'None',
-                id: -1,
-                media: img,
-                validSlots: [slot]
-            }
-        };
-
-        MICSR.emptyItems = {
-            Helmet: makeEmptyItem('assets/media/bank/armour_helmet.png', 'Helmet'),
-            Platebody: makeEmptyItem('assets/media/bank/armour_platebody.png', 'Platebody'),
-            Platelegs: makeEmptyItem('assets/media/bank/armour_platelegs.png', 'Platelegs'),
-            Boots: makeEmptyItem('assets/media/bank/armour_boots.png', 'Boots'),
-            Weapon: {
-                ...makeEmptyItem('assets/media/bank/weapon_sword.png', 'Weapon'),
-                attackType: 'melee',
-            },
-            Shield: makeEmptyItem('assets/media/bank/armour_shield.png', 'Shield'),
-            Amulet: makeEmptyItem('assets/media/bank/misc_amulet.png', 'Amulet'),
-            Ring: makeEmptyItem('assets/media/bank/misc_ring.png', 'Ring'),
-            Gloves: makeEmptyItem('assets/media/bank/armour_gloves.png', 'Gloves'),
-            Quiver: makeEmptyItem('assets/media/bank/weapon_quiver.png', 'Quiver'),
-            Cape: makeEmptyItem('assets/media/bank/armour_cape.png', 'Cape'),
-            Passive: makeEmptyItem('assets/media/bank/passive_slot.png', 'Passive'),
-            Summon1: makeEmptyItem('assets/media/bank/misc_summon.png', 'Summon1'),
-            Summon2: makeEmptyItem('assets/media/bank/misc_summon.png', 'Summon2'),
-            Food: makeEmptyItem('assets/media/skills/combat/food_empty.svg', 'Food'),
-        };
-
-        MICSR.getItem = (itemID: any, slotName: any) => {
-            if (itemID === -1) {
-                return MICSR.emptyItems[slotName];
-            }
-            return MICSR.items.getObjectByID(itemID);
-        }
+        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
+        MICSR.EquipmentSlots = EquipmentSlots;
+        // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
+        MICSR.equipmentSlotData = equipmentSlotData;
 
         // @ts-expect-error TS(2304): Cannot find name 'game'.
         MICSR.actualGame = game;
@@ -127,6 +94,9 @@
         if (MICSR.namespace === undefined) {
             MICSR.namespace = MICSR.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
         }
+        // empty items
+        MICSR.emptyItem = MICSR.game.emptyEquipmentItem;
+
         // skill IDs
         MICSR.skillIDs = {};
         MICSR.skillNames = [];
@@ -164,6 +134,9 @@
         MICSR.archaicSpells = MICSR.game.archaicSpells;
         // prayers
         MICSR.prayers = MICSR.game.prayers;
+
+        // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
+        MICSR.imageNotify = imageNotify;
 
         /**
          }

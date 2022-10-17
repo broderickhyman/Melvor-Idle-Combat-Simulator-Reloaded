@@ -66,6 +66,7 @@
             consumables: any;
             consumablesCard: any;
             dataExport: any;
+            defaultSpell: any;
             dropListFilters: any;
             dungeonBarIDs: any;
             dungeonToggleState: any;
@@ -225,6 +226,9 @@
                     uniqueStar: 'assets/media/skills/astrology/star_unique.svg',
                 };
 
+                // default spell is wind strike
+                this.defaultSpell = MICSR.standardSpells.getObjectByID('melvorD:WindStrike');
+
                 // monster IDs
                 this.monsterIDs = [
                     ...MICSR.combatAreas.allObjects
@@ -266,41 +270,33 @@
                 // Generate equipment subsets
                 this.equipmentSubsets = [];
                 /** @type {number[]} */
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                for (const slot in equipmentSlotData) {
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    const slotId = equipmentSlotData[slot].id;
-                    this.equipmentSubsets.push([MICSR.emptyItems[slot]]);
+                for (const slot in MICSR.equipmentSlotData) {
+                    const slotId = MICSR.equipmentSlotData[slot].id;
+                    this.equipmentSubsets.push([MICSR.emptyItem]);
                     MICSR.items.filter((item: any) => item.validSlots)
                         .forEach((item: any) => {
                             if (item.validSlots.includes(slot)
                                 || (item.validSlots.includes('Summon')
-                                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                                    && slotId === equipmentSlotData.Summon2.id)) {
+                                    && slotId === MICSR.equipmentSlotData.Summon2.id)) {
                                 this.equipmentSubsets[slotId].push(item);
                             }
                         });
                 }
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                this.equipmentSubsets[equipmentSlotData.Passive.id].push(...MICSR.items.filter((x: any) => x.isPassiveItem));
+                this.equipmentSubsets[MICSR.equipmentSlotData.Passive.id].push(...MICSR.items.filter((x: any) => x.isPassiveItem));
                 // Add ammoType 2 and 3 to weapon subsets
                 MICSR.items.forEach((item: any) => {
                     if (item.validSlots && item.validSlots.includes('Quiver') && (item.ammoType === 2 || item.ammoType === 3)) {
-                        // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                        this.equipmentSubsets[equipmentSlotData.Weapon.id].push(item);
+                        this.equipmentSubsets[MICSR.equipmentSlotData.Weapon.id].push(item);
                     }
                 });
                 // Sort equipment subsets
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                for (const slot in equipmentSlotData) {
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    const slotId = equipmentSlotData[slot].id;
+                for (const slot in MICSR.equipmentSlotData) {
+                    const slotId = MICSR.equipmentSlotData[slot].id;
                     this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Attack) - this.getItemLevelReq(b, MICSR.skillIDs.Attack));
                     this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Defence) - this.getItemLevelReq(b, MICSR.skillIDs.Defence));
                     this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Ranged) - this.getItemLevelReq(b, MICSR.skillIDs.Ranged));
                     this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Magic) - this.getItemLevelReq(b, MICSR.skillIDs.Magic));
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    if (slotId === equipmentSlotData.Quiver.id) {
+                    if (slotId === MICSR.equipmentSlotData.Quiver.id) {
                         this.equipmentSubsets[slotId].sort((a: any, b: any) => (a.ammoType || 0) - (b.ammoType || 0));
                     }
                 }
@@ -508,32 +504,23 @@
             createEquipmentSelectCard() {
                 this.equipmentSelectCard = new MICSR.Card(this.topContent, '', '150px', true);
                 const equipmentRows = [
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    [equipmentSlotData.Passive.id, equipmentSlotData.Helmet.id],
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    [equipmentSlotData.Cape.id, equipmentSlotData.Amulet.id, equipmentSlotData.Quiver.id],
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    [equipmentSlotData.Weapon.id, equipmentSlotData.Platebody.id, equipmentSlotData.Shield.id],
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    [equipmentSlotData.Platelegs.id],
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    [equipmentSlotData.Gloves.id, equipmentSlotData.Boots.id, equipmentSlotData.Ring.id],
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    [equipmentSlotData.Summon1.id, equipmentSlotData.Summon2.id]
+                    [MICSR.EquipmentSlots.Passive, MICSR.EquipmentSlots.Helmet, MICSR.EquipmentSlots.Consumable],
+                    [MICSR.EquipmentSlots.Cape, MICSR.EquipmentSlots.Amulet, MICSR.EquipmentSlots.Quiver],
+                    [MICSR.EquipmentSlots.Weapon, MICSR.EquipmentSlots.Platebody, MICSR.EquipmentSlots.Shield],
+                    [MICSR.EquipmentSlots.Platelegs],
+                    [MICSR.EquipmentSlots.Gloves, MICSR.EquipmentSlots.Boots, MICSR.EquipmentSlots.Ring],
+                    [MICSR.EquipmentSlots.Summon1, MICSR.EquipmentSlots.Summon2]
                 ];
                 equipmentRows.forEach((row) => {
                     const rowSources: any = [];
                     const rowIDs: any = [];
                     const rowPopups: any = [];
                     const tooltips: any = [];
-                    row.forEach((equipmentSlot) => {
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                        rowSources.push(MICSR.emptyItems[EquipmentSlots[equipmentSlot]].media);
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                        rowIDs.push(`MCS ${EquipmentSlots[equipmentSlot]} Image`);
-                        rowPopups.push(this.createEquipmentPopup(equipmentSlot));
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                        tooltips.push(EquipmentSlots[equipmentSlot]);
+                    row.forEach((slotID) => {
+                        rowSources.push(`assets/media/bank/${MICSR.equipmentSlotData[MICSR.EquipmentSlots[slotID]].emptyMedia}.png`);
+                        rowIDs.push(`MCS ${MICSR.EquipmentSlots[slotID]} Image`);
+                        rowPopups.push(this.createEquipmentPopup(slotID));
+                        tooltips.push(MICSR.EquipmentSlots[slotID]);
                     });
                     this.equipmentSelectCard.addMultiPopupMenu(rowSources, rowIDs, rowPopups, tooltips);
                 });
@@ -652,10 +639,10 @@
                     foodSelectPopup.className = 'mcsPopup';
                     const equipmentSelectCard = new MICSR.Card(foodSelectPopup, '', '600px');
                     equipmentSelectCard.addSectionTitle('Food');
-                    this.foodItems = [MICSR.emptyItems.Food, ...MICSR.items.allObjects].filter((item) => this.filterIfHasKey('healsFor', item));
+                    this.foodItems = [MICSR.game.emptyFoodItem, ...MICSR.items.allObjects].filter((item) => this.filterIfHasKey('healsFor', item));
                     this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
                     const buttonMedia = this.foodItems.map((item: any) => item.media);
-                    const buttonIds = this.foodItems.map((item: any) => this.getItemName(item.id));
+                    const buttonIds = this.foodItems.map((item: any) => item.name);
                     const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item.id));
                     const tooltips = this.foodItems.map((item: any) => this.getFoodTooltip(item));
                     equipmentSelectCard.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
@@ -905,10 +892,10 @@
                 newCard.addSectionTitle(title);
                 const spells = this.combatData.spells[spellType].allObjects;
                 const spellImages = spells.map((spell: any) => spell.getMediaURL(spell.media));
-                const spellNames = spells.map((spell: any) => spell.localID);
-                const spellCallbacks = spells.map((spell: any) => (event: any) => this.spellButtonOnClick(event, spell.id, spellType));
+                const spellNames = spells.map((spell: any) => spell.id);
+                const spellCallbacks = spells.map((spell: any) => (event: any) => this.spellButtonOnClick(event, spell, spellType));
                 const tooltips = spells.map((spell: any) => {
-                    let tooltip = `<div class="text-center">${spell.localID}<br><small><span class="text-info">`;
+                    let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
                     switch (spellType) {
                         case 'standard':
                             // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
@@ -942,7 +929,7 @@
                 MICSR.prayers.forEach((prayer: any) => {
                     prayerSources.push(prayer.media);
                     prayerNames.push(this.getPrayerName(prayer));
-                    prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer.id));
+                    prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer));
                     tooltips.push(this.createPrayerTooltip(prayer));
                 });
                 this.prayerSelectCard.addImageButtons(prayerSources, prayerNames, 'Medium', prayerCallbacks, tooltips);
@@ -1318,7 +1305,7 @@
                 }
                 const dropdown = this.lootSelectCard.addDropdown(
                     'Choose Item',
-                    droppedItems.map((itemID) => this.getItemName(itemID)),
+                    droppedItems.map((itemID) => MICSR.items.getObjectByID(itemID).name),
                     droppedItems,
                     (event: any) => this.dropChanceOnChange(event),
                 );
@@ -1440,10 +1427,10 @@
             }
 
             getSelectedDropLabel() {
-                if (this.combatData.dropSelected === -1) {
+                if (this.combatData.dropSelected === undefined) {
                     return `Drops/${this.selectedTimeShorthand}`;
                 }
-                return `${this.getItemName(this.combatData.dropSelected)}/${this.selectedTimeShorthand}`;
+                return `${this.combatData.dropSelected.name}/${this.selectedTimeShorthand}`;
             }
 
             createSimulationAndExportCard() {
@@ -1570,8 +1557,8 @@
                 }
                 menuItems.sort((a: any, b: any) => sortKey(a) - sortKey(b));
                 const buttonMedia = menuItems.map((item: any) => item.media);
-                const buttonIds = menuItems.map((item: any) => this.getItemName(item.id));
-                const buttonCallbacks = menuItems.map((item: any) => () => this.equipItem(equipmentSlot, item.id));
+                const buttonIds = menuItems.map((item: any) => item.name);
+                const buttonCallbacks = menuItems.map((item: any) => () => this.equipItem(equipmentSlot, item));
                 const tooltips = menuItems.map((item: any) => this.getEquipmentTooltip(equipmentSlot, item));
                 card.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
             }
@@ -1782,8 +1769,20 @@
                 const equipmentSelectPopup = document.createElement('div');
                 equipmentSelectPopup.className = 'mcsPopup';
                 const equipmentSelectCard = new MICSR.Card(equipmentSelectPopup, '', '600px');
-                const triSplit = [0, 1, 2, 3, 5, 8];
-                const noSplit = [6, 7, 10];
+                const triSplit = [
+                    MICSR.EquipmentSlots.Helmet,
+                    MICSR.EquipmentSlots.Platebody,
+                    MICSR.EquipmentSlots.Platelegs,
+                    MICSR.EquipmentSlots.Boots,
+                    MICSR.EquipmentSlots.Shield,
+                    MICSR.EquipmentSlots.Gloves,
+                ];
+                const noSplit = [
+                    MICSR.EquipmentSlots.Amulet,
+                    MICSR.EquipmentSlots.Ring,
+                    MICSR.EquipmentSlots.Cape,
+                    MICSR.EquipmentSlots.Consumable,
+                ];
                 if (triSplit.includes(equipmentSlot)) {
                     equipmentSelectCard.addSectionTitle('Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
@@ -1805,10 +1804,9 @@
                         this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterIfHasNoLevelReq(item), x => x.name);
                     }
                 } else if (noSplit.includes(equipmentSlot)) {
-                    // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                    equipmentSelectCard.addSectionTitle(EquipmentSlots[equipmentSlot]);
+                    equipmentSelectCard.addSectionTitle(MICSR.EquipmentSlots[equipmentSlot]);
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, () => this.returnTrue());
-                } else if (equipmentSlot === 4) {
+                } else if (equipmentSlot === MICSR.EquipmentSlots.Weapon) {
                     equipmentSelectCard.addSectionTitle('1H Melee');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(false, item) && this.filterByWeaponType('melee', item);
@@ -1833,7 +1831,7 @@
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
                         return this.filterByTwoHanded(true, item) && this.filterByWeaponType('magic', item);
                     }, x => this.getItemLevelReq(x, MICSR.skillIDs.Magic));
-                } else if (equipmentSlot === 9) {
+                } else if (equipmentSlot === MICSR.EquipmentSlots.Quiver) {
                     equipmentSelectCard.addSectionTitle('Arrows');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('Bolts');
@@ -1844,16 +1842,14 @@
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
                     equipmentSelectCard.addSectionTitle('Other');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterNoAmmoType(item), x => x.name);
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                } else if (equipmentSlot === equipmentSlotData.Passive.id) {
+                } else if (equipmentSlot === MICSR.EquipmentSlots.Passive) {
                     equipmentSelectCard.addSectionTitle('Magic Damage');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterMagicDamage(item), x => x.name);
                     equipmentSelectCard.addSectionTitle('Slayer');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterSlayer(item), x => x.name);
                     equipmentSelectCard.addSectionTitle('Other');
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterRemainingPassive(item), x => x.name);
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                } else if (equipmentSlot === equipmentSlotData.Summon1.id || equipmentSlot === equipmentSlotData.Summon2.id) {
+                } else if (equipmentSlot === MICSR.EquipmentSlots.Summon1 || equipmentSlot === MICSR.EquipmentSlots.Summon2) {
                     equipmentSelectCard.addSectionTitle('Combat Familiars')
                     this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, MICSR.skillIDs.Summoning));
                     equipmentSelectCard.addSectionTitle('Non-Combat Familiars')
@@ -1869,19 +1865,13 @@
             // Callback Functions for equipment select card
             /**
              * Equips an item to an equipment slot
-             * @param {number} slotID
-             * @param {number} itemId
-             * @memberof McsApp
              */
-            equipItem(slotID: any, itemId: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                let slot = EquipmentSlots[slotID];
-                const item = MICSR.getItem(itemId, slot);
+            equipItem(slotID: any, item: any) {
+                let slot = MICSR.EquipmentSlots[slotID];
                 // determine equipment slot
                 if (item.occupiesSlots && item.occupiesSlots.includes(slot)) {
                     slot = item.validSlots[0];
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    slotID = equipmentSlotData[slot].id;
+                    slotID = MICSR.equipmentSlotData[slot].id;
                 }
                 // clear previous item
                 let slots = [slot];
@@ -1895,16 +1885,14 @@
                     const equipment = this.player.equipment;
                     const prevSlot = equipment.getRootSlot(slotToOccupy);
                     equipment.slots[prevSlot].occupies.forEach((occupied: any) => {
-                        // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                        this.setEquipmentImage(equipmentSlotData[occupied].id, -1);
+                        this.setEquipmentImage(MICSR.equipmentSlotData[occupied].id);
                     });
                     this.player.unequipItem(0, prevSlot);
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    this.setEquipmentImage(equipmentSlotData[prevSlot].id, -1);
+                    this.setEquipmentImage(MICSR.equipmentSlotData[prevSlot].id);
                 });
                 // equip new item
-                this.player.equipItem(itemId, 0, slot);
-                this.setEquipmentImage(slotID, itemId);
+                this.player.equipItem(item, 0, slot);
+                this.setEquipmentImage(slotID, item);
                 // update stats
                 this.updateStyleDropdowns();
                 this.updateSpellOptions();
@@ -1913,20 +1901,19 @@
 
             /**
              * Change the equipment image
-             * @param {number} equipmentSlot
-             * @param {number} itemId
-             * @param {boolean} occupy
              */
-            setEquipmentImage(equipmentSlot: any, itemId: any, occupy = true) {
-                // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
-                const slotKey = EquipmentSlots[equipmentSlot];
+            setEquipmentImage(equipmentSlot: any, occupy = true) {
+                const slotKey = MICSR.EquipmentSlots[equipmentSlot];
                 const img = document.getElementById(`MCS ${slotKey} Image`);
-                const item = MICSR.getItem(itemId, slotKey);
-                (img as any).src = item.media;
-                this.setTooltip(img, this.getEquipmentTooltip(equipmentSlot, item));
-                if (occupy && item.occupiesSlots) {
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                    item.occupiesSlots.forEach((slot: any) => this.setEquipmentImage(equipmentSlotData[slot].id, itemId, false));
+                const slot = this.player.equipment.slots[slotKey];
+                let imgSrc = `assets/media/bank/${MICSR.equipmentSlotData[slotKey].emptyMedia}.png`;
+                if (!slot.isEmpty) {
+                    imgSrc = slot.item.media;
+                }
+                (img as any).src = imgSrc;
+                this.setTooltip(img, this.getEquipmentTooltip(equipmentSlot, slot.item));
+                if (occupy && slot.item.occupiesSlots) {
+                    slot.item.occupiesSlots.forEach((slot: any) => this.setEquipmentImage(MICSR.equipmentSlotData[slot].id, false));
                 }
             }
 
@@ -2057,13 +2044,12 @@
              * @memberof McsApp
              */
             updateStyleDropdowns() {
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                const itemID = this.player.equipmentID(equipmentSlotData.Weapon.id);
-                const item = MICSR.getItem(itemID, 'Weapon');
+                const itemID = this.player.equipmentID(MICSR.equipmentSlotData.Weapon.id);
+                const item = MICSR.items.getObjectByID(itemID);
                 this.disableStyleDropdown('melee');
                 this.disableStyleDropdown('ranged');
                 this.disableStyleDropdown('magic');
-                this.enableStyleDropdown(item.attackType);
+                this.enableStyleDropdown(item.attackType ?? 'melee');
             }
 
             /**
@@ -2110,27 +2096,24 @@
              * @param {MouseEvent} event The onclick event for a button
              * @param {number} prayerID Index of MICSR.prayersS
              */
-            prayerButtonOnClick(event: any, prayerID: string) {
+            prayerButtonOnClick(event: any, prayer: any) {
                 // Escape if prayer level is not reached
-                const prayer = MICSR.game.prayers.getObjectByID(prayerID);
-                if (!this.player.activePrayers.has(prayerID) && this.player.skillLevel[MICSR.skillIDs.Prayer] < prayer.level) {
-                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Prayer, `${this.getPrayerName(prayer)} requires level ${prayer.level} Prayer.`, 'danger');
+                if (!this.player.activePrayers.has(prayer) && this.player.skillLevel[MICSR.skillIDs.Prayer] < prayer.level) {
+                    MICSR.imageNotify(this.media.prayer, `${this.getPrayerName(prayer)} requires level ${prayer.level} Prayer.`, 'danger');
                     return;
                 }
                 let prayerChanged = false;
-                if (this.player.activePrayers.has(prayerID)) {
-                    this.player.activePrayers.delete(prayerID);
+                if (this.player.activePrayers.has(prayer)) {
+                    this.player.activePrayers.delete(prayer);
                     this.unselectButton(event.currentTarget);
                     prayerChanged = true;
                 } else {
                     if (this.player.activePrayers.size < 2) {
-                        this.player.activePrayers.add(prayerID);
+                        this.player.activePrayers.add(prayer);
                         this.selectButton(event.currentTarget);
                         prayerChanged = true;
                     } else {
-                        // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                        notifyPlayer(MICSR.skillIDs.Prayer, 'You can only have 2 prayers active at once.', 'danger');
+                        MICSR.imageNotify(this.media.prayer, 'You can only have 2 prayers active at once.', 'danger');
                     }
                 }
                 if (prayerChanged) {
@@ -2174,20 +2157,12 @@
             }
 
             // Callback Functions for the spell select buttons
-            /**
-             * Callback for when a spell is selected
-             * @param {MouseEvent} event
-             * @param {number} spellID
-             * @param {string} spellType
-             */
-            spellButtonOnClick(event: any, spellID: any, spellType: any) {
-                const selectedID = this.player.spellSelection[spellType];
-                if (selectedID === spellID) {
-                    // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
-                    this.disableSpell(spellType, spellID);
+            spellButtonOnClick(event: any, spell: any, spellType: any) {
+                const selected = this.player.spellSelection[spellType];
+                if (selected === spell) {
+                    this.disableSpell(spellType, spell);
                 } else {
-                    // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
-                    this.enableSpell(spellType, spellID);
+                    this.enableSpell(spellType, spell);
                 }
                 // Clean up invalid configurations
                 this.spellSanityCheck();
@@ -2195,44 +2170,35 @@
                 this.updateCombatStats();
             }
 
-            disableSpell(spellType: any, spellID: any, message: any) {
+            disableSpell(spellType: any, spell: any, message: string | undefined = undefined) {
                 // do nothing
-                if (spellID === undefined || this.player.spellSelection[spellType] !== spellID) {
+                if (spell === undefined || this.player.spellSelection[spellType] !== spell) {
                     return;
                 }
-                // get spell
-                console.log(this.combatData.spells, spellType, spellID)
-                const spell = this.combatData.spells[spellType][spellID];
                 // unselect spell
-                this.unselectButton(document.getElementById(`MCS ${spell.localID} Button`));
-                this.player.spellSelection[spellType] = -1;
+                this.unselectButton(document.getElementById(`MCS ${spell.id} Button`));
+                this.player.spellSelection[spellType] = undefined;
                 // send message if required
                 if (message) {
-                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Magic, message, 'danger');
+                    MICSR.imageNotify(this.media.magic, message, 'danger');
                 }
             }
 
-            enableSpell(spellType: any, spellID: any, message: any) {
+            enableSpell(spellType: any, spell: any, message: string | undefined = undefined) {
                 // do nothing
-                if (spellID === -1) {
+                if (spell === undefined) {
                     return;
                 }
-                // get spell
-                const spell = this.combatData.spells[spellType][spellID];
                 // Escape for not meeting the level/item requirement
                 if (this.player.skillLevel[MICSR.skillIDs.Magic] < spell.level) {
-                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.localID} requires level ${spell.level} Magic.`, 'danger');
+                    MICSR.imageNotify(this.media.magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
                     return;
                 }
                 if (this.checkRequiredItem(spell)) {
-                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Magic, `${spell.localID} requires ${this.getItemName(spell.requiredItem)}.`, 'danger');
+                    MICSR.imageNotify(this.media.magic, `${spell.name} requires ${spell.requiredItem.name}.`, 'danger');
                     return;
                 }
                 // remove previous selection
-                // @ts-expect-error TS(2554): Expected 3 arguments, but got 2.
                 this.disableSpell(spellType, this.player.spellSelection[spellType]);
                 if (spellType === 'ancient') {
                     this.disableSpell('standard', this.player.spellSelection.standard, 'Disabled standard magic spell.');
@@ -2241,12 +2207,11 @@
                     this.disableSpell('ancient', this.player.spellSelection.ancient, 'Disabled ancient magick spell.');
                 }
                 // select spell
-                this.selectButton(document.getElementById(`MCS ${spell.localID} Button`));
-                this.player.spellSelection[spellType] = spellID;
+                this.selectButton(document.getElementById(`MCS ${spell.id} Button`));
+                this.player.spellSelection[spellType] = spell;
                 // send message if required
                 if (message) {
-                    // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                    notifyPlayer(MICSR.skillIDs.Magic, message, 'danger');
+                    MICSR.imageNotify(this.media.magic, message, 'danger');
                 }
             }
 
@@ -2263,29 +2228,29 @@
                 if (this.player.attackType !== "magic") {
                     this.disableSpell('ancient', spellSelection.ancient, `Disabled ancient magicks spell, can't use magic!`);
                     this.disableSpell('standard', spellSelection.standard, `Disabled standard magic spell, can't use magic!`);
+                    this.disableSpell('archaic', spellSelection.archaic, `Disabled archaic magic spell, can't use magic!`);
                     return;
                 }
                 // get rid of invalid spells selections
                 Object.keys(this.combatData.spells).forEach(spellType => {
-                    if (spellSelection[spellType] === -1) {
+                    if (spellSelection[spellType] === undefined) {
                         return;
                     }
-                    if (this.combatData.spells[spellType][spellSelection[spellType]] === undefined) {
-                        this.player.spellSelection[spellType] = -1;
-                        // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                        notifyPlayer(MICSR.skillIDs.Magic, `disabled invalid ${spellType} ${spellSelection[spellType]}`, 'danger');
+                    if (spellSelection[spellType] === undefined) {
+                        this.player.spellSelection[spellType] = undefined;
+                        MICSR.imageNotify(this.media.magic, `disabled invalid ${spellType} spell ${spellSelection[spellType].id}`, 'danger');
                     }
                 });
                 // check that at least one spell is selected
-                if (spellSelection.standard === -1 && spellSelection.ancient === -1) {
-                    this.enableSpell('standard', 0, `Enabled ${this.combatData.spells.standard[0].name}.`);
+                if (spellSelection.standard === undefined && spellSelection.ancient === undefined) {
+                    this.enableSpell('standard', this.defaultSpell, `Enabled ${this.defaultSpell.name}.`);
                 }
                 // if both standard and ancient magic are selected, disable ancient magic
-                if (spellSelection.standard > -1 && spellSelection.ancient > -1) {
+                if (spellSelection.standard !== undefined && spellSelection.ancient !== undefined) {
                     this.disableSpell('ancient', spellSelection.ancient, `Disabled ${this.combatData.spells.ancient[spellSelection.ancient].name}.`);
                 }
                 // if ancient magic is selected, disable curses
-                if (spellSelection.ancient > -1 && spellSelection.curse > -1) {
+                if (spellSelection.ancient !== undefined && spellSelection.curse !== undefined) {
                     this.disableSpell('curse', spellSelection.curse, `Disabled ${this.combatData.spells.curse[spellSelection.curse].name}.`);
                 }
             }
@@ -2519,15 +2484,7 @@
 
             notify(message: any, type = 'success') {
                 let img = this.media.combat;
-                // @ts-expect-error TS(2304): Cannot find name 'Toastify'.
-                Toastify({
-                    text: `<div class=text-center><img class="notification-img" src="${img}"><span class="badge badge-${type}">${message}</span></div>`,
-                    duration: 2000,
-                    gravity: 'bottom',
-                    position: 'center',
-                    backgroundColor: 'transparent',
-                    stopOnFocus: false,
-                }).showToast();
+                MICSR.imageNotify(img, message, type);
             }
 
             popExport(data: any) {
@@ -2944,42 +2901,42 @@
              */
             checkForSpellLevel() {
                 const magicLevel = this.player.skillLevel[MICSR.skillIDs.Magic];
-                const setSpellsPerLevel = (spell: any, spellID: any, spellType: any) => {
-                    const id = `MCS ${spell.localID} Button Image`;
+                const setSpellsPerLevel = (spell: any, spellType: any) => {
+                    const id = `MCS ${spell.id} Button Image`;
                     const elt = document.getElementById(id);
                     if (magicLevel < spell.level) {
                         (elt as any).src = this.media.question;
-                        this.disableSpell(spellType, spellID, `${spell.localID} has been de-selected. It requires level ${spell.level} Magic.`);
+                        this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires level ${spell.level} Magic.`);
                     } else {
                         (elt as any).src = spell.media;
                     }
                 };
-                MICSR.standardSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'standard'));
-                MICSR.auroraSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'aurora'));
-                MICSR.curseSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'curse'));
-                MICSR.ancientSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'ancient'));
-                MICSR.archaicSpells.forEach((spell: any, index: any) => setSpellsPerLevel(spell, index, 'archaic'));
+                MICSR.standardSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'standard'));
+                MICSR.auroraSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'aurora'));
+                MICSR.curseSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'curse'));
+                MICSR.ancientSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'ancient'));
+                MICSR.archaicSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'archaic'));
             }
 
             checkRequiredItem(spell: any) {
-                return spell.requiredItem !== undefined && spell.requiredItem !== -1 && !this.player.equipmentIDs().includes(spell.requiredItem);
+                return spell.requiredItem !== undefined && !this.player.equipmentIDs().includes(spell.requiredItem.id);
             }
 
             /**
              * Checks if item required for spell is equipped
              */
             checkForSpellItem() {
-                const disableSpellsForItem = (spell: any, spellID: any, spellType: any) => {
+                const disableSpellsForItem = (spell: any, spellType: any) => {
                     if (this.checkRequiredItem(spell)) {
-                        (document.getElementById(`MCS ${spell.localID} Button Image`) as any).src = this.media.question;
-                        this.disableSpell(spellType, spellID, `${spell.localID} has been de-selected. It requires ${this.getItemName(spell.requiredItem)}.`);
+                        (document.getElementById(`MCS ${spell.id} Button Image`) as any).src = this.media.question;
+                        this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires ${spell.requiredItem.name}.`);
                     }
                 };
-                MICSR.standardSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'standard'));
-                MICSR.auroraSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'aurora'));
-                MICSR.curseSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'curse'));
-                MICSR.ancientSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'ancient'));
-                MICSR.archaicSpells.forEach((spell: any, index: any) => disableSpellsForItem(spell, index, 'archaic'));
+                MICSR.standardSpells.forEach((spell: any) => disableSpellsForItem(spell, 'standard'));
+                MICSR.auroraSpells.forEach((spell: any) => disableSpellsForItem(spell, 'aurora'));
+                MICSR.curseSpells.forEach((spell: any) => disableSpellsForItem(spell, 'curse'));
+                MICSR.ancientSpells.forEach((spell: any) => disableSpellsForItem(spell, 'ancient'));
+                MICSR.archaicSpells.forEach((spell: any) => disableSpellsForItem(spell, 'archaic'));
             }
 
             /**
@@ -2993,8 +2950,7 @@
                         (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = this.media.question;
                         if (this.player.activePrayers.has(prayer.id)) {
                             this.prayerButtonOnClick({currentTarget: document.getElementById(`MCS ${prayerName} Button`)}, prayer.id);
-                            // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
-                            notifyPlayer(MICSR.skillIDs.Prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
+                            MICSR.imageNotify(this.media.prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
                         }
                     } else {
                         (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = prayer.media;
@@ -3121,9 +3077,9 @@
             getDungeonName(dungeonID: any) {
                 let name = undefined;
                 if (MICSR.dungeons[dungeonID]) {
-                    name = MICSR.dungeons[dungeonID]._localID;
-                } else if (dungeonID && dungeonID._localID) {
-                    name = dungeonID._localID;
+                    name = MICSR.dungeons[dungeonID].name;
+                } else if (dungeonID && dungeonID.name) {
+                    name = dungeonID.name;
                 }
                 if (name === undefined) {
                     MICSR.error(`Unknown dungeon in getDungeonName ${dungeonID}`);
@@ -3150,24 +3106,6 @@
                 return this.replaceApostrophe(prayer.name);
             }
 
-            /**
-             * Removes HTML from an item name
-             * @param {number} itemID The index of items
-             * @return {string} The name of an item
-             */
-            getItemName(itemID: any) {
-                if (itemID === -1) {
-                    return 'None';
-                }
-                const item = MICSR.items.getObjectByID(itemID);
-                if (!item) {
-                    MICSR.warn(`Invalid itemID ${itemID} in getItemName`);
-                    return 'None';
-                } else {
-                    return this.replaceApostrophe(item._localID);
-                }
-            }
-
             getItemMedia(itemID: number | string) {
                 return MICSR.items[itemID].media
             }
@@ -3181,9 +3119,9 @@
                 let name = undefined;
                 const monster = MICSR.monsters.getObjectByID(monsterID);
                 if (monster) {
-                    name = monster._localID;
-                } else if (monsterID && monsterID._localID) {
-                    name = monsterID._localID;
+                    name = monster.name;
+                } else if (monsterID && monsterID.name) {
+                    name = monsterID.name;
                 }
                 if (name === undefined) {
                     MICSR.error(`Unknown monster in getMonsterName ${monsterID}`);

@@ -47,7 +47,6 @@
             canCurse: any;
             chargesUsed: any;
             combinations: any;
-            computeAllStats: any;
             cookingMastery: any;
             cookingPool: any;
             course: any;
@@ -78,8 +77,6 @@
             potionID: any;
             potionSelected: any;
             potionTier: any;
-            registerConditionalListeners: any;
-            removeAllEffects: any;
             runesProvided: any;
             skillLevel: any;
             skillXP: any;
@@ -89,7 +86,6 @@
             summoningSynergy: any;
             target: any;
             timers: any;
-            updateHPConditionals: any;
             useCombinationRunesFlag: any;
             usedAmmo: any;
             usedFood: any;
@@ -172,18 +168,6 @@
                 return this._summonBar;
             }
 
-            // get grandparent addHitpoints
-            get characterAddHitpoints() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.addHitpoints;
-            }
-
-            // get grandparent setHitpoints
-            get characterSetHitpoints() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.setHitpoints;
-            }
-
             // override getters
             get activeTriangle() {
                 // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
@@ -220,18 +204,6 @@
 
             get equippedSummoningSynergy() {
                 return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
-            }
-
-            // get grandparent rollToHit
-            get characterRollToHit() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.rollToHit;
-            }
-
-            // get grandparent damage
-            get characterDamage() {
-                // @ts-expect-error TS(2304): Cannot find name 'Character'.
-                return Character.prototype.damage;
             }
 
             initForWebWorker() {
@@ -277,15 +249,6 @@
                 this._summonBar = undefined;
             }
 
-            addHitpoints(amount: any) {
-                this.characterAddHitpoints(amount);
-                this.updateHPConditionals();
-            }
-
-            setHitpoints(value: any) {
-                this.characterSetHitpoints(value);
-            }
-
             addItemStat() {
             }
 
@@ -299,9 +262,9 @@
             }
 
             processDeath() {
-                this.removeAllEffects(true);
-                this.computeAllStats();
-                this.setHitpoints(Math.floor(this.stats.maxHitpoints * 0.2));
+                super.removeAllEffects(true);
+                super.setHitpoints(Math.floor(this.stats.maxHitpoints * 0.2));
+                // heal after death if required
                 while (this.healAfterDeath && this.hitpoints < this.stats.maxHitpoints && this.food.currentSlot.quantity > 0) {
                     this.eatFood();
                 }
@@ -650,10 +613,14 @@
 
             //
             getRuneCosts(spell: any) {
-                let runeCost = spell.runesRequired;
                 const spellCost: any = [];
-                if (this.useCombinationRunes && spell.runesRequiredAlt !== undefined)
+                if (spell === undefined) {
+                    return spellCost;
+                }
+                let runeCost = spell.runesRequired;
+                if (this.useCombinationRunes && spell.runesRequiredAlt !== undefined) {
                     runeCost = spell.runesRequiredAlt;
+                }
                 runeCost.forEach((cost: any) => {
                     const reducedCost = cost.qty - (this.runesProvided.get(cost.id) | 0);
                     if (reducedCost > 0) {
@@ -683,15 +650,15 @@
             }
 
             updateForEquipmentChange() {
-                this.computeAllStats();
+                super.computeAllStats();
                 this.interruptAttack();
                 if (this.manager.fightInProgress) {
                     this.target.combatModifierUpdate();
                 }
             }
 
-            equipItem(itemID: any, set: any, slot = "Default", quantity = 1) {
-                const itemToEquip = itemID === -1 ? MICSR.emptyItems[slot] : MICSR.items.getObjectByID(itemID);
+            equipItem(item: any, set: any, slot = "Default", quantity = 1) {
+                const itemToEquip = item === undefined ? MICSR.emptyItems[slot] : item;
                 if (slot === "Default") {
                     slot = itemToEquip.validSlots[0];
                 }
@@ -789,11 +756,11 @@
             }
 
             rollToHit(target: any, attack: any) {
-                return this.checkRequirements(this.manager.areaRequirements) && this.characterRollToHit(target, attack);
+                return this.checkRequirements(this.manager.areaRequirements) && super.rollToHit(target, attack);
             }
 
             damage(amount: any, source: any, thieving = false) {
-                this.characterDamage(amount, source);
+                super.damage(amount, source);
                 this.highestDamageTaken = Math.max(this.highestDamageTaken, amount);
                 if (this.hitpoints > 0) {
                     this.autoEat();
@@ -875,7 +842,7 @@
                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 this.dataNames.numbers.forEach((x: any) => this[x] = reader.getNumber());
                 // after reading the data, recompute stats and reset gains
-                this.computeAllStats();
+                super.computeAllStats();
                 this.resetGains();
             }
         }

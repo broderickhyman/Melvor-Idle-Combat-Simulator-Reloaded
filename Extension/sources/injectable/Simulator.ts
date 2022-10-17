@@ -88,12 +88,12 @@
                     return data
                 }
                 this.monsterSimData = {};
-                MICSR.monsters.allObjects.forEach((monster:any) => {
+                MICSR.monsters.allObjects.forEach((monster: any) => {
                     this.monsterSimData[monster.id] = this.newSimData(true);
                     this.monsterSimFilter[monster.id] = true;
                 });
                 this.dungeonSimData = {};
-                MICSR.dungeons.allObjects.forEach((dungeon:any) => {
+                MICSR.dungeons.allObjects.forEach((dungeon: any) => {
                     this.dungeonSimData[dungeon.id] = this.newSimData(false);
                     this.dungeonSimFilter[dungeon.id] = true;
                     dungeon.monsters.forEach((monster: any) => {
