@@ -140,6 +140,9 @@
                         return {buffer: buffer};
                     }
                 };
+                // restore data
+                const cloneData = new MICSR.CloneData();
+                cloneData.restoreModifierData();
                 // @ts-expect-error TS(2304): Cannot find name 'slayerTaskData'.
                 SlayerTask.data = MICSR.slayerTaskData;
                 MICSR.log('Creating exp');

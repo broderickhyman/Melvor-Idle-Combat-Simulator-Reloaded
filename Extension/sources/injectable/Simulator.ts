@@ -220,11 +220,12 @@
                     {name: 'DEBUGENABLED', data: false},
                     // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
                     {name: 'cloudManager', data: {...cloudManager, formElements: undefined, formInnerHTML: undefined}},
-                    {name: 'equipmentSlotData', data: cloner.equipmentSlotData()},
                     // @ts-expect-error TS(2304): Cannot find name 'COMBAT_TRIANGLE_IDS'.
                     {name: 'COMBAT_TRIANGLE_IDS', data: COMBAT_TRIANGLE_IDS},
                     // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     {name: 'numberMultiplier', data: numberMultiplier},
+                    {name: 'equipmentSlotData', data: cloner.equipmentSlotData()},
+                    {name: 'modifierData', data: cloner.modifierData()},
                 ];
                 [
                     // these objects are copied from the game
@@ -256,7 +257,13 @@
                 // these functions are copied from the game
                 [
                     'constructDamageFromData', 'getLangString', 'imageNotify', 'applyModifier', 'readNamespacedReject',
-                ].forEach((func: any) => functionNames.push({name: func, data: window[func]}));
+                    'multiplyByNumberMultiplier', 'milliToSeconds', 'divideByNumberMultiplier',
+                ].forEach((func: any) => {
+                    if (window[func] === undefined) {
+                        MICSR.error(`window[${func}] is undefined`);
+                    }
+                    functionNames.push({name: func, data: window[func]})
+                });
                 // these functions are copied from the simulator
                 [
                     'setupData', 'setupGame', 'setup',
@@ -282,7 +289,10 @@
                     data: any;
                 }[] = [];
                 // these classes are empty for the simulation
+                // contains empty functions to make the classes work
                 const emptyClass = class {
+                    addDummyItemOnLoad() {
+                    }
                 };
                 [
                     // @ts-expect-error TS(2304): Cannot find name
@@ -294,7 +304,7 @@
                     // @ts-expect-error TS(2304): Cannot find name
                     MiningRenderQueue, ThievingRenderQueue, FarmingRenderQueue, TownshipTasks, TownshipData,
                     // @ts-expect-error TS(2304): Cannot find name
-                    AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue
+                    AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue,
                 ].forEach((clas: any) => classNames.push({name: clas.name, data: emptyClass}));
                 // these classes are copied from the game
                 [
@@ -327,7 +337,7 @@
                 ].forEach((clas: any) => classNames.push({name: clas.name, data: clas}));
                 // these classes are copied from the simulator
                 [
-                    'ShowModifiers', 'SimManager', 'SimPlayer', 'SimEnemy'
+                    'ShowModifiers', 'SimManager', 'SimPlayer', 'SimEnemy', 'CloneData',
                 ].forEach((clas: any) => classNames.push({name: `MICSR.${clas}`, data: MICSR[clas]}));
                 const classes: { [name: string]: string; } = {};
                 classNames.forEach(clas => {

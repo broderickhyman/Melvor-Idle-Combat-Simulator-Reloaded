@@ -45,7 +45,69 @@
                     data.quickEquipTooltip = [];
                     clone[key] = data;
                 }
-                return clone
+                return clone;
+            }
+
+            modifierData = () => {
+                const clone: { [name: string]: string; } = {};
+                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
+                const base = modifierData;
+                const knownKeys = [
+                    'description',
+                    'isNegative',
+                    'isSkill',
+                    'langDescription',
+                    'tags',
+                ];
+                for (const key in base) {
+                    const data = {...base[key]};
+                    data.langDescription = '';
+                    for (const propKey in data) {
+                        const prop = data[propKey];
+                        if (knownKeys.includes(propKey) || prop.minimum !== undefined) {
+                            continue;
+                        }
+                        if (prop.name === 'modifyValue') {
+                            data.modifyValueClone = prop.toString();
+                        }
+                        data[propKey] = prop.name;
+                    }
+                    clone[key] = data;
+                }
+                return clone;
+            }
+
+            restoreModifierData = () => {
+                const clone: { [name: string]: string; } = {};
+                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
+                const base = modifierData;
+                const knownKeys = [
+                    'description',
+                    'isNegative',
+                    'isSkill',
+                    'langDescription',
+                    'tags',
+                    'modifyValueClone',
+                ];
+                for (const key in base) {
+                    const data = base[key];
+                    for (const propKey in data) {
+                        const prop = data[propKey];
+                        if (knownKeys.includes(propKey) || prop.minimum !== undefined) {
+                            continue;
+                        }
+                        let func = self[prop];
+                        if (prop === 'modifyValue') {
+                            eval(`func = ${data.modifyValueClone}`);
+                        }
+                        if (func === undefined) {
+                            console.log(`Unknown function ${prop} in web worker`);
+                        }
+                        // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
+                        modifierData[key][propKey] = func;
+                    }
+                }
+                return clone;
             }
         }
     }
