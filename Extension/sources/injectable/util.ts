@@ -83,6 +83,8 @@
             // simulation settings
             MICSR.trials = 1e3;
             MICSR.maxTicks = 1e3;
+            // @ts-expect-error TS(2304): Cannot find name 'BinaryWriter'.
+            MICSR.BinaryWriter = BinaryWriter;
             // @ts-expect-error TS(2304): Cannot find name 'SaveWriter'.
             MICSR.SaveWriter = SaveWriter;
             // @ts-expect-error TS(2304): Cannot find name 'currentSaveVersion'.

@@ -122,7 +122,7 @@
                 });
                 // functions
                 event.data.functionNames.forEach((name: any) => {
-                    MICSR.log('function', name)
+                    MICSR.log('function', name, event.data.functions[name])
                     eval(event.data.functions[name]);
                 });
                 // classes
@@ -131,6 +131,15 @@
                     eval(event.data.classes[name]);
                 });
                 // create instances
+                // @ts-expect-error TS(2304): Cannot find name 'pako'.
+                self.pako = {
+                    inflate: (x: any) => {
+                        const buffer = new ArrayBuffer(x.length);
+                        const dataView = new DataView(buffer);
+                        x.forEach((entry: number, idx: number) => dataView.setUint8(idx, entry));
+                        return {buffer: buffer};
+                    }
+                };
                 // @ts-expect-error TS(2304): Cannot find name 'slayerTaskData'.
                 SlayerTask.data = MICSR.slayerTaskData;
                 MICSR.log('Creating exp');
@@ -191,8 +200,13 @@
             MICSR.log('Creating manager');
             (self as any).numberMultiplier = undefined;
             const manager = new MICSR.SimManager(MICSR.game, MICSR.namespace);
-            MICSR.log('Creating player');
+            MICSR.log('Creating player', playerString);
+            // @ts-expect-error TS(2304): Cannot find name 'pako'.
+            console.log('received', pako.inflate(playerString).buffer)
+            const atobCopy = atob;
+            self.atob = (x: any) => x;
             const player = MICSR.SimPlayer.newFromPlayerString(manager, playerString);
+            self.atob = atobCopy;
             player.initForWebWorker();
             MICSR.log('Finished setup');
             try {

@@ -874,7 +874,38 @@
                 const micsrPlayerHeader = () => MICSR.actualGame.getSaveHeader()
                 const writer = new MICSR.SaveWriter('Write', 512);
                 this.encode(writer);
-                return writer.getSaveString(micsrPlayerHeader());
+                return this.getSaveString(writer, micsrPlayerHeader());
+            }
+
+            getSaveString(w: any, headerInfo: any) {
+                // Save namespace mapping as an array, as it is ordered
+                w.header.writeMap(w.namespaceMap, (namespace: any, writer: any) => {
+                    writer.writeString(namespace);
+                }, (idMap: any, writer: any) => {
+                    writer.writeMap(idMap, (localID: any, writer: any) => {
+                        writer.writeString(localID);
+                    }, (numericID: any, writer: any) => {
+                        writer.writeUint16(numericID);
+                    });
+                });
+                w.writeHeaderInfo(headerInfo);
+                // Combine header and namespace data
+                const headerData = w.header.getRawData();
+                const bodyData = w.getRawData();
+                const combinedData = new MICSR.BinaryWriter('Write', headerData.byteLength + bodyData.byteLength);
+                combinedData.writeFixedLengthBuffer(w.stringEncoder.encode('melvor'), 6);
+                combinedData.writeBuffer(headerData);
+                combinedData.writeBuffer(bodyData);
+                const rawSaveData = combinedData.getRawData();
+                const compressedData = new Uint8Array(rawSaveData);
+                console.log('sent', compressedData)
+                return compressedData;/*
+                const decoder = new TextDecoder('utf8');
+                console.log(1, compressedData)
+                console.log(2, decoder.decode(compressedData))
+                const saveString = btoa(unescape(encodeURIComponent(decoder.decode(compressedData))));
+                // console.log(`Compressed: ${compressedData.length} bytes. Save String: ${saveString.length} bytes`);
+                return saveString;*/
             }
         }
     }

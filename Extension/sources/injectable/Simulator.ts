@@ -255,7 +255,7 @@
                 ].forEach((func: any) => functionNames.push({name: func[0], data: func[1]}));
                 // these functions are copied from the game
                 [
-                    'constructDamageFromData', 'getLangString', 'imageNotify',
+                    'constructDamageFromData', 'getLangString', 'imageNotify', 'applyModifier', 'readNamespacedReject',
                 ].forEach((func: any) => functionNames.push({name: func, data: window[func]}));
                 // these functions are copied from the simulator
                 [
