@@ -78,11 +78,52 @@
             return true;
         }
 
+        MICSR.dataPackage = {};
+        MICSR.fetchDataPackage = (id: string, url: string) => {
+            // @ts-ignore
+            return __awaiter(this, void 0, void 0, function* () {
+                const headers = new Headers();
+                headers.append('Content-Type', 'application/json');
+                // @ts-ignore
+                const response = yield fetch(url, {
+                    method: 'GET',
+                    headers,
+                });
+                if (!response.ok)
+                    throw new Error(`Could not fetch data package with URL: ${url}`);
+                // @ts-ignore
+                MICSR.dataPackage[id] = (yield response.json());
+                MICSR.cleanupDataPackage[id]();
+            });
+        }
+        MICSR.cleanupDataPackage = {};
+        MICSR.cleanupDataPackage.any = (id: string) => {
+            MICSR.dataPackage[id].data.lore = undefined;
+        }
+        MICSR.cleanupDataPackage.Demo = () => {
+            MICSR.cleanupDataPackage.any('Demo');
+            MICSR.dataPackage.Demo.data.tutorialStages = undefined;
+            MICSR.dataPackage.Demo.data.tutorialStageOrder = undefined;
+            const bannedSkills = ['Woodcutting', 'Firemaking', 'Fishing', 'Mining', 'Cooking', 'Smithing', 'Farming', 'Summoning'];
+            MICSR.dataPackage.Demo.data.skillData = MICSR.dataPackage.Demo.data.skillData
+                .filter((x: any) => !bannedSkills.map((bannedSkill: string) => `melvorD:${bannedSkill}`).includes(x.skillID))
+        };
+        MICSR.cleanupDataPackage.Full = () => {
+            MICSR.cleanupDataPackage.any('Full');
+        };
+        MICSR.cleanupDataPackage.TotH = () => {
+            MICSR.cleanupDataPackage.any('TotH');
+        };
+
         // any setup that does not require a game object
         MICSR.setupData = () => {
             // simulation settings
             MICSR.trials = 1e3;
             MICSR.maxTicks = 1e3;
+            // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
+            MICSR.cloudManager = cloudManager;
+            // @ts-expect-error TS(2304): Cannot find name 'DATA_VERSION'.
+            MICSR.DATA_VERSION = DATA_VERSION;
             // @ts-expect-error TS(2304): Cannot find name 'BinaryWriter'.
             MICSR.BinaryWriter = BinaryWriter;
             // @ts-expect-error TS(2304): Cannot find name 'SaveWriter'.
@@ -100,6 +141,34 @@
             MICSR.imageNotify = imageNotify;
         }
         MICSR.setupData();
+        MICSR.fetchDataPackage('Demo', `assets/data/melvorDemo.json?${MICSR.DATA_VERSION}`);
+        if (MICSR.cloudManager.hasFullVersionEntitlement) {
+            MICSR.fetchDataPackage('Full', `assets/data/melvorFull.json?${MICSR.DATA_VERSION}`);
+        }
+        if (MICSR.cloudManager.hasTotHEntitlement) {
+            MICSR.fetchDataPackage('TotH', `assets/data/melvorTotH.json?${MICSR.DATA_VERSION}`);
+        }
+        MICSR.fetching = () => {
+            if (MICSR.dataPackage.Demo === undefined) {
+                return true;
+            }
+            if (MICSR.cloudManager.hasFullVersionEntitlement && MICSR.dataPackage.Full === undefined) {
+                return true;
+            }
+            if (MICSR.cloudManager.hasTotHEntitlement && MICSR.dataPackage.TotH === undefined) {
+                return true;
+            }
+            return false;
+        }
+        MICSR.setupFetchedData = (game: any) => {
+            game.registerDataPackage(MICSR.dataPackage.Demo);
+            if (MICSR.cloudManager.hasFullVersionEntitlement) {
+                game.registerDataPackage(MICSR.dataPackage.Full);
+            }
+            if (MICSR.cloudManager.hasTotHEntitlement) {
+                game.registerDataPackage(MICSR.dataPackage.TotH);
+            }
+        }
 
         // any setup that requires a game object
         MICSR.setupGame = (game: any) => {

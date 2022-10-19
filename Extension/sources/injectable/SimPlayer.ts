@@ -51,7 +51,7 @@
             cookingPool: any;
             course: any;
             courseMastery: any;
-            currentGamemode: any;
+            currentGamemodeID: any;
             dataNames: any;
             eatFood: any;
             emptyAutoHeal: any;
@@ -126,13 +126,15 @@
                         'hasRunes',
                     ],
                     numbers: [
-                        'currentGamemode',
                         'pillar',
                         'potionTier',
                         'potionID',
                         'autoEatTier',
                         'activeAstrologyModifiers', // this is an array of dictionaries, but it (de)serializes fine
                     ],
+                    strings: [
+                        'currentGamemodeID',
+                    ]
                 }
                 //
             }
@@ -169,8 +171,7 @@
 
             // override getters
             get activeTriangle() {
-                // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
-                return combatTriangle[GAMEMODES[this.currentGamemode].combatTriangle];
+                return this.gamemode.combatTriangle;
             }
 
             get useCombinationRunes() {
@@ -181,9 +182,12 @@
                 this.useCombinationRunesFlag = useCombinationRunes;
             }
 
+            get gamemode() {
+                return this.manager.game.gamemodes.getObjectByID(this.currentGamemodeID);
+            }
+
             get allowRegen() {
-                // @ts-expect-error TS(2304): Cannot find name 'GAMEMODES'.
-                return GAMEMODES[this.currentGamemode].hasRegen;
+                return this.gamemode.hasRegen;
             }
 
             get synergyDescription() {
@@ -214,13 +218,13 @@
             }
 
             initForWebWorker() {
-                // // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
-                //currentGamemode = this.currentGamemode;
                 // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
-                numberMultiplier = combatTriangle[GAMEMODES[this.currentGamemode].numberMultiplier];
+                numberMultiplier = this.gamemode.hitpointMultiplier;
                 // recompute stats
                 this.updateForEquipmentChange();
                 this.resetGains();
+                // @ts-expect-error TS(2304): Cannot find name
+                this.computeModifiers();
             }
 
             // detach globals attached by parent constructor
@@ -269,8 +273,10 @@
             }
 
             processDeath() {
-                super.removeAllEffects(true);
-                super.setHitpoints(Math.floor(this.stats.maxHitpoints * 0.2));
+                // @ts-ignore
+                this.removeAllEffects(true);
+                // @ts-ignore
+                this.setHitpoints(Math.floor(this.stats.maxHitpoints * 0.2));
                 // heal after death if required
                 while (this.healAfterDeath && this.hitpoints < this.stats.maxHitpoints && this.food.currentSlot.quantity > 0) {
                     this.eatFood();
@@ -283,7 +289,7 @@
                 this.skillLevel = MICSR.skillNames.map((_: any) => 1);
                 this.skillLevel[MICSR.skillIDs.Hitpoints] = 10;
                 // currentGamemode, numberMultiplier
-                this.currentGamemode = MICSR.game.currentGamemode;
+                this.currentGamemodeID = MICSR.game.currentGamemode.id;
                 // petUnlocked
                 this.petUnlocked = {};
                 MICSR.pets.allObjects.forEach((pet: any) => this.petUnlocked[pet.id] = false);
@@ -529,26 +535,29 @@
                 return xp * xpMultiplier;
             }
 
-            rewardXPAndPetsForDamage(damage: any) {
+            rewardXPAndPetsForDamage(damage: number) {
                 // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                 damage = damage / numberMultiplier;
                 // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
                 const attackInterval = this.timers.act.maxTicks * TICK_INTERVAL;
                 // Combat Style
-                this.attackStyle.experienceGain.forEach((gain: any) => {
-                    this.addXP(gain.skill, gain.ratio * damage);
-                });
+                if (this.attackStyle !== undefined) {
+                    this.attackStyle.experienceGain.forEach((gain: any) => {
+                        gain.skill.addXP(gain.ratio * damage);
+                    });
+                }
                 // Hitpoints
                 this.addXP(MICSR.skillIDs.Hitpoints, damage * 1.33);
                 // Prayer
                 let prayerRatio = 0;
-                this.activePrayers.forEach((pID: any) => {
-                    return (prayerRatio += MICSR.prayers.getObjectByID(pID).pointsPerPlayer);
+                this.activePrayers.forEach((prayer: any) => {
+                    return (prayerRatio += prayer.pointsPerPlayer);
                 });
                 prayerRatio /= 3;
                 if (prayerRatio > 0) {
                     this.addXP(MICSR.skillIDs.Prayer, prayerRatio * damage);
                 }
+                // TODO summoning marks
                 // pets
                 this.petRolls[attackInterval] = 1 + (this.petRolls[attackInterval] | 0);
             }
@@ -657,7 +666,8 @@
             }
 
             updateForEquipmentChange() {
-                super.computeAllStats();
+                // @ts-ignore
+                this.computeAllStats();
                 this.interruptAttack();
                 if (this.manager.fightInProgress) {
                     this.target.combatModifierUpdate();
@@ -826,13 +836,13 @@
                 this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
                     console.log('encode boolean array', x)
                     if (this.hasKey(this, x)) {
-                        (this[x] as unknown as boolean[]).forEach((y: any) => writer.writeBoolean(y));
+                        writer.writeArray(this[x], (object: any, writer: any) => writer.writeBoolean(object));
                     }
                 });
                 this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-                    console.log('encode number array', x)
+                    console.log('encode boolean array', x)
                     if (this.hasKey(this, x)) {
-                        (this[x] as unknown as number[]).forEach((y: any) => writer.writeInt32(y));
+                        writer.writeArray(this[x], (object: any, writer: any) => writer.writeInt32(object));
                     }
                 });
                 this.dataNames.booleans.forEach((x: PropertyKey) => {
@@ -847,22 +857,51 @@
                         writer.writeInt32(this[x]);
                     }
                 });
+                this.dataNames.strings.forEach((x: PropertyKey) => {
+                    console.log('encode string', x)
+                    if (this.hasKey(this, x)) {
+                        writer.writeString(this[x]);
+                    }
+                });
                 return writer.data;
             }
 
             /** Decode the SimPlayer object */
             decode(reader: any, version: any = MICSR.currentSaveVersion) {
                 super.decode(reader, version);
+                this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
+                    console.log('decode boolean array', x)
+                    if (this.hasKey(this, x)) {
+                        this[x] = reader.getArray((reader: any) => reader.getBoolean());
+                        console.log(this[x]);
+                    }
+                });
+                this.dataNames.numberArrays.forEach((x: PropertyKey) => {
+                    console.log('decode number array', x)
+                    if (this.hasKey(this, x)) {
+                        this[x] = reader.getArray((reader: any) => reader.getInt32());
+                        console.log(this[x]);
+                    }
+                });
                 this.dataNames.booleans.forEach((x: PropertyKey) => {
                     console.log('decode boolean', x)
                     if (this.hasKey(this, x)) {
                         this[x] = reader.getBoolean();
+                        console.log(this[x]);
                     }
                 });
                 this.dataNames.numbers.forEach((x: PropertyKey) => {
                     console.log('decode number', x)
                     if (this.hasKey(this, x)) {
                         this[x] = reader.getInt32();
+                        console.log(this[x]);
+                    }
+                });
+                this.dataNames.strings.forEach((x: PropertyKey) => {
+                    console.log('decode string', x)
+                    if (this.hasKey(this, x)) {
+                        this[x] = reader.getString();
+                        console.log(this[x]);
                     }
                 });
                 // after reading the data, recompute stats and reset gains

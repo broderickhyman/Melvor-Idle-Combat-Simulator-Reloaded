@@ -151,8 +151,17 @@
                 MICSR.log('Creating game');
                 // @ts-expect-error TS(2304): Cannot find name 'Game'.
                 const game = new Game();
+                game.constructEventMatcher = () => {
+                };
+                try {
+                    // @ts-expect-error TS(2304): Cannot find name 'loadGameData'.
+                    loadGameData();
+                } catch (e) {
+                    MICSR.error('loadGameData error:' + e);
+                }
                 MICSR.log('Creating MICSR');
                 MICSR.setup(game);
+                MICSR.setupFetchedData(game);
                 combatSimulator = new CombatSimulator();
                 break;
             case 'START_SIMULATION':

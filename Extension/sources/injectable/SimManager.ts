@@ -52,15 +52,14 @@
          */
         // @ts-expect-error TS(2304): Cannot find name 'CombatManager'.
         MICSR.SimManager = class extends CombatManager {
-            areaData: any;
+            selectedArea: any;
             areaType: any;
             bank: any;
             dropEnemyGP: any;
             dungeonProgress: any;
             endFight: any;
             enemy: any;
-            isInCombat: any;
-            loadNextEnemy: any;
+            isActive: any;
             loot: any;
             paused: any;
             player: any;
@@ -69,8 +68,8 @@
             simStats: any;
             spawnTimer: any;
             startFight: any;
-            tick: any;
             tickCount: any;
+            game: any;
 
             constructor(game: any, namespace: any) {
                 super(game, namespace);
@@ -130,7 +129,24 @@
             // create new Sim Enemy
             createNewEnemy() {
                 this.enemy = new MICSR.SimEnemy(this, MICSR.game);
-                this.enemy.isAfflicted = (this.areaData.id === 'melvorF:Into_the_Mist');
+                this.enemy.setMonster(this.selectedMonster);
+                // @ts-ignore
+                if (this.selectedArea instanceof Dungeon &&
+                    this.selectedArea.nonBossPassives !== undefined &&
+                    !this.selectedArea.monsters[this.dungeonProgress].isBoss) {
+                    this.enemy.addPassives(this.selectedArea.nonBossPassives, true, true, false);
+                }
+                if (super.activeEvent !== undefined) {
+                    this.enemy.addPassives(super.eventPassives, true, false, false);
+                    if (this.selectedMonster !== super.activeEvent.firstBossMonster &&
+                        this.selectedMonster !== super.activeEvent.finalBossMonster) {
+                        this.enemy.addPassives(super.activeEvent.enemyPassives, true, true, false);
+                    }
+                    if (this.dungeonProgress === super.eventDungeonLength - (super.atLastEventDungeon ? 2 : 1)) {
+                        this.enemy.addPassives(super.activeEvent.bossPassives, true, true, false);
+                        // May want to make this enemy an actual boss monster for big ol ron? idk
+                    }
+                }
             }
 
             // reset sim stats
@@ -146,10 +162,10 @@
                 this.player.resetGains();
             }
 
-            getSimStats(dungeonID: any, success: any) {
+            getSimStats(monsterID: string, dungeonID: string, success: any) {
                 return {
                     success: success,
-                    monsterID: this.selectedMonster,
+                    monsterID: monsterID,
                     dungeonID: dungeonID,
                     tickCount: this.tickCount,
                     ...this.simStats,
@@ -225,7 +241,7 @@
 
             onEnemyDeath() {
                 this.player.rewardGPForKill();
-                if (this.areaData.type === 'Dungeon') {
+                if (this.selectedArea.type === 'Dungeon') {
                     this.progressDungeon();
                 } else {
                     this.rewardForEnemyDeath();
@@ -237,12 +253,12 @@
 
             progressDungeon() {
                 // do not progress the dungeon!
-                if (this.areaData.dropBones) {
+                if (this.selectedArea.dropBones) {
                     this.dropEnemyBones();
                 }
                 // check if we killed the last monster (length - 1 since we do not increase the progress!)
-                if (this.dungeonProgress === this.areaData.monsters.length - 1) {
-                    this.dropEnemyGP();
+                if (this.dungeonProgress === this.selectedArea.monsters.length - 1) {
+                    this.dropEnemyGP(this.enemy.monster);
                     // TODO: roll for dungeon pets?
                     // TODO: add bonus coal on dungeon completion?
                 }
@@ -261,7 +277,7 @@
                 this.dropEnemyBones();
                 this.dropSignetHalfB();
                 this.dropEnemyLoot();
-                this.dropEnemyGP();
+                this.dropEnemyGP(this.enemy.monster);
                 let slayerXPReward = 0;
                 if (this.areaType === 'Slayer') {
                     // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
@@ -276,14 +292,19 @@
                     this.player.addXP(MICSR.skillIDs.Slayer, slayerXPReward);
             }
 
-            selectMonster(monsterID: any, areaData: any) {
-                if (!this.player.checkRequirements(areaData.entryRequirements, true, 'fight this monster.')) {
+            selectMonster(monster: any, areaData: any) {
+                // clone of combatManager.selectMonster
+                let slayerLevelReq = 0;
+                // @ts-ignore
+                if (areaData instanceof SlayerArea) {
+                    slayerLevelReq = areaData.slayerLevelRequired;
+                }
+                if (!this.game.checkRequirements(areaData.entryRequirements, true, slayerLevelReq)) {
                     return;
                 }
                 this.preSelection();
-                this.areaType = areaData.type;
-                this.areaData = areaData;
-                this.selectedMonster = monsterID;
+                this.selectedArea = areaData;
+                this.selectedMonster = monster;
                 this.onSelection();
             }
 
@@ -291,20 +312,24 @@
                 this.stopCombat(true, true);
             }
 
+            loadNextEnemy() {
+                super.loadNextEnemy()
+            }
+
             onSelection() {
-                this.isInCombat = true;
+                this.isActive = true;
                 this.loadNextEnemy();
             }
 
             stopCombat(fled = true, areaChange = false) {
-                this.isInCombat = false;
+                this.isActive = false;
                 this.endFight();
                 if (this.spawnTimer.isActive)
                     this.spawnTimer.stop();
                 if (this.enemy.state !== "Dead")
                     this.enemy.processDeath();
                 this.loot.removeAll();
-                this.areaType = 'None';
+                this.selectedArea = undefined;
                 if (this.paused) {
                     this.paused = false;
                 }
@@ -319,10 +344,21 @@
                 this.paused = false;
             }
 
+            tick() {
+                // @ts-expect-error TS(2304): Cannot find name
+                this.passiveTick();
+                // @ts-expect-error TS(2304): Cannot find name
+                this.activeTick();
+                // @ts-expect-error TS(2304): Cannot find name
+                this.checkDeath();
+                this.tickCount++;
+            }
+
             runTrials(monsterID: any, dungeonID: any, trials: any, tickLimit: any, verbose = false) {
                 this.resetSimStats();
                 const startTimeStamp = performance.now();
-                let areaData = MICSR.game.getMonsterArea(monsterID);
+                const monster = this.game.monsters.getObjectByID(monsterID);
+                let areaData = MICSR.game.getMonsterArea(monster);
                 if (dungeonID !== undefined) {
                     areaData = MICSR.dungeons.getObjectByID(dungeonID);
                     this.dungeonProgress = 0;
@@ -333,20 +369,28 @@
                 const totalTickLimit = trials * tickLimit;
                 const success = this.player.checkRequirements(areaData.entryRequirements, true, 'fight this monster.');
                 if (success) {
-                    this.selectMonster(monsterID, areaData);
+                    this.selectMonster(monster, areaData);
+                    MICSR.log('progressing:', monster, areaData);
                     while (this.simStats.killCount + this.simStats.deathCount < trials && this.tickCount < totalTickLimit) {
-                        if (!this.isInCombat && !this.spawnTimer.active) {
-                            this.selectMonster(monsterID, areaData);
+                        if (!this.isActive && !this.spawnTimer.active) {
+                            this.selectMonster(monster, areaData);
                         }
                         if (this.paused) {
                             this.resumeDungeon();
                         }
                         this.tick();
+                        if (this.spawnTimer.active) {
+                            if (this.spawnTimer.ticksLeft % 10 === 1) {
+                                //MICSR.log('spawning', this.spawnTimer.ticksLeft);
+                            }
+                        } else {
+                            //MICSR.log('ticked', this.enemy.hitpoints, this.enemy.stats.maxHitpoints, this.player.hitpoints, this.player.stats.maxHitpoints);
+                        }
                     }
                 }
                 this.stopCombat();
                 const processingTime = performance.now() - startTimeStamp;
-                const simResult = this.getSimStats(dungeonID, success);
+                const simResult = this.getSimStats(monsterID, dungeonID, success);
                 if (verbose) {
                     MICSR.log(`Processed ${this.simStats.killCount} / ${this.simStats.deathCount} k/d and ${this.tickCount} ticks in ${processingTime / 1000}s (${processingTime / this.tickCount}ms/tick).`, simResult);
                 }
