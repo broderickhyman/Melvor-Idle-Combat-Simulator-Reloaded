@@ -324,9 +324,9 @@
                 const startTimeStamp = performance.now();
                 let areaData = MICSR.game.getMonsterArea(monsterID);
                 if (dungeonID !== undefined) {
-                    areaData = MICSR.dungeons[dungeonID];
+                    areaData = MICSR.dungeons.getObjectByID(dungeonID);
                     this.dungeonProgress = 0;
-                    while (areaData.monsters[this.dungeonProgress] !== monsterID) {
+                    while (areaData.monsters[this.dungeonProgress].id !== monsterID) {
                         this.dungeonProgress++;
                     }
                 }

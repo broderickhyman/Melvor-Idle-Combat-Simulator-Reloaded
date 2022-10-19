@@ -74,6 +74,7 @@ function injectScripts() {
         // class files
         'AgilityCourse',
         'Card',
+        'CloneData',
         'CombatData',
         'Consumables',
         'DataExport',

@@ -108,7 +108,6 @@
                 // data names for serialization
                 this.dataNames = {
                     booleanArrays: [
-                        'petUnlocked',
                         'courseMastery',
                     ],
                     numberArrays: [
@@ -206,9 +205,17 @@
                 return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
             }
 
+            static newFromPlayerString(manager: any, playerString: string) {
+                const reader = new MICSR.SaveWriter('Read', 1);
+                reader.setDataFromSaveString(playerString);
+                const newSimPlayer = new MICSR.SimPlayer(manager, MICSR.game);
+                newSimPlayer.decode(reader, MICSR.currentSaveVersion);
+                return newSimPlayer;
+            }
+
             initForWebWorker() {
-                // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
-                currentGamemode = this.currentGamemode;
+                // // @ts-expect-error TS(2663): Cannot find name 'currentGamemode'. Did you mean t... Remove this comment to see the full error message
+                //currentGamemode = this.currentGamemode;
                 // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                 numberMultiplier = combatTriangle[GAMEMODES[this.currentGamemode].numberMultiplier];
                 // recompute stats
@@ -809,41 +816,65 @@
                 return met;
             }
 
+            hasKey<O>(obj: O, key: PropertyKey): key is keyof O {
+                return key in obj
+            }
 
-            /** Serializes the SimPlayer object */
-            serialize() {
-                // @ts-expect-error TS(2304): Cannot find name 'DataWriter'.
-                const writer = new DataWriter();
-                writer.addVariableLengthChunk(super.serialize());
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                this.dataNames.booleanArrays.forEach((x: any) => this[x].forEach((y: any) => writer.addBool(y)));
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                this.dataNames.numberArrays.forEach((x: any) => this[x].forEach((y: any) => writer.addNumber(y)));
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                this.dataNames.booleans.forEach((x: any) => writer.addBool(this[x]));
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                this.dataNames.numbers.forEach((x: any) => writer.addNumber(this[x]));
+            /** Encode the SimPlayer object */
+            encode(writer: any) {
+                super.encode(writer);
+                this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
+                    console.log('encode boolean array', x)
+                    if (this.hasKey(this, x)) {
+                        (this[x] as unknown as boolean[]).forEach((y: any) => writer.writeBoolean(y));
+                    }
+                });
+                this.dataNames.numberArrays.forEach((x: PropertyKey) => {
+                    console.log('encode number array', x)
+                    if (this.hasKey(this, x)) {
+                        (this[x] as unknown as number[]).forEach((y: any) => writer.writeInt32(y));
+                    }
+                });
+                this.dataNames.booleans.forEach((x: PropertyKey) => {
+                    console.log('encode boolean', x)
+                    if (this.hasKey(this, x)) {
+                        writer.writeBoolean(this[x]);
+                    }
+                });
+                this.dataNames.numbers.forEach((x: PropertyKey) => {
+                    console.log('encode number', x)
+                    if (this.hasKey(this, x)) {
+                        writer.writeInt32(this[x]);
+                    }
+                });
                 return writer.data;
             }
 
-            /** Deserializes the SimPlayer object */
-            deserialize(reader: any, version: any) {
-                super.deserialize(reader.getVariableLengthChunk(), version);
-                this.dataNames.booleanArrays.forEach((x: any) => {
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    this[x] = this[x].map((_: any) => reader.getBool());
+            /** Decode the SimPlayer object */
+            decode(reader: any, version: any = MICSR.currentSaveVersion) {
+                super.decode(reader, version);
+                this.dataNames.booleans.forEach((x: PropertyKey) => {
+                    console.log('decode boolean', x)
+                    if (this.hasKey(this, x)) {
+                        this[x] = reader.getBoolean();
+                    }
                 });
-                this.dataNames.numberArrays.forEach((x: any) => {
-                    // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    this[x] = this[x].map((_: any) => reader.getNumber());
+                this.dataNames.numbers.forEach((x: PropertyKey) => {
+                    console.log('decode number', x)
+                    if (this.hasKey(this, x)) {
+                        this[x] = reader.getInt32();
+                    }
                 });
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                this.dataNames.booleans.forEach((x: any) => this[x] = reader.getBool());
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                this.dataNames.numbers.forEach((x: any) => this[x] = reader.getNumber());
                 // after reading the data, recompute stats and reset gains
                 super.computeAllStats();
                 this.resetGains();
+            }
+
+            generatePlayerString() {
+                const micsrPlayerHeader = () => MICSR.actualGame.getSaveHeader()
+                const writer = new MICSR.SaveWriter('Write', 512);
+                this.encode(writer);
+                return writer.getSaveString(micsrPlayerHeader());
             }
         }
     }

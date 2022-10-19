@@ -362,14 +362,14 @@
                     this.barMonsterIDs.push(monsterID);
                     this.barType.push(this.barTypes.monster);
                 });
-                this.dungeonBarIDs = [];
+                this.dungeonBarIDs = {};
                 MICSR.dungeonIDs.forEach((dungeonID: any) => {
-                    this.dungeonBarIDs.push(this.barMonsterIDs.length);
+                    this.dungeonBarIDs[dungeonID] = this.barMonsterIDs.length;
                     this.barMonsterIDs.push(dungeonID);
                     this.barType.push(this.barTypes.dungeon);
                 });
                 MICSR.slayerTaskData.forEach((task: any) => {
-                    this.dungeonBarIDs.push(this.barMonsterIDs.length);
+                    this.dungeonBarIDs[task.display] = this.barMonsterIDs.length;
                     this.barMonsterIDs.push(task.display);
                     this.barType.push(this.barTypes.task);
                 });
@@ -2821,8 +2821,7 @@
 
             getSelectedDungeonMonsterID() {
                 const monsters = this.getMonsterList(this.viewedDungeonID);
-                console.log(monsters, this.viewedDungeonID)
-                return monsters[this.selectedBar + monsters.length - this.plotter.bars.length];
+                return monsters[this.selectedBar + monsters.length - this.plotter.bars.length].id;
             }
 
             /**
@@ -3089,13 +3088,8 @@
              * @return {string} the name of a monster
              */
             getMonsterName(monsterID: any) {
-                let name = undefined;
                 const monster = MICSR.monsters.getObjectByID(monsterID);
-                if (monster) {
-                    name = monster.name;
-                } else if (monsterID && monsterID.name) {
-                    name = monsterID.name;
-                }
+                const name = monster.name;
                 if (name === undefined) {
                     MICSR.error(`Unknown monster in getMonsterName ${monsterID}`);
                     return 'Unknown Monster';

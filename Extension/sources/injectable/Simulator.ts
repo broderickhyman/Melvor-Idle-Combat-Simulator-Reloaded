@@ -21,6 +21,7 @@
 (() => {
 
     const reqs = [
+        'CloneData',
         'SimEnemy',
         'SimManager',
         'SimPlayer',
@@ -191,11 +192,52 @@
              * @param {number} i
              */
             intializeWorker(worker: any, i: any) {
+                const cloner = new MICSR.CloneData();
                 // constants
                 const constantNames: {
                     name: string;
                     data: any;
-                }[] = [];
+                }[] = [
+                    // modified objects
+                    {name: 'CDNDIR', data: ''},
+                    // @ts-expect-error TS(2304): Cannot find name 'currentSaveVersion'.
+                    {name: 'currentSaveVersion', data: currentSaveVersion},
+                    // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
+                    {name: 'gameVersion', data: gameVersion},
+                    // @ts-expect-error TS(2304): Cannot find name 'enemyNoun'.
+                    {name: 'enemyNoun', data: enemyNoun},
+                    {name: 'loadedLangJson', data: {}},
+                    // @ts-expect-error TS(2304): Cannot find name 'MAX_QUICK_EQUIP_ITEMS'.
+                    {name: 'MAX_QUICK_EQUIP_ITEMS', data: MAX_QUICK_EQUIP_ITEMS},
+                    // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
+                    {name: 'TICK_INTERVAL', data: TICK_INTERVAL},
+                    // @ts-expect-error TS(2304): Cannot find name 'youNoun'.
+                    {name: 'youNoun', data: youNoun},
+                    // @ts-expect-error TS(2304): Cannot find name 'TODO_REPLACE_MEDIA'.
+                    {name: 'TODO_REPLACE_MEDIA', data: TODO_REPLACE_MEDIA},
+                    // @ts-expect-error TS(2304): Cannot find name 'RaidState'.
+                    {name: 'RaidState', data: RaidState},
+                    {name: 'DEBUGENABLED', data: false},
+                    // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
+                    {name: 'cloudManager', data: {...cloudManager, formElements: undefined, formInnerHTML: undefined}},
+                    {name: 'equipmentSlotData', data: cloner.equipmentSlotData()},
+                    // @ts-expect-error TS(2304): Cannot find name 'COMBAT_TRIANGLE_IDS'.
+                    {name: 'COMBAT_TRIANGLE_IDS', data: COMBAT_TRIANGLE_IDS},
+                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
+                    {name: 'numberMultiplier', data: numberMultiplier},
+                ];
+                [
+                    // these objects are copied from the game
+                    'CombatAreaType', 'EnemyState', 'EquipmentSlots', 'RaidDifficulty',
+                    // these objects are implicitly set to undefined
+                    'smithingSelectionTabs', 'fletchingSelectionTabs', 'craftingSelectionTabs',
+                    'runecraftingSelectionTabs', 'herbloreSelectionTabs', 'summoningSelectionTabs',
+                ].forEach((constant: any) => constantNames.push({name: constant, data: window[constant]}));
+                // these constants are copied from the simulator
+                [
+                    'slayerTaskData'
+                ].forEach((constant: string) => constantNames.push({name: `MICSR.${constant}`, data: MICSR[constant]}));
+                // process constants
                 const constants: { [name: string]: string; } = {};
                 constantNames.forEach(constant =>
                     constants[constant.name] = constant.data
@@ -205,6 +247,21 @@
                     name: string;
                     data: any;
                 }[] = [];
+                // these functions are spoofed
+                [
+                    ['createElement', () => {
+                    }],
+                    ['tippy', () => undefined],
+                ].forEach((func: any) => functionNames.push({name: func[0], data: func[1]}));
+                // these functions are copied from the game
+                [
+                    'constructDamageFromData', 'getLangString', 'imageNotify',
+                ].forEach((func: any) => functionNames.push({name: func, data: window[func]}));
+                // these functions are copied from the simulator
+                [
+                    'setupData', 'setupGame', 'setup',
+                ].forEach((func: string) => functionNames.push({name: `MICSR.${func}`, data: MICSR[func]}));
+                // process functions
                 const functions: { [name: string]: string; } = {};
                 functionNames.forEach(func => {
                     let fstring = func.data.toString();
@@ -219,7 +276,59 @@
                     }
                 });
                 // classes
-                const classNames: any[] = [];
+                // order matters when classes extend another class
+                const classNames: {
+                    name: string;
+                    data: any;
+                }[] = [];
+                // these classes are empty for the simulation
+                const emptyClass = class {
+                };
+                [
+                    // @ts-expect-error TS(2304): Cannot find name
+                    CombatQuickEquipMenu, Bank, Completion, Minibar, Settings, Statistics, SkillRenderQueue,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    CompletionMap, AltMagicRenderQueue, PrayerRenderQueue, ArtisanSkillRenderQueue,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    WoodcuttingRenderQueue, FishingRenderQueue, FiremakingRenderQueue, CookingRenderQueue,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    MiningRenderQueue, ThievingRenderQueue, FarmingRenderQueue, TownshipTasks, TownshipData,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue
+                ].forEach((clas: any) => classNames.push({name: clas.name, data: emptyClass}));
+                // these classes are copied from the game
+                [
+                    // @ts-expect-error TS(2304): Cannot find name
+                    NamespaceMap, NamespaceRegistry, NamespacedObject, NamespacedArray, ItemRegistry, CharacterStats,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    NormalDamage, Gamemode, Page, Skill, SkillWithMastery, CombatSkill, SkillMasteryMilestone, GatheringSkill, CraftingSkill, ArtisanSkill,
+                    // skills
+                    // @ts-expect-error TS(2304): Cannot find name
+                    Attack, Strength, Defence, Hitpoints, Ranged, AltMagic, Prayer, Slayer, Woodcutting, Fishing, Firemaking, Cooking, Mining, Smithing, Thieving, Farming, Fletching, Crafting, Runecrafting, Herblore, Agility, Summoning, Astrology, Township,
+                    // items
+                    // @ts-expect-error TS(2304): Cannot find name
+                    Item, EquipmentItem, WeaponItem, FoodItem, BoneItem, OpenableItem, PotionItem, ReadableItem, CompostItem, TokenItem,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    CombatLoot, DropTable, Lore, EventManager, CombatArea, Dungeon, StackingEffect, TownshipMap,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    SparseNumericMap, SpecialAttack, ItemEffectAttack, Currency, DataReader, Equipment, EquipmentSet,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    EquipmentStats, EquippedFood, EquipSlot, GP, ItemCharges, MappedModifiers, ExperienceCalculator,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    NotificationQueue, PlayerStats, PetManager, PotionManager, SlayerCoins, RaidCoins, SpellSelection,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    TargetModifiers, Timer, Tutorial, TutorialRenderQueue, BinaryWriter, SaveWriter, Shop,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    ShopRenderQueue, SlayerTask, SlowEffect, SplashManager, CombatModifiers, PlayerModifiers,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    BaseManager, CombatManager, Character, Player, RaidPlayer, Enemy, Game, Golbin, RaidManager,
+                    // @ts-expect-error TS(2304): Cannot find name
+                    TownshipWorship, TownshipJob,
+                ].forEach((clas: any) => classNames.push({name: clas.name, data: clas}));
+                // these classes are copied from the simulator
+                [
+                    'ShowModifiers', 'SimManager', 'SimPlayer', 'SimEnemy'
+                ].forEach((clas: any) => classNames.push({name: `MICSR.${clas}`, data: MICSR[clas]}));
                 const classes: { [name: string]: string; } = {};
                 classNames.forEach(clas => {
                     const s = clas.data.toString()
@@ -311,7 +420,7 @@
                     return {};
                 }
                 // dungeon
-                let dungeonID: any = undefined;
+                let dungeonID: string | undefined = undefined;
                 if (!this.parent.isViewingDungeon && this.parent.barIsDungeon(this.parent.selectedBar)) {
                     dungeonID = this.parent.barMonsterIDs[this.parent.selectedBar];
                 } else if (this.parent.isViewingDungeon && MICSR.isDungeonID(this.parent.viewedDungeonID)) {
@@ -323,8 +432,8 @@
                             this.pushMonsterToQueue(this.parent.getSelectedDungeonMonsterID(), dungeonID);
                             return {dungeonID: dungeonID};
                         }
-                        MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
-                            this.pushMonsterToQueue(monsterID, dungeonID);
+                        MICSR.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
+                            this.pushMonsterToQueue(monster.id, dungeonID);
                         });
                         return {dungeonID: dungeonID};
                     }
@@ -364,21 +473,18 @@
                         return;
                     }
                     // check if combat level fits the current task type
-                    // @ts-expect-error TS(2304): Cannot find name 'getMonsterCombatLevel'.
-                    const cbLevel = getMonsterCombatLevel(monsterID);
+                    const cbLevel = monster.combatLevel;
                     if (cbLevel < minLevel || cbLevel > maxLevel) {
                         return;
                     }
                     // check if the area is accessible, this only works for auto slayer
                     // without auto slayer you can get some tasks for which you don't wear/own the gear
-                    // @ts-expect-error TS(2304): Cannot find name 'getMonsterArea'.
-                    let area = getMonsterArea(monsterID);
+                    let area = MICSR.actualGame.getMonsterArea(monster.id);
                     if (!this.parent.player.checkRequirements(area.entryRequirements)) {
                         return;
                     }
                     // all checks passed
-                    // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-                    this.pushMonsterToQueue(monsterID);
+                    this.pushMonsterToQueue(monster.id, undefined);
                     this.slayerTaskMonsters[i].push(monster);
                 });
             }
@@ -393,12 +499,10 @@
                     return;
                 }
                 // Queue simulation of monsters in combat areas
-                // @ts-expect-error TS(2304): Cannot find name 'combatAreas'.
-                combatAreas.forEach((area: any) => {
-                    area.monsters.forEach((monsterID: any) => {
-                        if (this.monsterSimFilter[monsterID]) {
-                            // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-                            this.pushMonsterToQueue(monsterID);
+                MICSR.combatAreas.forEach((area: any) => {
+                    area.monsters.forEach((monster: any) => {
+                        if (this.monsterSimFilter[monster.id]) {
+                            this.pushMonsterToQueue(monster.id, undefined);
                         }
                     });
                 });
@@ -407,22 +511,20 @@
                     this.pushMonsterToQueue(MICSR.bardID, undefined);
                 }
                 // Queue simulation of monsters in slayer areas
-                // @ts-expect-error TS(2304): Cannot find name 'slayerAreas'.
-                slayerAreas.forEach((area: any) => {
+                MICSR.slayerAreas.forEach((area: any) => {
                     if (!this.parent.player.checkRequirements(area.entryRequirements)) {
-                        const tryToSim = area.monsters.reduce((sim: any, monsterID: any) => (this.monsterSimFilter[monsterID] && !this.monsterSimData[monsterID].inQueue) || sim, false);
+                        const tryToSim = area.monsters.reduce((sim: any, monster: any) => (this.monsterSimFilter[monster.id] && !this.monsterSimData[monster.id].inQueue) || sim, false);
                         if (tryToSim) {
                             this.parent.notify(`Can't access ${area.name}`, 'danger');
-                            area.monsters.forEach((monsterID: any) => {
-                                this.monsterSimData[monsterID].reason = 'cannot access area';
+                            area.monsters.forEach((monster: any) => {
+                                this.monsterSimData[monster.id].reason = 'cannot access area';
                             });
                         }
                         return;
                     }
                     area.monsters.forEach((monsterID: any) => {
                         if (this.monsterSimFilter[monsterID]) {
-                            // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-                            this.pushMonsterToQueue(monsterID);
+                            this.pushMonsterToQueue(monsterID, undefined);
                         }
                     });
                 });
@@ -436,9 +538,9 @@
                     }
                 });
                 // Queue simulation of monsters in slayer tasks
-                for (let taskID = 0; taskID < this.slayerTaskMonsters.length; taskID++) {
+                MICSR.taskIDs.forEach((taskID: string) => {
                     this.queueSlayerTask(taskID);
-                }
+                });
             }
 
             /**
@@ -452,10 +554,10 @@
                 this.resetSimulationData(single);
             }
 
-            combineReasons(data: any, monsterIDs: any, dungeonID: any) {
+            combineReasons(data: any, monsters: any, dungeonID: any) {
                 let reasons: any = [];
-                for (const monsterID of monsterIDs) {
-                    const simID = this.simID(monsterID, dungeonID);
+                monsters.forEach((monster: any) => {
+                    const simID = this.simID(monster.id, dungeonID);
                     if (!this.monsterSimData[simID].simSuccess) {
                         data.simSuccess = false;
                     }
@@ -463,7 +565,7 @@
                     if (reason && !reasons.includes(reason)) {
                         reasons.push(reason);
                     }
-                }
+                });
                 if (reasons.length) {
                     data.reason = reasons.join(', ');
                     return true;
@@ -472,7 +574,7 @@
                 return false;
             }
 
-            computeAverageSimData(filter: any, data: any, monsterIDs: any, dungeonID: any = undefined) {
+            computeAverageSimData(filter: any, data: any, monsters: any, dungeonID: any) {
                 // check filter
                 if (!filter) {
                     data.simSuccess = false;
@@ -480,7 +582,7 @@
                     return;
                 }
                 // combine failure reasons, if any
-                this.combineReasons(data, monsterIDs, dungeonID);
+                this.combineReasons(data, monsters, dungeonID);
                 data.simSuccess = true;
                 data.tickCount = 0;
 
@@ -490,8 +592,8 @@
                 data.lowestHitpoints = Infinity;
                 data.killTimeS = 0;
                 data.simulationTime = 0;
-                for (const monsterID of monsterIDs) {
-                    const simID = this.simID(monsterID, dungeonID);
+                monsters.forEach((monster: any) => {
+                    const simID = this.simID(monster.id, dungeonID);
                     const mData = this.monsterSimData[simID];
                     data.simSuccess &&= mData.simSuccess;
                     data.deathRate = 1 - (1 - data.deathRate) * (1 - mData.deathRate);
@@ -500,12 +602,12 @@
                     data.killTimeS += mData.killTimeS;
                     data.simulationTime += mData.simulationTime;
                     data.tickCount = Math.max(data.tickCount, mData.tickCount);
-                }
+                });
                 data.killsPerSecond = 1 / data.killTimeS;
 
                 // time-weighted averages
                 const computeAvg = (tag: any) => {
-                    data[tag] = monsterIDs.map((monsterID: any) => this.monsterSimData[this.simID(monsterID, dungeonID)])
+                    data[tag] = monsters.map((monster: any) => this.monsterSimData[this.simID(monster.id, dungeonID)])
                         .reduce((avgData: any, mData: any) => avgData + mData[tag] * mData.killTimeS, 0) / data.killTimeS;
                 }
                 [
@@ -545,7 +647,7 @@
 
                 // average rune breakdown
                 data.usedRunesBreakdown = {};
-                monsterIDs.map((monsterID: any) => this.monsterSimData[this.simID(monsterID, dungeonID)]
+                monsters.map((monster: any) => this.monsterSimData[this.simID(monster.id, dungeonID)]
                 ).forEach((mData: any) => {
                     for (const runeID in mData.usedRunesBreakdown) {
                         if (data.usedRunesBreakdown[runeID] === undefined) {
@@ -560,10 +662,10 @@
             performPostSimAnalysis(isNewRun = false) {
                 // Perform calculation of dungeon stats
                 MICSR.dungeons.forEach((dungeon: any) => {
-                    this.computeAverageSimData(this.dungeonSimFilter[dungeon], this.dungeonSimData[dungeon], dungeon.monsters, dungeon);
+                    this.computeAverageSimData(this.dungeonSimFilter[dungeon.id], this.dungeonSimData[dungeon.id], dungeon.monsters, dungeon.id);
                 });
                 MICSR.slayerTaskData.forEach((task: any) => {
-                    this.computeAverageSimData(this.slayerSimFilter[task.display], this.slayerSimData[task.display], this.slayerTaskMonsters[task.display]);
+                    this.computeAverageSimData(this.slayerSimFilter[task.display], this.slayerSimData[task.display], this.slayerTaskMonsters[task.display], undefined);
                     // correct average kps for auto slayer
                     this.slayerSimData[task.display].killsPerSecond *= this.slayerTaskMonsters[task.display].length;
                 });
@@ -639,7 +741,7 @@
                         action: 'START_SIMULATION',
                         monsterID: monsterID,
                         dungeonID: dungeonID,
-                        simPlayer: this.parent.player.serialize(),
+                        playerString: this.parent.player.generatePlayerString(),
                         trials: MICSR.trials,
                         maxTicks: MICSR.maxTicks,
                     });
@@ -754,8 +856,8 @@
                 } else if (MICSR.isDungeonID(this.parent.viewedDungeonID)) {
                     // dungeons
                     const dungeonID = this.parent.viewedDungeonID;
-                    MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
-                        const simID = this.simID(monsterID, dungeonID);
+                    MICSR.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
+                        const simID = this.simID(monster.id, dungeonID);
                         if (!isSignet) {
                             dataSet.push(this.getBarValue(true, this.monsterSimData[simID], keyValue));
                         } else {
@@ -763,7 +865,8 @@
                         }
                     });
                     if (isSignet) {
-                        const bossId = MICSR.dungeons[dungeonID].monsters[MICSR.dungeons[dungeonID].monsters.length - 1];
+                        const monsters = MICSR.dungeons.getObjectByID(dungeonID).monsters;
+                        const bossId = monsters[monsters.length - 1];
                         const simID = this.simID(bossId, dungeonID);
                         dataSet[dataSet.length - 1] = this.getBarValue(true, this.monsterSimData[simID], keyValue);
                     }
@@ -833,8 +936,8 @@
                 } else if (MICSR.isDungeonID(this.parent.viewedDungeonID)) {
                     // dungeons
                     const dungeonID = this.parent.viewedDungeonID;
-                    MICSR.dungeons[dungeonID].monsters.forEach((monsterID: any) => {
-                        dataSet.push(this.monsterSimData[this.simID(monsterID, dungeonID)]);
+                    MICSR.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
+                        dataSet.push(this.monsterSimData[this.simID(monster.id, dungeonID)]);
                     });
                 } else {
                     // slayer tasks

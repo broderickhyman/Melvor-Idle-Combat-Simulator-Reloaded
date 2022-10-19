@@ -20,7 +20,7 @@
 
 (() => {
     // spoof MICSR
-    const MICSR = {
+    const MICSR: any = {
         debug: (...args: any[]) => console.debug('MICSR:', ...args),
         log: (...args: any[]) => console.log('MICSR:', ...args),
         warn: (...args: any[]) => console.warn('MICSR:', ...args),
@@ -30,16 +30,18 @@
     // spoof document
     const document = {
         getElementById() {
-        }
+        },
+        createElement() {
+        },
     };
 
     // spoof $ so we get useful information regarding where the bugs are
     const $ = (...args: any[]) => console.log(...args);
 
-    /** @type {CombatSimulator} */
-    let combatSimulator: any;
+    let combatSimulator: CombatSimulator;
 
     onmessage = (event) => {
+        /*
         // TODO: remove temporary reply
         switch (event.data.action) {
             case 'RECEIVE_GAMEDATA':
@@ -66,15 +68,15 @@
                         // success
                         simSuccess: true,
                         reason: undefined,
-                        tickCount: 0,
+                        tickCount: 10,
                         // xp rates
-                        xpPerSecond: 0,
-                        hpXpPerSecond: 0,
-                        slayerXpPerSecond: 0,
-                        prayerXpPerSecond: 0,
-                        summoningXpPerSecond: 0,
+                        xpPerSecond: 10,
+                        hpXpPerSecond: 10,
+                        slayerXpPerSecond: 10,
+                        prayerXpPerSecond: 10,
+                        summoningXpPerSecond: 10,
                         // consumables
-                        ppConsumedPerSecond: 0,
+                        ppConsumedPerSecond: 10,
                         ammoUsedPerSecond: 0,
                         runesUsedPerSecond: 0,
                         usedRunesBreakdown: 0,
@@ -83,14 +85,14 @@
                         tabletsUsedPerSecond: 0,
                         atePerSecond: 0,
                         // survivability
-                        deathRate: 0,
-                        highestDamageTaken: 0,
-                        lowestHitpoints: 0,
+                        deathRate: 0.5,
+                        highestDamageTaken: 10,
+                        lowestHitpoints: 10,
                         // kill time
-                        killTimeS: 0,
-                        killsPerSecond: 0,
+                        killTimeS: 10,
+                        killsPerSecond: 0.1,
                         // loot gains
-                        baseGpPerSecond: 0, // gpPerSecond is computed from this
+                        baseGpPerSecond: 10, // gpPerSecond is computed from this
                         dropChance: NaN,
                         signetChance: NaN,
                         petChance: NaN,
@@ -106,21 +108,39 @@
                 combatSimulator.cancelSimulation();
                 return;
         }
+         */
         switch (event.data.action) {
             case 'RECEIVE_GAMEDATA':
                 // constants
                 event.data.constantNames.forEach((name: any) => {
-                    self[name] = event.data.constants[name];
+                    MICSR.log('constant', name, event.data.constants[name])
+                    if (name.startsWith('MICSR.')) {
+                        MICSR[name.substr(6)] = event.data.constants[name];
+                    } else {
+                        self[name] = event.data.constants[name];
+                    }
                 });
                 // functions
                 event.data.functionNames.forEach((name: any) => {
+                    MICSR.log('function', name)
                     eval(event.data.functions[name]);
                 });
                 // classes
                 event.data.classNames.forEach((name: any) => {
+                    MICSR.log('class', name)
                     eval(event.data.classes[name]);
                 });
                 // create instances
+                // @ts-expect-error TS(2304): Cannot find name 'slayerTaskData'.
+                SlayerTask.data = MICSR.slayerTaskData;
+                MICSR.log('Creating exp');
+                // @ts-expect-error TS(2304): Cannot find name 'ExperienceCalculator'.
+                const exp = new ExperienceCalculator()
+                MICSR.log('Creating game');
+                // @ts-expect-error TS(2304): Cannot find name 'Game'.
+                const game = new Game();
+                MICSR.log('Creating MICSR');
+                MICSR.setup(game);
                 combatSimulator = new CombatSimulator();
                 break;
             case 'START_SIMULATION':
@@ -128,7 +148,7 @@
                 //settings
                 // run the simulation
                 combatSimulator.simulateMonster(
-                    event.data.simPlayer,
+                    event.data.playerString,
                     event.data.monsterID,
                     event.data.dungeonID,
                     event.data.trials,
@@ -166,17 +186,15 @@
 
         /**
          * Simulation Method for a single monster
-         * @param {SimPlayer} player
-         * @param {Object} settings
-         * @return {Promise<Object>}
          */
-        async simulateMonster(simPlayerData: any, monsterID: any, dungeonID: any, trials: any, maxTicks: any) {
-            const manager = new (MICSR as any).SimManager();
-            const player = manager.player;
-            // @ts-expect-error TS(2304): Cannot find name 'DataReader'.
-            const reader = new DataReader(simPlayerData);
-            player.deserialize(reader);
+        async simulateMonster(playerString: string, monsterID: string, dungeonID: string, trials: number, maxTicks: number) {
+            MICSR.log('Creating manager');
+            (self as any).numberMultiplier = undefined;
+            const manager = new MICSR.SimManager(MICSR.game, MICSR.namespace);
+            MICSR.log('Creating player');
+            const player = MICSR.SimPlayer.newFromPlayerString(manager, playerString);
             player.initForWebWorker();
+            MICSR.log('Finished setup');
             try {
                 return manager.convertSlowSimToResult(manager.runTrials(monsterID, dungeonID, trials, maxTicks), trials);
             } catch (error) {

@@ -85,29 +85,29 @@
 
                 let totBars = 0;
 
-                for (const area of MICSR.combatAreas.allObjects) {
+                MICSR.combatAreas.forEach((area: any) => {
                     totBars += area.monsters.length;
                     this.barBottomNames.push(area.name);
                     this.barBottomLength.push(area.monsters.length);
-                    for (const monster of area.monsters) {
-                        this.barNames.push(this.parent.getMonsterName(monster));
+                    area.monsters.forEach((monster: any) => {
+                        this.barNames.push(monster.name);
                         this.barImageSrc.push(monster.media);
-                    }
-                }
+                    });
+                });
                 totBars += 1;
                 this.barBottomNames.push('');
                 this.barBottomLength.push(1);
                 this.barNames.push(this.parent.getMonsterName(MICSR.bardID));
                 this.barImageSrc.push(MICSR.monsters.getObjectByID(MICSR.bardID).media);
-                for (const area of MICSR.slayerAreas.allObjects) {
+                MICSR.slayerAreas.forEach((area: any) => {
                     totBars += area.monsters.length;
                     this.barBottomNames.push(area.name);
                     this.barBottomLength.push(area.monsters.length);
-                    for (const monster of area.monsters) {
-                        this.barNames.push(this.parent.getMonsterName(monster));
+                    area.monsters.forEach((monster: any) => {
+                        this.barNames.push(monster.name);
                         this.barImageSrc.push(monster.media);
-                    }
-                }
+                    });
+                });
 
                 this.barBottomNames.push('Dungeons');
                 this.barBottomLength.push(MICSR.dungeons.allObjects.length);
@@ -380,15 +380,15 @@
                     let barName = '';
                     if (this.parent.isViewingDungeon) {
                         const selection = this.parent.getMonsterList(this.parent.viewedDungeonID);
-                        const monsterID = selection[barIndex + selection.length - this.bars.length];
-                        barName = MICSR.monsters[monsterID].name;
+                        const monster = selection[barIndex + selection.length - this.bars.length];
+                        barName = monster.name;
                     } else {
                         if (this.parent.barIsDungeon(barIndex)) {
-                            barName = this.parent.barMonsterIDs[barIndex].name;
+                            barName = MICSR.dungeons.getObjectByID(this.parent.barMonsterIDs[barIndex]).name;
                         } else if (this.parent.barIsTask(barIndex)) {
-                            barName = this.parent.barMonsterIDs[barIndex].display;
+                            barName = `${this.parent.barMonsterIDs[barIndex]} Tasks`;
                         } else {
-                            barName = this.parent.barMonsterIDs[barIndex].name;
+                            barName = MICSR.monsters.getObjectByID(this.parent.barMonsterIDs[barIndex]).name;
                         }
                     }
                     // open tooltip and set tooltip title
@@ -479,7 +479,7 @@
                     if (i < monsters.length) {
                         // Change image source
                         this.xAxisContainers[i].style.display = '';
-                        this.xAxisImages[i].setAttribute('src', MICSR.monsters[monsters[i]].media);
+                        this.xAxisImages[i].setAttribute('src', monsters[i].media);
                         this.bars[this.bars.length - i - 1].style.display = '';
                     } else {
                         // Disable Bar and images

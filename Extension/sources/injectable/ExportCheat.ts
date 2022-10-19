@@ -169,7 +169,7 @@
                 // set slayer task to currently selected monster
                 MICSR.actualGame.combatManager.slayerTask.active = isSlayerTask;
                 if (isSlayerTask) {
-                    MICSR.actualGame.combatManager.slayerTask.monster = MICSR.monsters[this.actualApp.barMonsterIDs[this.actualApp.selectedBar]];
+                    MICSR.actualGame.combatManager.slayerTask.monster = MICSR.monsters.getObjectByID(this.actualApp.barMonsterIDs[this.actualApp.selectedBar]);
                 }
                 MICSR.actualGame.combatManager.slayerTask.killsLeft = isSlayerTask * 1e9;
             }
