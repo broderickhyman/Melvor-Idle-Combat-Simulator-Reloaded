@@ -238,7 +238,7 @@
                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 const alchTime = this[f](...args) * game.altMagic.baseInterval / 1000;
                 this.computingAlchCount = false;
-                return {value: value, alchTime: alchTime};
+                return { value: value, alchTime: alchTime };
             }
 
             computeGP(data: any, f: any, ...args: any[]) {

@@ -79,7 +79,7 @@
                     };
                     if (isMonster) {
                         (data as any).inQueue = false;
-                        (data as any).petRolls = {other: []};
+                        (data as any).petRolls = { other: [] };
                     }
                     return data
                 }
@@ -181,7 +181,7 @@
                             workerContent.open('GET', this.workerURL);
                             workerContent.send();
                             workerContent.addEventListener('load', (event) => {
-                                const blob = new Blob([(event.currentTarget as any).responseText], {type: 'application/javascript'});
+                                const blob = new Blob([(event.currentTarget as any).responseText], { type: 'application/javascript' });
                                 this.workerURL = URL.createObjectURL(blob);
                                 resolve(new Worker(this.workerURL));
                             });
@@ -204,44 +204,44 @@
                     name: string;
                     data: any;
                 }[] = [
-                    // modified objects
-                    {name: 'CDNDIR', data: ''},
-                    // @ts-expect-error TS(2304): Cannot find name 'currentSaveVersion'.
-                    {name: 'currentSaveVersion', data: currentSaveVersion},
-                    // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
-                    {name: 'gameVersion', data: gameVersion},
-                    // @ts-expect-error TS(2304): Cannot find name 'enemyNoun'.
-                    {name: 'enemyNoun', data: enemyNoun},
-                    {name: 'loadedLangJson', data: {}},
-                    // @ts-expect-error TS(2304): Cannot find name 'MAX_QUICK_EQUIP_ITEMS'.
-                    {name: 'MAX_QUICK_EQUIP_ITEMS', data: MAX_QUICK_EQUIP_ITEMS},
-                    // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
-                    {name: 'TICK_INTERVAL', data: TICK_INTERVAL},
-                    // @ts-expect-error TS(2304): Cannot find name 'youNoun'.
-                    {name: 'youNoun', data: youNoun},
-                    // @ts-expect-error TS(2304): Cannot find name 'TODO_REPLACE_MEDIA'.
-                    {name: 'TODO_REPLACE_MEDIA', data: TODO_REPLACE_MEDIA},
-                    {name: 'DEBUGENABLED', data: false},
-                    // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
-                    {name: 'cloudManager', data: {...cloudManager, formElements: undefined, formInnerHTML: undefined}},
-                    // @ts-expect-error TS(2304): Cannot find name 'COMBAT_TRIANGLE_IDS'.
-                    {name: 'COMBAT_TRIANGLE_IDS', data: COMBAT_TRIANGLE_IDS},
-                    // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
-                    {name: 'combatTriangle', data: combatTriangle},
-                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
-                    {name: 'numberMultiplier', data: numberMultiplier},
-                    // @ts-expect-error TS(2304): Cannot find name 'frostBurnEffect'.
-                    {name: 'frostBurnEffect', data: frostBurnEffect},
-                    //// @ts-expect-error TS(2304): Cannot find name 'burnEffect'.
-                    //{name: 'burnEffect', data: burnEffect},
-                    {name: 'effectMedia', data: {}},
-                    {name: 'combatMenus', data: {}},
-                    {name: 'loadingOfflineProgress', data: undefined},
-                    // @ts-expect-error TS(2304): Cannot find name 'DATA_VERSION'.
-                    {name: 'DATA_VERSION', data: DATA_VERSION},
-                    {name: 'equipmentSlotData', data: this.cloner.equipmentSlotData()},
-                    {name: 'modifierData', data: this.cloner.modifierData()},
-                ];
+                        // modified objects
+                        { name: 'CDNDIR', data: '' },
+                        // @ts-expect-error TS(2304): Cannot find name 'currentSaveVersion'.
+                        { name: 'currentSaveVersion', data: currentSaveVersion },
+                        // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
+                        { name: 'gameVersion', data: gameVersion },
+                        // @ts-expect-error TS(2304): Cannot find name 'enemyNoun'.
+                        { name: 'enemyNoun', data: enemyNoun },
+                        { name: 'loadedLangJson', data: {} },
+                        // @ts-expect-error TS(2304): Cannot find name 'MAX_QUICK_EQUIP_ITEMS'.
+                        { name: 'MAX_QUICK_EQUIP_ITEMS', data: MAX_QUICK_EQUIP_ITEMS },
+                        // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
+                        { name: 'TICK_INTERVAL', data: TICK_INTERVAL },
+                        // @ts-expect-error TS(2304): Cannot find name 'youNoun'.
+                        { name: 'youNoun', data: youNoun },
+                        // @ts-expect-error TS(2304): Cannot find name 'TODO_REPLACE_MEDIA'.
+                        { name: 'TODO_REPLACE_MEDIA', data: TODO_REPLACE_MEDIA },
+                        { name: 'DEBUGENABLED', data: false },
+                        // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
+                        { name: 'cloudManager', data: { ...cloudManager, formElements: undefined, formInnerHTML: undefined } },
+                        // @ts-expect-error TS(2304): Cannot find name 'COMBAT_TRIANGLE_IDS'.
+                        { name: 'COMBAT_TRIANGLE_IDS', data: COMBAT_TRIANGLE_IDS },
+                        // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
+                        { name: 'combatTriangle', data: combatTriangle },
+                        // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
+                        { name: 'numberMultiplier', data: numberMultiplier },
+                        // @ts-expect-error TS(2304): Cannot find name 'frostBurnEffect'.
+                        { name: 'frostBurnEffect', data: frostBurnEffect },
+                        //// @ts-expect-error TS(2304): Cannot find name 'burnEffect'.
+                        //{name: 'burnEffect', data: burnEffect},
+                        { name: 'effectMedia', data: {} },
+                        { name: 'combatMenus', data: {} },
+                        { name: 'loadingOfflineProgress', data: undefined },
+                        // @ts-expect-error TS(2304): Cannot find name 'DATA_VERSION'.
+                        { name: 'DATA_VERSION', data: DATA_VERSION },
+                        { name: 'equipmentSlotData', data: this.cloner.equipmentSlotData() },
+                        { name: 'modifierData', data: this.cloner.modifierData() },
+                    ];
                 [
                     // these objects are copied from the game
                     'CombatAreaType', 'EnemyState', 'EquipmentSlots', 'RaidDifficulty', 'AmmoTypeID', 'RaidState',
@@ -249,11 +249,11 @@
                     // these objects are implicitly set to undefined
                     'smithingSelectionTabs', 'fletchingSelectionTabs', 'craftingSelectionTabs',
                     'runecraftingSelectionTabs', 'herbloreSelectionTabs', 'summoningSelectionTabs',
-                ].forEach((constant: any) => constantNames.push({name: constant, data: window[constant]}));
+                ].forEach((constant: any) => constantNames.push({ name: constant, data: window[constant] }));
                 // these constants are copied from the simulator
                 [
                     'slayerTaskData', 'dataPackage',
-                ].forEach((constant: string) => constantNames.push({name: `MICSR.${constant}`, data: MICSR[constant]}));
+                ].forEach((constant: string) => constantNames.push({ name: `MICSR.${constant}`, data: MICSR[constant] }));
                 // process constants
                 const constants: { [name: string]: string; } = {};
                 constantNames.forEach(constant =>
@@ -269,7 +269,7 @@
                     ['createElement', () => {
                     }],
                     ['tippy', () => undefined],
-                ].forEach((func: any) => functionNames.push({name: func[0], data: func[1]}));
+                ].forEach((func: any) => functionNames.push({ name: func[0], data: func[1] }));
                 // these functions are copied from the game
                 [
                     'constructDamageFromData', 'getLangString', 'imageNotify', 'applyModifier', 'readNamespacedReject',
@@ -280,12 +280,12 @@
                     if (window[func] === undefined) {
                         MICSR.error(`window[${func}] is undefined`);
                     }
-                    functionNames.push({name: func, data: window[func]})
+                    functionNames.push({ name: func, data: window[func] })
                 });
                 // these functions are copied from the simulator
                 [
                     'setupData', 'setupGame', 'setup', 'setupFetchedData',
-                ].forEach((func: string) => functionNames.push({name: `MICSR.${func}`, data: MICSR[func]}));
+                ].forEach((func: string) => functionNames.push({ name: `MICSR.${func}`, data: MICSR[func] }));
                 // process functions
                 const functions: { [name: string]: string; } = {};
                 functionNames.forEach(func => {
@@ -335,7 +335,7 @@
                     AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue,
                     // @ts-expect-error TS(2304): Cannot find name
                     MasteryLevelUnlock, CustomSkillMilestone,
-                ].forEach((clas: any) => classNames.push({name: clas.name, data: emptyClass}));
+                ].forEach((clas: any) => classNames.push({ name: clas.name, data: emptyClass }));
                 // these classes are copied from the game
                 [
                     // @ts-expect-error TS(2304): Cannot find name
@@ -372,11 +372,11 @@
                     PlayerAttackEvent, EnemyAttackEvent, PlayerHitpointRegenerationEvent, StatTracker,
                     // @ts-expect-error TS(2304): Cannot find name
                     MappedStatTracker, Statistics, DummyItem, DummyMonster,
-                ].forEach((clas: any) => classNames.push({name: clas.name, data: clas}));
+                ].forEach((clas: any) => classNames.push({ name: clas.name, data: clas }));
                 // these classes are copied from the simulator
                 [
                     'ShowModifiers', 'SimManager', 'SimPlayer', 'SimEnemy', 'CloneData',
-                ].forEach((clas: any) => classNames.push({name: `MICSR.${clas}`, data: MICSR[clas]}));
+                ].forEach((clas: any) => classNames.push({ name: `MICSR.${clas}`, data: MICSR[clas] }));
                 const classes: { [name: string]: string; } = {};
                 classNames.forEach(clas => {
                     const s = clas.data.toString()
@@ -443,7 +443,7 @@
                 const simID = this.simID(monsterID, dungeonID);
                 if (!this.monsterSimData[simID].inQueue) {
                     this.monsterSimData[simID].inQueue = true;
-                    this.simulationQueue.push({monsterID: monsterID, dungeonID: dungeonID});
+                    this.simulationQueue.push({ monsterID: monsterID, dungeonID: dungeonID });
                 }
             }
 
@@ -478,12 +478,12 @@
                     if (this.dungeonSimFilter[dungeonID]) {
                         if (this.parent.isViewingDungeon && this.parent.barSelected) {
                             this.pushMonsterToQueue(this.parent.getSelectedDungeonMonsterID(), dungeonID);
-                            return {dungeonID: dungeonID};
+                            return { dungeonID: dungeonID };
                         }
                         MICSR.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
                             this.pushMonsterToQueue(monster.id, dungeonID);
                         });
-                        return {dungeonID: dungeonID};
+                        return { dungeonID: dungeonID };
                     }
                     this.parent.notify('The selected dungeon is filtered!', 'danger');
                     return {};
@@ -498,7 +498,7 @@
                 if (taskID !== undefined) {
                     if (this.slayerSimFilter[taskID]) {
                         this.queueSlayerTask(taskID);
-                        return {taskID: taskID};
+                        return { taskID: taskID };
                     }
                     this.parent.notify('The selected task list is filtered!', 'danger');
                     return {};
@@ -739,17 +739,17 @@
                 const monsterSimData = {};
                 for (const id in this.monsterSimData) {
                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                    monsterSimData[id] = {...this.monsterSimData[id]};
+                    monsterSimData[id] = { ...this.monsterSimData[id] };
                 }
                 const save = {
                     settings: this.parent.import.exportSettings(),
                     export: '',
                     monsterSimData: monsterSimData,
                     dungeonSimData: this.dungeonSimData.map((x: any) => {
-                        return {...x};
+                        return { ...x };
                     }),
                     slayerSimData: this.slayerSimData.map((x: any) => {
-                        return {...x};
+                        return { ...x };
                     }),
                 }
                 save.export = JSON.stringify(save.settings, null, 1);
@@ -827,7 +827,7 @@
                 this.simCancelled = true;
                 this.simulationWorkers.forEach((simWorker: any) => {
                     if (simWorker.inUse) {
-                        simWorker.worker.postMessage({action: 'CANCEL_SIMULATION'});
+                        simWorker.worker.postMessage({ action: 'CANCEL_SIMULATION' });
                     }
                 });
             }
@@ -840,7 +840,7 @@
             processWorkerMessage(event: any, workerID: any) {
                 // MICSR.log(`Received Message ${event.data.action} from worker: ${workerID}`);
                 if (!event.data.simResult.simSuccess) {
-                    MICSR.log({...event.data.simResult});
+                    MICSR.log({ ...event.data.simResult });
                 }
                 switch (event.data.action) {
                     case 'FINISHED_SIM':

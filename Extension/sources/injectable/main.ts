@@ -90,7 +90,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'confirmedLoaded'.
                 if (confirmedLoaded) {
                     clearInterval(melvorCombatSimLoader);
-                    window.postMessage({type: 'MCS_FROM_PAGE', action: 'REQUEST_URLS'});
+                    window.postMessage({ type: 'MCS_FROM_PAGE', action: 'REQUEST_URLS' });
                 }
             }, 200);
         }

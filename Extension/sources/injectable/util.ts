@@ -276,7 +276,7 @@
                 }
             }
             // @ts-expect-error TS(2554): Expected 0 arguments, but got 2.
-            return `${+parseFloat(output).toFixed(6).toLocaleString(undefined, {minimumSignificantDigits: digits})}${end}`;
+            return `${+parseFloat(output).toFixed(6).toLocaleString(undefined, { minimumSignificantDigits: digits })}${end}`;
         }
 
         /**

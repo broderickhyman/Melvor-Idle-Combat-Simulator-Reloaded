@@ -205,7 +205,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'activeAstrologyModifiers'.
                 activeAstrologyModifiers = astrologyModifiers.map((x: any) => {
                     return Object.getOwnPropertyNames(x).map(m => {
-                        return {[m]: x[m]}
+                        return { [m]: x[m] }
                     });
                 });
             }

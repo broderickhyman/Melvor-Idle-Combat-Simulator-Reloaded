@@ -135,7 +135,7 @@
                 this.player = this.manager.player;
                 this.combatData = new MICSR.CombatData(this.manager);
                 // prepare tooltips
-                this.tippyOptions = {allowHTML: true, animation: false, hideOnClick: false};
+                this.tippyOptions = { allowHTML: true, animation: false, hideOnClick: false };
                 this.tippyNoSingletonInstances = [];
                 // Plot Type Options
                 this.plotTypes = [];
@@ -388,9 +388,9 @@
                 // @ts-expect-error TS(2304): Cannot find name 'tippy'.
                 this.tippyInstances = tippy('#mcsModal [data-tippy-content]', this.tippyOptions);
                 // @ts-expect-error TS(2304): Cannot find name 'tippy'.
-                this.tippySingleton = tippy.createSingleton(this.tippyInstances, {delay: [0, 200], ...this.tippyOptions});
+                this.tippySingleton = tippy.createSingleton(this.tippyInstances, { delay: [0, 200], ...this.tippyOptions });
                 for (const bar of this.plotter.bars) {
-                    this.addNoSingletonTippy(bar, {triggerTarget: bar.parentElement});
+                    this.addNoSingletonTippy(bar, { triggerTarget: bar.parentElement });
                 }
 
                 // Setup the default state of the UI
@@ -430,7 +430,7 @@
                     const style = (options as any).style ? `style="${(options as any).style}"` : '';
                     passives += `<${tag} ${classNames} ${style}>${toPrint[0]}</${tag}>`;
                 });
-                return {header: header, passives: passives};
+                return { header: header, passives: passives };
             }
 
             showRelevantModifiers(modifiers: any, header: any) {
@@ -979,7 +979,7 @@
                     this.agilityCourse = new MICSR.AgilityCourse(
                         this,
                         this.player,
-                        [{tag: 'combat', text: 'Combat', media: this.media.combat}],
+                        [{ tag: 'combat', text: 'Combat', media: this.media.combat }],
                     );
                 } else {
                     this.agilitySelectCard.clearContainer();
@@ -1500,7 +1500,7 @@
                 this.import.update();
                 // load results
                 for (const id in simulation.monsterSimData) {
-                    this.simulator.monsterSimData[id] = {...simulation.monsterSimData[id]};
+                    this.simulator.monsterSimData[id] = { ...simulation.monsterSimData[id] };
                 }
                 this.simulator.performPostSimAnalysis();
                 this.updateDisplayPostSim();
@@ -2917,7 +2917,7 @@
                     if (prayer.prayerLevel > prayerLevel) {
                         (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = this.media.question;
                         if (this.player.activePrayers.has(prayer.id)) {
-                            this.prayerButtonOnClick({currentTarget: document.getElementById(`MCS ${prayerName} Button`)}, prayer.id);
+                            this.prayerButtonOnClick({ currentTarget: document.getElementById(`MCS ${prayerName} Button`) }, prayer.id);
                             MICSR.imageNotify(this.media.prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
                         }
                     } else {

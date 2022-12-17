@@ -34,7 +34,7 @@ window.addEventListener('message', (event) => {
                     // @ts-expect-error TS(2304): Cannot find name 'chrome'.
                     simulationWorker: chrome.runtime.getURL('built/workers/simulator.js'),
                 };
-                window.postMessage({type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls});
+                window.postMessage({ type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls });
                 break;
         }
     }
@@ -49,7 +49,7 @@ function injectScript(scriptName: any) {
     const scriptID = `mcs-${scriptName}`;
     // Check if script already exists, if so delete it
     if (document.getElementById(scriptID)) {
-        window.postMessage({type: 'MCS_FROM_CONTENT', action: 'UNLOAD'});
+        window.postMessage({ type: 'MCS_FROM_CONTENT', action: 'UNLOAD' });
         // @ts-expect-error TS(2531): Object is possibly 'null'.
         document.getElementById(scriptID).remove();
     }

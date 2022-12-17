@@ -31,7 +31,7 @@
             // version: MICSR.version,
             astrologyModifiers: [],
             course: Array(10).fill(-1),
-            courseMastery: {"-1": false},
+            courseMastery: { "-1": false },
             // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
             equipment: Array(Object.getOwnPropertyNames(equipmentSlotData).length).fill(-1),
             levels: Array(MICSR.game.skills.allObjects.length).fill(1),
@@ -237,7 +237,7 @@
                     levels: [...this.player.skillLevel],
                     petUnlocked: [...this.player.petUnlocked],
                     // objects
-                    styles: {...this.player.attackStyles},
+                    styles: { ...this.player.attackStyles },
                     prayerSelected: [...this.player.activePrayers],
                     // simple values
                     ancient: this.player.spellSelection.ancient,

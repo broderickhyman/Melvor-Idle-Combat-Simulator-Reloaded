@@ -73,14 +73,14 @@
                 }
                 // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 this.agilityObstacles = [noObstacle, ...Agility.obstacles.map((x: any, id: any) => {
-                    const obstacle = {...x};
+                    const obstacle = { ...x };
                     obstacle.id = id;
                     this.filters.forEach((filter: any) => obstacle[filter.tag] = MICSR.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
                     return obstacle;
                 })];
                 // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 this.agilityPillars = [noObstacle, ...Agility.passivePillars.map((x: any, id: any) => {
-                    const pillar = {...x};
+                    const pillar = { ...x };
                     pillar.id = id;
                     pillar.media = [this.media.combat, this.media.statistics, this.media.gp][id]
                     this.filters.forEach((filter: any) => pillar[filter.tag] = MICSR.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);

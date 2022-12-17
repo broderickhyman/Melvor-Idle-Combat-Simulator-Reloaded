@@ -38,7 +38,7 @@
                 // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 const base = equipmentSlotData;
                 for (const key in base) {
-                    const data = {...base[key]};
+                    const data = { ...base[key] };
                     data.imageElements = [];
                     data.qtyElements = [];
                     data.tooltips = [];
@@ -60,7 +60,7 @@
                     'tags',
                 ];
                 for (const key in base) {
-                    const data = {...base[key]};
+                    const data = { ...base[key] };
                     data.langDescription = '';
                     for (const propKey in data) {
                         const prop = data[propKey];

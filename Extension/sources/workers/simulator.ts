@@ -137,7 +137,7 @@
                         const buffer = new ArrayBuffer(x.length);
                         const dataView = new DataView(buffer);
                         x.forEach((entry: number, idx: number) => dataView.setUint8(idx, entry));
-                        return {buffer: buffer};
+                        return { buffer: buffer };
                     }
                 };
                 // restore data

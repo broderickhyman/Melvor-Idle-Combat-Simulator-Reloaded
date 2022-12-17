@@ -97,8 +97,8 @@
                 const foodCard = new MICSR.Card(this.card.container, '', '100px');
                 // add the tab cards
                 [
-                    {name: 'Potions', media: this.app.media.herblore, card: potionCard,},
-                    {name: 'Food', media: this.app.media.cooking, card: foodCard,},
+                    { name: 'Potions', media: this.app.media.herblore, card: potionCard, },
+                    { name: 'Food', media: this.app.media.cooking, card: foodCard, },
                 ].forEach(cardInfo =>
                     this.card.addPremadeTab(
                         cardInfo.name,

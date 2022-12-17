@@ -146,9 +146,9 @@
     white-space: nowrap;
 }
 
-.mcsPlotHeader .form-control {
-    width: unset;
-}
+    .mcsPlotHeader .form-control {
+        width: unset;
+    }
 
 .mcsXAxisSection {
     position: absolute;
@@ -217,10 +217,10 @@
     width: 192px;
 }
 
-.mcsMultiImageButtonContainer button {
-    margin: 4px;
-    padding: 0px;
-}
+    .mcsMultiImageButtonContainer button {
+        margin: 4px;
+        padding: 0px;
+    }
 
 .mcsTabButtonContainer {
     display: flex;
@@ -239,9 +239,9 @@
     border-radius: 0.5rem 0.5rem 0 0;
 }
 
-.mcsTabButton:hover {
-    background-color: white;
-}
+    .mcsTabButton:hover {
+        background-color: white;
+    }
 
 .mcsTabContent button:focus {
     outline: none;
@@ -317,9 +317,9 @@
     padding: 0 0.25rem;
 }
 
-.mcsCCContainer img {
-    margin-right: 4px;
-}
+    .mcsCCContainer img {
+        margin-right: 4px;
+    }
 
 .mcsMultiButtonContainer {
     position: relative;
@@ -439,9 +439,9 @@
     line-height: 24px;
 }
 
-.mcsRadioContainer .custom-control-inline {
-    margin-right: 10px;
-}
+    .mcsRadioContainer .custom-control-inline {
+        margin-right: 10px;
+    }
 
 .mcsCheckbox {
     transform: scale(1.5);
@@ -508,9 +508,9 @@
     border-color: #3e4856;
 }
 
-.darkMode .mcsTabButton:hover {
-    background-color: #252A33;
-}
+    .darkMode .mcsTabButton:hover {
+        background-color: #252A33;
+    }
 
 .darkMode .mcsTabContainer {
     border-color: #3e4856;
