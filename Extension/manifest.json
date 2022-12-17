@@ -5,26 +5,6 @@
   "icons": {
     "48": "icons/melvorSim-48.png"
   },
-  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
-  "content_scripts": [
-    {
-      "matches": [
-        "*://www.melvoridle.com/*",
-        "*://melvoridle.com/*",
-        "*://test.melvoridle.com/*"
-      ],
-      "js": [
-        "built/contentScript.js"
-      ],
-      "css": [
-        "styles/mainStyle.css"
-      ],
-      "run_at": "document_end"
-    }
-  ],
-  "web_accessible_resources": [
-    "built/injectable/*.js",
-    "built/workers/*.js",
-    "icons/crossedOut.svg"
-  ]
+  "setup": "built/contentScript.js",
+  "load": [ "styles/mainStyle.css" ]
 }
