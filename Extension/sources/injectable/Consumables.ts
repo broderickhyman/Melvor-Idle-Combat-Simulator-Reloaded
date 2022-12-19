@@ -336,16 +336,13 @@
                 }
                 // ammo
                 if (data.ammoUsedPerSecond > 0) {
-                    // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                     const ammoID = this.player.equipmentID(equipmentSlotData.Quiver.id);
                     factor += data.ammoUsedPerSecond * this.getConsumableCostInSeconds(ammoID);
                 }
                 // familiars
                 if (data.tabletsUsedPerSecond > 0) {
                     [
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         MICSR.melvorCombatSim.player.equipmentID(EquipmentSlots.Summon1),
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         MICSR.melvorCombatSim.player.equipmentID(EquipmentSlots.Summon2),
                     ].forEach(summonID => {
                         if (this.consumables[summonID]) {
@@ -360,11 +357,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

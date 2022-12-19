@@ -147,7 +147,6 @@
                 });
 
                 // export slayer tasks
-                // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
                 SlayerTask.data.forEach((task: any, taskID: any) => {
                     if (this.skip(
                         this.simulator.slayerSimFilter[taskID],
@@ -188,11 +187,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

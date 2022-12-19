@@ -29,18 +29,21 @@
         /**
          * SimPlayer class, allows creation of a functional Player object without affecting the game
          */
-        // @ts-expect-error TS(2304): Cannot find name 'Player'.
         MICSR.SimPlayer = class extends Player {
             _slayercoins: any;
             activeAstrologyModifiers: any;
             activeDOTs: any;
             activeItemSynergies: any;
+            // @ts-expect-error HACK
             activePrayers: any;
             activeSummonSlots: any;
             applyModifiersToPrayerCost: any;
+            // @ts-expect-error HACK
             attackStyle: any;
             attackType: any;
+            // @ts-expect-error HACK
             autoEatEfficiency: any;
+            // @ts-expect-error HACK
             autoEatThreshold: any;
             autoEatTier: any;
             canAurora: any;
@@ -55,6 +58,7 @@
             dataNames: any;
             eatFood: any;
             emptyAutoHeal: any;
+            // @ts-expect-error HACK
             equipment: any;
             equipmentSets: any;
             food: any;
@@ -81,22 +85,24 @@
             skillLevel: any;
             skillXP: any;
             slayercoins: any;
+            // @ts-expect-error HACK
             spellSelection: any;
-            stats: any;
             summoningSynergy: any;
             target: any;
             timers: any;
             useCombinationRunesFlag: any;
             usedAmmo: any;
-            usedFood: any;
+            usedFood: number;
             usedPotionCharges: any;
             usedPrayerPoints: any;
             usedRunes: any;
+            // @ts-expect-error HACK
             usingAncient: any;
             activeSummoningSynergy: any;
 
             constructor(simManager: any, simGame: any) {
                 super(simManager, simGame);
+                this.usedFood = 0;
                 this.detachGlobals();
                 this.replaceGlobals();
                 // remove standard spell selection
@@ -197,7 +203,6 @@
                     if (this.isSynergyActive(synergy)) {
                         return synergy.langDescription;
                     } else {
-                        // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
                         return getLangString('MENU_TEXT', 'LOCKED');
                     }
                 } else {
@@ -218,12 +223,10 @@
             }
 
             initForWebWorker() {
-                // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                 numberMultiplier = this.gamemode.hitpointMultiplier;
                 // recompute stats
                 this.updateForEquipmentChange();
                 this.resetGains();
-                // @ts-expect-error TS(2304): Cannot find name
                 this.computeModifiers();
             }
 
@@ -391,6 +394,7 @@
             }
 
             tick() {
+                // @ts-expect-error HACK
                 super.tick();
                 if (this.isManualEating) {
                     this.manualEat();
@@ -459,7 +463,6 @@
             }
 
             addSlayerCoins(amount: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'applyModifier'.
                 amount = applyModifier(amount, this.modifiers.increasedSlayerCoins - this.modifiers.decreasedSlayerCoins, 0);
                 this._slayercoins += amount;
             }
@@ -536,9 +539,7 @@
             }
 
             rewardXPAndPetsForDamage(damage: number) {
-                // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                 damage = damage / numberMultiplier;
-                // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
                 const attackInterval = this.timers.act.maxTicks * TICK_INTERVAL;
                 // Combat Style
                 if (this.attackStyle !== undefined) {
@@ -584,7 +585,6 @@
                     const item = this.getPotion();
                     // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                     if (type === Herblore.potions[item.masteryID[1]].consumesOn
-                        // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                         && !rollPercentage(this.modifiers.increasedChanceToPreservePotionCharge - this.modifiers.decreasedChanceToPreservePotionCharge)
                     ) {
                         this.usedPotionCharges++;
@@ -615,7 +615,6 @@
 
             // track ammo usage instead of consuming
             consumeAmmo() {
-                // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                 if (!rollPercentage(this.modifiers.ammoPreservationChance)) {
                     this.usedAmmo++;
                 }
@@ -651,7 +650,6 @@
 
             // track rune usage instead of consuming
             consumeRunes(costs: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                 if (!rollPercentage(this.modifiers.runePreservationChance)) {
                     costs.forEach((cost: any) => {
                         if (this.usedRunes[cost.itemID] === undefined) {
@@ -674,6 +672,7 @@
                 }
             }
 
+            // @ts-expect-error HACK
             equipItem(item: any, set: any, slot = "Default", quantity = 1) {
                 const itemToEquip = item === undefined ? MICSR.emptyItems[slot] : item;
                 if (slot === "Default") {
@@ -688,11 +687,13 @@
                 this.equipment.equipItem(itemToEquip, slot, quantity);
             }
 
+            // @ts-expect-error HACK
             unequipItem(set: any, slot: any) {
                 this.equipment.unequipItem(slot);
                 this.updateForEquipmentChange();
             }
 
+            // @ts-expect-error HACK
             equipFood(item: any) {
                 if (item.id === 'melvorD:Empty_Equipment') {
                     this.unequipFood();
@@ -759,7 +760,6 @@
             }
 
             removeSummonCharge(slot: any, charges = 1) {
-                // @ts-expect-error TS(2304): Cannot find name 'rollPercentage'.
                 if (!rollPercentage(this.modifiers.increasedSummoningChargePreservation - this.modifiers.decreasedSummoningChargePreservation)) {
                     this.chargesUsed[slot] += charges;
                 }
@@ -782,7 +782,6 @@
                 if (this.hitpoints > 0) {
                     this.autoEat();
                     if (this.hitpoints < (this.stats.maxHitpoints * this.modifiers.increasedRedemptionThreshold) / 100) {
-                        // @ts-expect-error TS(2304): Cannot find name 'applyModifier'.
                         this.heal(applyModifier(this.stats.maxHitpoints, this.modifiers.increasedRedemptionPercent));
                     }
                     if (this.hitpoints < (this.stats.maxHitpoints * this.modifiers.increasedCombatStoppingThreshold) / 100) {
@@ -826,8 +825,8 @@
                 return met;
             }
 
-            hasKey<O>(obj: O, key: PropertyKey): key is keyof O {
-                return key in obj
+            hasKey<O extends object>(obj: O, key: PropertyKey): key is keyof O {
+                return key in obj;
             }
 
             /** Encode the SimPlayer object */
@@ -951,11 +950,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

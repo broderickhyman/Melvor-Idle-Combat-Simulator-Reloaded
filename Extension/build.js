@@ -29,3 +29,4 @@ exports.zipName = zipName;
 exports.archive = archive;
 
 console.log(version);
+console.log("Build finished at: " + new Date())

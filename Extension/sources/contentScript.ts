@@ -18,84 +18,72 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// Hack to pass around Mod context
+declare global {
+  interface Window {
+    ctx: Modding.ModContext;
+  }
+}
+
 // Set up listener from page
 window.addEventListener('message', (event) => {
-    // We only accept messages from ourselves
-    if (event.source !== window) {
-        return;
+  // We only accept messages from ourselves
+  if (event.source !== window) {
+    return;
+  }
+  if (event.data.type && (event.data.type === 'MCS_FROM_PAGE')) {
+    switch (event.data.action) {
+      case 'REQUEST_URLS':
+        // Send URLS of web accessible resources to page
+        const urls = {
+          crossedOut: window.ctx.getResourceUrl('icons/crossedOut.svg'),
+          simulationWorker: window.ctx.getResourceUrl('built/workers/simulator.js'),
+        };
+        window.postMessage({ type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls });
+        break;
     }
-    if (event.data.type && (event.data.type === 'MCS_FROM_PAGE')) {
-        switch (event.data.action) {
-            case 'REQUEST_URLS':
-                // Send URLS of web accessible resources to page
-                const urls = {
-                    // @ts-expect-error TS(2304): Cannot find name 'chrome'.
-                    crossedOut: chrome.runtime.getURL('icons/crossedOut.svg'),
-                    // @ts-expect-error TS(2304): Cannot find name 'chrome'.
-                    simulationWorker: chrome.runtime.getURL('built/workers/simulator.js'),
-                };
-                window.postMessage({ type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls });
-                break;
-        }
-    }
+  }
 }, false);
 
-// Perform script injection
-/**
- * Injects a script onto the page of the
- * @param {string} scriptName
- */
-function injectScript(scriptName: any) {
-    const scriptID = `mcs-${scriptName}`;
-    // Check if script already exists, if so delete it
-    if (document.getElementById(scriptID)) {
-        window.postMessage({ type: 'MCS_FROM_CONTENT', action: 'UNLOAD' });
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
-        document.getElementById(scriptID).remove();
-    }
-    // Inject script
-    // @ts-expect-error TS(2304): Cannot find name 'chrome'.
-    const scriptPath = chrome.runtime.getURL(`built/injectable/${scriptName}.js`);
-    const newScript = document.createElement('script');
-    newScript.setAttribute('id', scriptID);
-    newScript.src = scriptPath;
-    document.body.appendChild(newScript);
-}
-
 // Inject the scripts
-function injectScripts() {
-    // Order of scripts shouldn't matter, `waitLoadOrder` takes care of appropriate loading order
-    const injectableNames = [
-        // MICSR object
-        'MICSR',
-        // common
-        'util',
-        'modifierNames',
-        // class files
-        'AgilityCourse',
-        'Card',
-        'CloneData',
-        'CombatData',
-        'Consumables',
-        'DataExport',
-        'ExportCheat',
-        'Import',
-        'Loot',
-        'Plotter',
-        'Menu',
-        'Simulator',
-        'SimEnemy',
-        'SimManager',
-        'SimPlayer',
-        'TabCard',
-        // uses the other classes
-        'App',
-        // should be last
-        'main',
-    ];
-    for (let i = 0; i < injectableNames.length; i++) {
-        injectScript(injectableNames[i]);
-    }
+async function loadScripts(ctx: Modding.ModContext) {
+  // Order of scripts shouldn't matter, `waitLoadOrder` takes care of appropriate loading order
+  const injectableNames = [
+    // MICSR object
+    'MICSR',
+    // common
+    'util',
+    'modifierNames',
+    // class files
+    'AgilityCourse',
+    'Card',
+    'CombatData',
+    'Consumables',
+    'DataExport',
+    'ExportCheat',
+    'Import',
+    'Loot',
+    'Plotter',
+    'Menu',
+    'Simulator',
+    'SimEnemy',
+    'SimManager',
+    'SimPlayer',
+    'TabCard',
+    // uses the other classes
+    'App',
+    // should be last
+    'main',
+  ];
+  for (let i = 0; i < injectableNames.length; i++) {
+    const scriptPath = `built/injectable/${injectableNames[i]}.js`;
+    await ctx.loadScript(scriptPath);
+  }
+  await ctx.loadScript('built/workers/simulator.js');
 }
 
-injectScripts();
+export function setup(ctx: Modding.ModContext) {
+  // Hack to pass around Mod context
+  window.ctx = ctx;
+  loadScripts(ctx);
+}

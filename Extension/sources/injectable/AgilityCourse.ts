@@ -47,7 +47,6 @@
                 this.filters = filters;
                 this.filter = this.filters[0];
                 this.id = Date.now();
-                // @ts-expect-error TS(2304): Cannot find name 'PlayerModifiers'.
                 this.tmpModifiers = new PlayerModifiers();
 
                 // icons
@@ -267,11 +266,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

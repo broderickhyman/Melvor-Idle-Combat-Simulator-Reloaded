@@ -744,7 +744,6 @@
                 }
                 // convert to array if required
                 const valueToPrint = skillID !== undefined ? [skillID, value] : value;
-                // @ts-expect-error TS(2304): Cannot find name 'printPlayerModifier'.
                 return [printPlayerModifier(modifier, valueToPrint)];
             }
 
@@ -931,7 +930,6 @@
                 this.productionSkills.forEach((skill: any) => passives += this.makeTagButton(skill, skill, `assets/media/skills/${skill.toLowerCase()}/${skill.toLowerCase()}.svg`));
                 passives += this.makeTagButton('altMagic', 'Alt. Magic', 'assets/media/skills/magic/magic.svg');
                 passives += this.printRelevantModifiersHtml(modifiers, 'All Modifiers', tag);
-                // @ts-expect-error TS(2304): Cannot find name 'Swal'.
                 Swal.fire({
                     html: passives,
                 });
@@ -944,11 +942,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

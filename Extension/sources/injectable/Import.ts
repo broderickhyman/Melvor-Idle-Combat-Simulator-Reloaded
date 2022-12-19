@@ -32,7 +32,6 @@
             astrologyModifiers: [],
             course: Array(10).fill(-1),
             courseMastery: { "-1": false },
-            // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
             equipment: Array(Object.getOwnPropertyNames(equipmentSlotData).length).fill(-1),
             levels: Array(MICSR.game.skills.allObjects.length).fill(1),
             petUnlocked: Array(MICSR.pets.length).fill(false),
@@ -501,11 +500,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

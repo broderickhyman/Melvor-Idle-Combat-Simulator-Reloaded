@@ -26,33 +26,12 @@
 
         const MICSR = (window as any).MICSR;
 
-        // overwrite CombatLoot
-        // @ts-expect-error TS(2304): Cannot find name 'CombatLoot'.
-        CombatLoot = class {
-            add() {
-            }
-
-            removeAll() {
-            }
-        }
-
-        // overwrite SlayerTask
-        // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-        const slayerTaskData = SlayerTask.data;
-        // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-        SlayerTask = class {
-            tick() {
-            }
-        }
-        // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
-        SlayerTask.data = slayerTaskData;
-
         /**
          * SimManager class, allows creation of a functional Player object without affecting the game
          */
-        // @ts-expect-error TS(2304): Cannot find name 'CombatManager'.
         MICSR.SimManager = class extends CombatManager {
             selectedArea: any;
+            // @ts-expect-error HACK
             areaType: any;
             bank: any;
             dropEnemyGP: any;
@@ -136,13 +115,20 @@
                     !this.selectedArea.monsters[this.dungeonProgress].isBoss) {
                     this.enemy.addPassives(this.selectedArea.nonBossPassives, true, true, false);
                 }
+                // @ts-expect-error HACK
                 if (super.activeEvent !== undefined) {
+                    // @ts-expect-error HACK
                     this.enemy.addPassives(super.eventPassives, true, false, false);
+                    // @ts-expect-error HACK
                     if (this.selectedMonster !== super.activeEvent.firstBossMonster &&
+                        // @ts-expect-error HACK
                         this.selectedMonster !== super.activeEvent.finalBossMonster) {
+                        // @ts-expect-error HACK
                         this.enemy.addPassives(super.activeEvent.enemyPassives, true, true, false);
                     }
+                    // @ts-expect-error HACK
                     if (this.dungeonProgress === super.eventDungeonLength - (super.atLastEventDungeon ? 2 : 1)) {
+                        // @ts-expect-error HACK
                         this.enemy.addPassives(super.activeEvent.bossPassives, true, true, false);
                         // May want to make this enemy an actual boss monster for big ol ron? idk
                     }
@@ -175,7 +161,6 @@
 
             convertSlowSimToResult(simResult: any, targetTrials: any) {
                 const gps = simResult.gainsPerSecond;
-                // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
                 const ticksPerSecond = 1000 / TICK_INTERVAL;
                 const trials = simResult.killCount + simResult.deathCount;
                 let reason = undefined;
@@ -239,6 +224,7 @@
                 this.simStats.deathCount++;
             }
 
+            // @ts-expect-error HACK
             onEnemyDeath() {
                 this.player.rewardGPForKill();
                 if (this.selectedArea.type === 'Dungeon') {
@@ -280,12 +266,10 @@
                 this.dropEnemyGP(this.enemy.monster);
                 let slayerXPReward = 0;
                 if (this.areaType === 'Slayer') {
-                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     slayerXPReward += this.enemy.stats.maxHitpoints / numberMultiplier / 2;
                 }
                 if (this.onSlayerTask) {
                     this.player.rewardSlayerCoins();
-                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     slayerXPReward += this.enemy.stats.maxHitpoints / numberMultiplier;
                 }
                 if (slayerXPReward > 0)
@@ -308,6 +292,7 @@
                 this.onSelection();
             }
 
+            // @ts-expect-error HACK
             preSelection() {
                 this.stopCombat(true, true);
             }
@@ -345,11 +330,8 @@
             }
 
             tick() {
-                // @ts-expect-error TS(2304): Cannot find name
                 this.passiveTick();
-                // @ts-expect-error TS(2304): Cannot find name
                 this.activeTick();
-                // @ts-expect-error TS(2304): Cannot find name
                 this.checkDeath();
                 this.tickCount++;
             }
@@ -401,11 +383,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

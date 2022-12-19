@@ -1,9 +1,7 @@
 const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-    // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
     if (typeof characterSelected === typeof undefined) {
         return;
     }
-    // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
     let reqMet = characterSelected && confirmedLoaded;
     if (reqMet) {
         loadCounter++;

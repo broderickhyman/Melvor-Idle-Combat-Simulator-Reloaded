@@ -387,7 +387,6 @@
                 // Finalize tooltips
                 // @ts-expect-error TS(2304): Cannot find name 'tippy'.
                 this.tippyInstances = tippy('#mcsModal [data-tippy-content]', this.tippyOptions);
-                // @ts-expect-error TS(2304): Cannot find name 'tippy'.
                 this.tippySingleton = tippy.createSingleton(this.tippyInstances, { delay: [0, 200], ...this.tippyOptions });
                 for (const bar of this.plotter.bars) {
                     this.addNoSingletonTippy(bar, { triggerTarget: bar.parentElement });
@@ -443,7 +442,6 @@
                     style: 'text-align: left;',
                 };
                 const printedModifiers = this.printRelevantModifiers(modifiers, options)
-                // @ts-expect-error TS(2304): Cannot find name 'Swal'.
                 Swal.fire({
                     // @ts-expect-error TS(2551): Property 'headers' does not exist on type '{ heade... Remove this comment to see the full error message
                     html: printedModifiers.headers + printedModifiers.passives,
@@ -684,7 +682,6 @@
                     tooltip += `<span class='text-info'>${item.description.replace(/<br>\(/, ' (')}</span><br>`;
                 }
                 if (item.healsFor) {
-                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     const amt = Math.round(item.healsFor * numberMultiplier);
                     tooltip += `<h5 class="font-w400 font-size-sm text-left text-combat-smoke m-1 mb-2">Base healing: <img class="skill-icon-xs mr-1" src="${this.media.hitpoints}"><span class="text-bank-desc">+${amt} HP</span></h5>`;
                 }
@@ -875,7 +872,6 @@
                     let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
                     switch (spellType) {
                         case 'standard':
-                            // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                             tooltip += `Spell Damage: ${spell.maxHit * numberMultiplier}`;
                             break;
                         case 'aurora':
@@ -917,7 +913,6 @@
                 tooltip += prayer.description;
                 tooltip += '<br></span>';
                 if (prayer.pointsPerPlayer > 0) {
-                    // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                     tooltip += `<span class='text-success'>+${(prayer.pointsPerPlayer / 3 / numberMultiplier).toFixed(3)} Prayer XP per damage dealt to enemy</span><br>`;
                 }
                 tooltip += '<span class="text-warning">Prayer Point Cost:</span><br><span class="text-info">';
@@ -1122,7 +1117,6 @@
                         document.getElementById(`MICSR-${constellation.name}-Unique-Image`),
                     ]
                     for (const id of this.constellationModifierContainers[index]) {
-                        // @ts-expect-error TS(2531): Object is possibly 'null'.
                         const el = document.getElementById(id).parentElement;
                         els.push(el);
                     }
@@ -1718,7 +1712,7 @@
              * Change a button's classes to show that it is selected
              * @param {HTMLButtonElement} button
              */
-            selectButton(button: any) {
+            selectButton(button: HTMLElement) {
                 button.classList.add('btn-primary');
                 button.classList.remove('btn-outline-dark');
             }
@@ -1727,7 +1721,7 @@
              * Change a button's classes to show that it is not selected
              * @param {HTMLButtonElement} button
              */
-            unselectButton(button: any) {
+            unselectButton(button: HTMLElement) {
                 button.classList.remove('btn-primary');
                 button.classList.add('btn-outline-dark');
             }
@@ -1898,7 +1892,6 @@
              */
             getEquipmentTooltip(equipmentSlot: any, item: any) {
                 if (!item) {
-                    // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                     return EquipmentSlots[equipmentSlot];
                 }
 
@@ -2115,7 +2108,10 @@
                         this.player.potionID = -1;
                         this.unselectButton(event.currentTarget);
                     } else { // Change Potion
-                        this.unselectButton(document.getElementById(`MCS ${this.getPotionName(this.player.potionID)} Button`));
+                        const button = document.getElementById(`MCS ${this.getPotionName(this.player.potionID)} Button`);
+                        if (button) {
+                            this.unselectButton(button);
+                        }
                         this.player.potionID = potionID;
                         this.selectButton(event.currentTarget);
                     }
@@ -2147,7 +2143,10 @@
                     return;
                 }
                 // unselect spell
-                this.unselectButton(document.getElementById(`MCS ${spell.id} Button`));
+                const button = document.getElementById(`MCS ${spell.id} Button`);
+                if (button) {
+                    this.unselectButton(button);
+                }
                 this.player.spellSelection[spellType] = undefined;
                 // send message if required
                 if (message) {
@@ -2178,7 +2177,10 @@
                     this.disableSpell('ancient', this.player.spellSelection.ancient, 'Disabled ancient magick spell.');
                 }
                 // select spell
-                this.selectButton(document.getElementById(`MCS ${spell.id} Button`));
+                const button = document.getElementById(`MCS ${spell.id} Button`);
+                if (button) {
+                    this.selectButton(button);
+                }
                 this.player.spellSelection[spellType] = spell;
                 // send message if required
                 if (message) {
@@ -2462,7 +2464,6 @@
                 navigator.clipboard.writeText(data).then(() => {
                     this.notify('Exported to clipboard!');
                 }, () => {
-                    // @ts-expect-error TS(2304): Cannot find name 'Swal'.
                     Swal.fire({
                         title: 'Clipboard API error!',
                         html: `<h5 class="font-w600 text-combat-smoke mb-1">Manually copy the data below, e.g. with ctrl-A ctrl-C.</h5><textarea class="mcsLabel mb-1">${data}</textarea>`,
@@ -2736,7 +2737,6 @@
                 if (dataMultiplier === -1) {
                     dataMultiplier = killTimeS;
                 }
-                // @ts-expect-error TS(2304): Cannot find name 'formatNumber'.
                 let tooltip = `<span>${formatNumber(Math.floor(baseGpPerSecond * dataMultiplier))} Raw GP/${this.selectedTimeShorthand}</span><br/>`;
                 tooltip = `<div className="text-center">${tooltip}</div>`;
                 this.setTooltipById(`MCS gpPerSecond Output`, tooltip);
@@ -3137,11 +3137,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

@@ -18,141 +18,99 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-(() => {
+interface ICloneDictionary {
+    [name: string]: string;
+}
 
-    const reqs: never[] = [];
+declare global {
+    interface ICloneData {
+        equipmentSlotData: () => ICloneDictionary;
+        modifierData: () => ICloneDictionary;
+        restoreModifierData: () => ICloneDictionary;
+    }
+}
 
-    const setup = () => {
+/**
+ * CloneData class, to clone some specific objects for transfer to the web workers
+ */
+export class CloneData implements ICloneData {
+    constructor() {
+    };
 
-        const MICSR = (window as any).MICSR;
-
-        /**
-         * CloneData class, to clone some specific objects for transfer to the web workers
-         */
-        MICSR.CloneData = class {
-            constructor() {
-            };
-
-            equipmentSlotData = () => {
-                const clone: { [name: string]: string; } = {};
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
-                const base = equipmentSlotData;
-                for (const key in base) {
-                    const data = { ...base[key] };
-                    data.imageElements = [];
-                    data.qtyElements = [];
-                    data.tooltips = [];
-                    data.quickEquipTooltip = [];
-                    clone[key] = data;
-                }
-                return clone;
-            }
-
-            modifierData = () => {
-                const clone: { [name: string]: string; } = {};
-                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                const base = modifierData;
-                const knownKeys = [
-                    'description',
-                    'isNegative',
-                    'isSkill',
-                    'langDescription',
-                    'tags',
-                ];
-                for (const key in base) {
-                    const data = { ...base[key] };
-                    data.langDescription = '';
-                    for (const propKey in data) {
-                        const prop = data[propKey];
-                        if (knownKeys.includes(propKey) || prop.minimum !== undefined) {
-                            continue;
-                        }
-                        if (prop.name === 'modifyValue') {
-                            data.modifyValueClone = prop.toString();
-                        }
-                        data[propKey] = prop.name;
-                    }
-                    clone[key] = data;
-                }
-                return clone;
-            }
-
-            restoreModifierData = () => {
-                const clone: { [name: string]: string; } = {};
-                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                const base = modifierData;
-                const knownKeys = [
-                    'description',
-                    'isNegative',
-                    'isSkill',
-                    'langDescription',
-                    'tags',
-                    'modifyValueClone',
-                ];
-                for (const key in base) {
-                    const data = base[key];
-                    for (const propKey in data) {
-                        const prop = data[propKey];
-                        if (knownKeys.includes(propKey) || prop.minimum !== undefined) {
-                            continue;
-                        }
-                        let func = self[prop];
-                        if (prop === 'modifyValue') {
-                            eval(`func = ${data.modifyValueClone}`);
-                        }
-                        if (func === undefined) {
-                            console.log(`Unknown function ${prop} in web worker`);
-                        }
-                        // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                        modifierData[key][propKey] = func;
-                    }
-                }
-                return clone;
-            }
+    equipmentSlotData = () => {
+        const clone: ICloneDictionary = {};
+        const base = equipmentSlotData;
+        for (const key in base) {
+            // @ts-expect-error HACK
+            const data = { ...base[key] };
+            data.imageElements = [];
+            data.qtyElements = [];
+            data.tooltips = [];
+            data.quickEquipTooltip = [];
+            clone[key] = data;
         }
+        return clone;
     }
 
-    let loadCounter = 0;
-    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        if (typeof characterSelected === typeof undefined) {
-            return;
-        }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
-        let reqMet = characterSelected && confirmedLoaded;
-        if (reqMet) {
-            loadCounter++;
-        }
-        if (loadCounter > 100) {
-            console.log('Failed to load ' + id);
-            return;
-        }
-        // check requirements
-        if ((window as any).MICSR === undefined) {
-            reqMet = false;
-            console.log(id + ' is waiting for the MICSR object');
-        } else {
-            for (const req of reqs) {
-                if ((window as any).MICSR.loadedFiles[req]) {
+    modifierData = () => {
+        const clone: ICloneDictionary = {};
+        const base = modifierData;
+        const knownKeys = [
+            'description',
+            'isNegative',
+            'isSkill',
+            'langDescription',
+            'tags',
+        ];
+        for (const key in base) {
+            // @ts-expect-error HACK
+            const data = { ...base[key] };
+            data.langDescription = '';
+            for (const propKey in data) {
+                const prop = data[propKey];
+                if (knownKeys.includes(propKey) || prop.minimum !== undefined) {
                     continue;
                 }
-                reqMet = false;
-                // not defined yet: try again later
-                if (loadCounter === 1) {
-                    (window as any).MICSR.log(id + ' is waiting for ' + req);
+                if (prop.name === 'modifyValue') {
+                    data.modifyValueClone = prop.toString();
                 }
+                data[propKey] = prop.name;
+            }
+            clone[key] = data;
+        }
+        return clone;
+    }
+
+    restoreModifierData = () => {
+        const clone: ICloneDictionary = {};
+        const base = modifierData;
+        const knownKeys = [
+            'description',
+            'isNegative',
+            'isSkill',
+            'langDescription',
+            'tags',
+            'modifyValueClone',
+        ];
+        for (const key in base) {
+            // @ts-expect-error HACK
+            const data = base[key];
+            for (const propKey in data) {
+                const prop = data[propKey];
+                if (knownKeys.includes(propKey) || prop.minimum !== undefined) {
+                    continue;
+                }
+                let func = self[prop];
+                if (prop === 'modifyValue') {
+                    eval(`func = ${data.modifyValueClone}`);
+                }
+                if (func === undefined) {
+                    console.log(`Unknown function ${prop} in web worker`);
+                }
+                // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
+                modifierData[key][propKey] = func;
             }
         }
-        if (!reqMet) {
-            setTimeout(() => waitLoadOrder(reqs, setup, id), 50);
-            return;
-        }
-        // requirements met
-        (window as any).MICSR.log('setting up ' + id);
-        setup();
-        // mark as loaded
-        (window as any).MICSR.loadedFiles[id] = true;
+        return clone;
     }
-    waitLoadOrder(reqs, setup, 'CloneData');
-
-})();
+}

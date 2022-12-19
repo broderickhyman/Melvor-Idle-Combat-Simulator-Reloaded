@@ -164,9 +164,7 @@
             }
 
             getSummoningXP() {
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 const summ1 = this.player.equipmentID(equipmentSlotData.Summon1.id);
-                // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
                 const summ2 = this.player.equipmentID(equipmentSlotData.Summon2.id);
                 let xp = 0;
                 // @ts-expect-error TS(2304): Cannot find name 'items'.
@@ -186,11 +184,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

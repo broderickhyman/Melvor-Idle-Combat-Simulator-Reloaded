@@ -21,15 +21,15 @@
 (() => {
 
     const reqs = [
-        'CloneData',
         'SimEnemy',
         'SimManager',
         'SimPlayer',
     ];
 
-    const setup = () => {
+    const setup = async () => {
 
         const MICSR = (window as any).MICSR;
+        const { CloneData } = await window.ctx.loadModule("built/injectable/CloneData.js");
 
         /**
          * Simulator class, used for all simulation work, and storing simulation results and settings
@@ -60,11 +60,11 @@
             testCount: any;
             testMax: any;
             workerURL: any;
-            private cloner: any;
+            private cloner: ICloneData;
 
             constructor(parent: any, workerURL: any) {
                 this.parent = parent;
-                this.cloner = new MICSR.CloneData();
+                this.cloner = new CloneData();
                 // Simulation settings
                 this.monsterSimFilter = {};
                 this.dungeonSimFilter = {};
@@ -165,7 +165,7 @@
             }
 
             /**
-             * Attempts to create a web worker, if it fails uses a chrome hack to get a URL that works
+             * Creates a web worker
              * @return {Promise<Worker>}
              */
             createWorker() {
@@ -175,19 +175,7 @@
                         newWorker = new Worker(this.workerURL);
                         resolve(newWorker);
                     } catch (error) {
-                        // Chrome Hack
-                        if ((error as any).name === 'SecurityError' && (error as any).message.includes('Failed to construct \'Worker\': Script')) {
-                            const workerContent = new XMLHttpRequest();
-                            workerContent.open('GET', this.workerURL);
-                            workerContent.send();
-                            workerContent.addEventListener('load', (event) => {
-                                const blob = new Blob([(event.currentTarget as any).responseText], { type: 'application/javascript' });
-                                this.workerURL = URL.createObjectURL(blob);
-                                resolve(new Worker(this.workerURL));
-                            });
-                        } else { // Other Error
-                            reject(error);
-                        }
+                        reject(error);
                     }
                 });
             }
@@ -206,46 +194,38 @@
                 }[] = [
                         // modified objects
                         { name: 'CDNDIR', data: '' },
-                        // @ts-expect-error TS(2304): Cannot find name 'currentSaveVersion'.
                         { name: 'currentSaveVersion', data: currentSaveVersion },
-                        // @ts-expect-error TS(2304): Cannot find name 'gameVersion'.
                         { name: 'gameVersion', data: gameVersion },
-                        // @ts-expect-error TS(2304): Cannot find name 'enemyNoun'.
                         { name: 'enemyNoun', data: enemyNoun },
-                        { name: 'loadedLangJson', data: {} },
-                        // @ts-expect-error TS(2304): Cannot find name 'MAX_QUICK_EQUIP_ITEMS'.
+                        // We need loadedLangJson for skill names (used with XP tracking)
+                        { name: 'loadedLangJson', data: loadedLangJson },
                         { name: 'MAX_QUICK_EQUIP_ITEMS', data: MAX_QUICK_EQUIP_ITEMS },
-                        // @ts-expect-error TS(2304): Cannot find name 'TICK_INTERVAL'.
                         { name: 'TICK_INTERVAL', data: TICK_INTERVAL },
-                        // @ts-expect-error TS(2304): Cannot find name 'youNoun'.
                         { name: 'youNoun', data: youNoun },
-                        // @ts-expect-error TS(2304): Cannot find name 'TODO_REPLACE_MEDIA'.
                         { name: 'TODO_REPLACE_MEDIA', data: TODO_REPLACE_MEDIA },
                         { name: 'DEBUGENABLED', data: false },
                         // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
                         { name: 'cloudManager', data: { ...cloudManager, formElements: undefined, formInnerHTML: undefined } },
-                        // @ts-expect-error TS(2304): Cannot find name 'COMBAT_TRIANGLE_IDS'.
                         { name: 'COMBAT_TRIANGLE_IDS', data: COMBAT_TRIANGLE_IDS },
-                        // @ts-expect-error TS(2304): Cannot find name 'combatTriangle'.
                         { name: 'combatTriangle', data: combatTriangle },
-                        // @ts-expect-error TS(2304): Cannot find name 'numberMultiplier'.
                         { name: 'numberMultiplier', data: numberMultiplier },
-                        // @ts-expect-error TS(2304): Cannot find name 'frostBurnEffect'.
+                        { name: 'burnEffect', data: burnEffect },
+                        { name: 'afflictionEffect', data: afflictionEffect },
                         { name: 'frostBurnEffect', data: frostBurnEffect },
-                        //// @ts-expect-error TS(2304): Cannot find name 'burnEffect'.
-                        //{name: 'burnEffect', data: burnEffect},
                         { name: 'effectMedia', data: {} },
                         { name: 'combatMenus', data: {} },
                         { name: 'loadingOfflineProgress', data: undefined },
-                        // @ts-expect-error TS(2304): Cannot find name 'DATA_VERSION'.
                         { name: 'DATA_VERSION', data: DATA_VERSION },
                         { name: 'equipmentSlotData', data: this.cloner.equipmentSlotData() },
                         { name: 'modifierData', data: this.cloner.modifierData() },
+                        { name: 'SlayerTierID', data: SlayerTierID },
                     ];
                 [
                     // these objects are copied from the game
                     'CombatAreaType', 'EnemyState', 'EquipmentSlots', 'RaidDifficulty', 'AmmoTypeID', 'RaidState',
-                    'SpellTypes', 'SpellTiers', 'CombatStats', 'MonsterStats', 'ItemStats',
+                    'SpellTypes', 'SpellTiers', 
+                    'CombatStats', 'MonsterStats', 'ItemStats', 'GeneralStats', 'PrayerStats',
+                    'SlayerStats', 'StatCategories',
                     // these objects are implicitly set to undefined
                     'smithingSelectionTabs', 'fletchingSelectionTabs', 'craftingSelectionTabs',
                     'runecraftingSelectionTabs', 'herbloreSelectionTabs', 'summoningSelectionTabs',
@@ -284,7 +264,7 @@
                 });
                 // these functions are copied from the simulator
                 [
-                    'setupData', 'setupGame', 'setup', 'setupFetchedData',
+                    'setupData', 'setupGame', 'setup'
                 ].forEach((func: string) => functionNames.push({ name: `MICSR.${func}`, data: MICSR[func] }));
                 // process functions
                 const functions: { [name: string]: string; } = {};
@@ -323,60 +303,59 @@
                     };
                 };
                 [
-                    // @ts-expect-error TS(2304): Cannot find name
                     CombatQuickEquipMenu, Bank, Completion, Minibar, Settings, SkillRenderQueue,
-                    // @ts-expect-error TS(2304): Cannot find name
                     CompletionMap, AltMagicRenderQueue, PrayerRenderQueue, ArtisanSkillRenderQueue,
-                    // @ts-expect-error TS(2304): Cannot find name
                     WoodcuttingRenderQueue, FishingRenderQueue, FiremakingRenderQueue, CookingRenderQueue,
-                    // @ts-expect-error TS(2304): Cannot find name
                     MiningRenderQueue, ThievingRenderQueue, FarmingRenderQueue, TownshipTasks, TownshipData,
-                    // @ts-expect-error TS(2304): Cannot find name
                     AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue,
-                    // @ts-expect-error TS(2304): Cannot find name
                     MasteryLevelUnlock, CustomSkillMilestone,
                 ].forEach((clas: any) => classNames.push({ name: clas.name, data: emptyClass }));
                 // these classes are copied from the game
                 [
-                    // @ts-expect-error TS(2304): Cannot find name
                     NamespaceMap, NamespaceRegistry, NamespacedObject, NamespacedArray, ItemRegistry, CharacterStats,
-                    // @ts-expect-error TS(2304): Cannot find name
                     NormalDamage, Gamemode, Page, Skill, SkillWithMastery, CombatSkill, SkillMasteryMilestone, GatheringSkill, CraftingSkill, ArtisanSkill,
                     // skills
-                    // @ts-expect-error TS(2304): Cannot find name
                     Attack, Strength, Defence, Hitpoints, Ranged, AltMagic, Prayer, Slayer, Woodcutting, Fishing, Firemaking, Cooking, Mining, Smithing, Thieving, Farming, Fletching, Crafting, Runecrafting, Herblore, Agility, Summoning, Astrology, Township,
                     // items
-                    // @ts-expect-error TS(2304): Cannot find name
                     Item, EquipmentItem, WeaponItem, FoodItem, BoneItem, OpenableItem, PotionItem, ReadableItem, CompostItem, TokenItem,
-                    // @ts-expect-error TS(2304): Cannot find name
                     CombatLoot, DropTable, Lore, EventManager, CombatArea, Dungeon, StackingEffect, TownshipMap,
-                    // @ts-expect-error TS(2304): Cannot find name
                     SparseNumericMap, SpecialAttack, ItemEffectAttack, Currency, DataReader, Equipment, EquipmentSet,
-                    // @ts-expect-error TS(2304): Cannot find name
                     EquipmentStats, EquippedFood, EquipSlot, GP, ItemCharges, MappedModifiers, ExperienceCalculator,
-                    // @ts-expect-error TS(2304): Cannot find name
                     NotificationQueue, PlayerStats, PetManager, PotionManager, SlayerCoins, RaidCoins, SpellSelection,
-                    // @ts-expect-error TS(2304): Cannot find name
                     TargetModifiers, Timer, Tutorial, TutorialRenderQueue, BinaryWriter, SaveWriter, Shop,
-                    // @ts-expect-error TS(2304): Cannot find name
                     ShopRenderQueue, SlayerTask, SlowEffect, SplashManager, CombatModifiers, PlayerModifiers,
-                    // @ts-expect-error TS(2304): Cannot find name
-                    BaseManager, CombatManager, Character, Player, RaidPlayer, Enemy, Game, Golbin, RaidManager,
-                    // @ts-expect-error TS(2304): Cannot find name
+                    // @ts-expect-error TS(2304): Cannot find name 'GolbinRaidBank'.
+                    BaseManager, CombatManager, Character, Player, RaidPlayer, Enemy, Game, Golbin, GolbinRaidBank, RaidManager,
                     TownshipWorship, TownshipJob, CombatPassive, Pet, AttackStyle, ConditionalModifier, BaseSpell,
-                    // @ts-expect-error TS(2304): Cannot find name
                     CombatSpell, StandardSpell, CurseSpell, AncientSpell, ArchaicSpell, AuroraSpell, Monster,
-                    // @ts-expect-error TS(2304): Cannot find name
                     ShopCategory, ShopPurchase, ShopUpgradeChain, BurnEffect, PoisonEffect, SlayerArea, GameEvent,
-                    // @ts-expect-error TS(2304): Cannot find name
                     PlayerAttackEvent, EnemyAttackEvent, PlayerHitpointRegenerationEvent, StatTracker,
-                    // @ts-expect-error TS(2304): Cannot find name
                     MappedStatTracker, Statistics, DummyItem, DummyMonster,
+                    ControlledAffliction, ActivePrayer, ItemSynergy, ItemEffect, CombatEvent,
+                    PlayerSummonAttackEvent
+                    // GameEventMatcher, SkillActionEventMatcher,
+
+                    // WoodcuttingActionEventMatcher, FishingActionEventMatcher, FiremakingActionEventMatcher, BonfireLitEventMatcher,
+                    // CookingActionEventMatcher, MiningActionEventMatcher, SmithingActionEventMatcher, ThievingActionEventMatcher,
+                    // FarmingPlantActionEventMatcher, FarmingHarvestActionEventMatcher, FletchingActionEventMatcher,
+                    // CraftingActionEventMatcher, RunecraftingActionEventMatcher, HerbloreActionEventMatcher,
+                    // AgilityActionEventMatcher, SummoningActionEventMatcher, AstrologyActionEventMatcher,
+                    // AltMagicActionEventMatcher, MonsterDropEventMatcher, PlayerAttackEventMatcher,
+                    // EnemyAttackEventMatcher, FoodEatenEventMatcher, PrayerPointConsumptionEventMatcher,
+                    // PlayerHitpointRegenerationMatcher, PlayerSummonAttackEventMatcher, RuneConsumptionEventMatcher,
+                    // PotionUsedEventMatcher, PotionChargeUsedEventMatcher, MonsterKilledEventMatcher,
+                    // ItemEquippedEventMatcher, FoodEquippedEventMatcher, ShopPurchaseMadeEventMatcher,
+                    // SummonTabletUsedEventMatcher,
+
+                    // MasteryAction, BasicSkillRecipe, ArtisanSkillRecipe, CategorizedArtisanRecipe, SingleProductArtisanSkillRecipe,
+
+                    // CookingRecipe, SkillCategory, CookingCategory
                 ].forEach((clas: any) => classNames.push({ name: clas.name, data: clas }));
                 // these classes are copied from the simulator
                 [
-                    'ShowModifiers', 'SimManager', 'SimPlayer', 'SimEnemy', 'CloneData',
+                    'ShowModifiers', 'SimManager', 'SimPlayer', 'SimEnemy', 'Simulator'
                 ].forEach((clas: any) => classNames.push({ name: `MICSR.${clas}`, data: MICSR[clas] }));
+                classNames.push({ name: `CloneData`, data: CloneData });
                 const classes: { [name: string]: string; } = {};
                 classNames.forEach(clas => {
                     const s = clas.data.toString()
@@ -410,6 +389,8 @@
                     // classes
                     classNames: classNames.map(x => x.name),
                     classes: classes,
+                    // TODO: This might also be sent with the MICSR object
+                    slayerTaskData: SlayerTask.data,
                 });
             }
 
@@ -1031,12 +1012,10 @@
     }
 
     let loadCounter = 0;
-    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
+    const waitLoadOrder = async (reqs: any, setup: any, id: any) => {
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;
@@ -1067,7 +1046,7 @@
         }
         // requirements met
         (window as any).MICSR.log('setting up ' + id);
-        setup();
+        await setup();
         // mark as loaded
         (window as any).MICSR.loadedFiles[id] = true;
     }

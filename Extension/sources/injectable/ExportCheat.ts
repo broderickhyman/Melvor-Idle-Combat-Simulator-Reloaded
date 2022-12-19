@@ -51,11 +51,9 @@
                     setEquipmentImage: () => {
                     },
                     equipItem: (slotID: any, itemID: any) => {
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         const qty = [EquipmentSlots.Quiver, EquipmentSlots.Summon1, EquipmentSlots.Summon2].includes(slotID) ? 1e9 : 1;
                         // @ts-expect-error TS(2304): Cannot find name 'addItemToBank'.
                         addItemToBank(itemID, qty, true, false, true);
-                        // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
                         this.player.equipItem(itemID, 0, EquipmentSlots[slotID], qty)
                     },
                     updateStyleDropdowns: () => {
@@ -218,11 +216,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

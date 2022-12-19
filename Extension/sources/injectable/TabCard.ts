@@ -94,12 +94,10 @@
             }
 
             setTabIDToSelected(tabID: any) {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(tabID).className = 'mcsTabButton mcsTabButtonSelected';
             }
 
             setTabIDToUnSelected(tabID: any) {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(tabID).className = 'mcsTabButton';
             }
 
@@ -138,11 +136,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

@@ -63,13 +63,13 @@
 
         MICSR.createMenu = (title: any, menuID: any, eyeID: any) => {
             // check if tools menu already exists
-            let menu = document.getElementById(menuID);
-            if (menu !== null) {
-                return menu;
+            let oldMenu = document.getElementById(menuID);
+            if (oldMenu !== null) {
+                return oldMenu;
             }
 
             // Create new tools menu
-            menu = document.createElement('li');
+            const menu = document.createElement('li');
             menu.id = menuID;
             menu.className = 'nav-main-heading mcsNoSelect';
             menu.textContent = title;
@@ -85,7 +85,6 @@
 
             // insert menu before Minigames
             (document.getElementsByClassName('nav-main-heading') as any).forEach((heading: any) => {
-                // @ts-expect-error TS(2304): Cannot find name 'getLangString'.
                 if (heading.textContent === getLangString('PAGE_NAME_MISC', '1')) {
                     heading.parentElement.insertBefore(menu, heading);
                 }
@@ -98,12 +97,10 @@
         MICSR.headingEyeOnClick = (eyeID: any) => {
             const headingEye = document.getElementById(eyeID);
             if ((window as any).MICSR_eyeHidden) {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 headingEye.className = 'far fa-eye text-muted ml-1';
                 (window as any).MICSR_menuTabs.forEach((tab: any) => tab.style.display = '');
                 (window as any).MICSR_eyeHidden = false;
             } else {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
                 headingEye.className = 'far fa-eye-slash text-muted ml-1';
                 (window as any).MICSR_menuTabs.forEach((tab: any) => tab.style.display = 'none');
                 (window as any).MICSR_eyeHidden = true;
@@ -171,11 +168,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;

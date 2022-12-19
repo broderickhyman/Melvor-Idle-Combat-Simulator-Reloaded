@@ -1,4 +1,5 @@
 {
+    "namespace": "micsr",
     "manifest_version": 2,
     "name": "Melvor Idle Combat Simulator Reloaded",
     "description": "Adds a combat simulator to Melvor Idle",

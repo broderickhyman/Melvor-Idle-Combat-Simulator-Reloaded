@@ -25,14 +25,18 @@
     const setup = () => {
 
         // global combat simulator object
-        const MICSR = (window as any).MICSR;
+        const MICSR = (window as any).MICSR as {
+            [index: string]: any;
+            game: Game;
+            actualGame: Game;
+        };
 
         // combat sim name
         MICSR.name = 'Melvor Idle Combat Simulator Reloaded';
         MICSR.shortName = 'Combat Simulator';
 
         // compatible game version
-        MICSR.gameVersion = 'v1.1';
+        MICSR.gameVersion = 'v1.1.1';
 
         // combat sim version
         MICSR.majorVersion = 1;
@@ -99,14 +103,28 @@
         MICSR.cleanupDataPackage = {};
         MICSR.cleanupDataPackage.any = (id: string) => {
             MICSR.dataPackage[id].data.lore = undefined;
+            MICSR.dataPackage[id].data.tutorialStages = undefined;
+            MICSR.dataPackage[id].data.tutorialStageOrder = undefined;
+            MICSR.dataPackage[id].data.steamAchievements = undefined;
+            MICSR.dataPackage[id].data.shopDisplayOrder = undefined;
+            MICSR.dataPackage[id].data.shopUpgradeChains = undefined;
+            MICSR.dataPackage[id].modifications = undefined;
+
+            const includedCategories = [ 'Slayer' ];
+
+            MICSR.dataPackage[id].data.shopPurchases = MICSR.dataPackage[id].data.shopPurchases
+                .filter((x: any) => includedCategories.map((includedCategory: string) => `melvorF:${includedCategory}`).includes(x.category))
+
+            const bannedSkills = [
+                'Woodcutting', 'Firemaking', 'Fishing', 'Mining', 'Cooking', 'Smithing', 'Farming', 'Summoning',
+                'Thieving', 'Fletching', 'Crafting', 'Runecrafting', 'Herblore', 'Agility', 'Astrology', 'Township',
+                'Magic', 'Ranged'
+            ];
+            MICSR.dataPackage[id].data.skillData = MICSR.dataPackage[id].data.skillData
+                .filter((x: any) => !bannedSkills.map((bannedSkill: string) => `melvorD:${bannedSkill}`).includes(x.skillID))
         }
         MICSR.cleanupDataPackage.Demo = () => {
             MICSR.cleanupDataPackage.any('Demo');
-            MICSR.dataPackage.Demo.data.tutorialStages = undefined;
-            MICSR.dataPackage.Demo.data.tutorialStageOrder = undefined;
-            const bannedSkills = ['Woodcutting', 'Firemaking', 'Fishing', 'Mining', 'Cooking', 'Smithing', 'Farming', 'Summoning'];
-            MICSR.dataPackage.Demo.data.skillData = MICSR.dataPackage.Demo.data.skillData
-                .filter((x: any) => !bannedSkills.map((bannedSkill: string) => `melvorD:${bannedSkill}`).includes(x.skillID))
         };
         MICSR.cleanupDataPackage.Full = () => {
             MICSR.cleanupDataPackage.any('Full');
@@ -122,34 +140,26 @@
             MICSR.maxTicks = 1e3;
             // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
             MICSR.cloudManager = cloudManager;
-            // @ts-expect-error TS(2304): Cannot find name 'DATA_VERSION'.
             MICSR.DATA_VERSION = DATA_VERSION;
-            // @ts-expect-error TS(2304): Cannot find name 'BinaryWriter'.
             MICSR.BinaryWriter = BinaryWriter;
-            // @ts-expect-error TS(2304): Cannot find name 'SaveWriter'.
             MICSR.SaveWriter = SaveWriter;
-            // @ts-expect-error TS(2304): Cannot find name 'currentSaveVersion'.
             MICSR.currentSaveVersion = currentSaveVersion;
-            // @ts-expect-error TS(2304): Cannot find name 'EquipmentSlots'.
             MICSR.EquipmentSlots = EquipmentSlots;
-            // @ts-expect-error TS(2304): Cannot find name 'equipmentSlotData'.
             MICSR.equipmentSlotData = equipmentSlotData;
-            // @ts-expect-error TS(2304): Cannot find name 'SlayerTask'.
             MICSR.slayerTaskData = SlayerTask.data;
             MICSR.taskIDs = MICSR.slayerTaskData.map((task: any) => task.display);
-            // @ts-expect-error TS(2304): Cannot find name 'notifyPlayer'.
             MICSR.imageNotify = imageNotify;
         }
         MICSR.setupData();
-        MICSR.fetchDataPackage('Demo', `assets/data/melvorDemo.json?${MICSR.DATA_VERSION}`);
+        MICSR.fetchDataPackage('Demo', `/assets/data/melvorDemo.json?${MICSR.DATA_VERSION}`);
         if (MICSR.cloudManager.hasFullVersionEntitlement) {
-            MICSR.fetchDataPackage('Full', `assets/data/melvorFull.json?${MICSR.DATA_VERSION}`);
+            MICSR.fetchDataPackage('Full', `/assets/data/melvorFull.json?${MICSR.DATA_VERSION}`);
         }
         if (MICSR.cloudManager.hasTotHEntitlement) {
-            MICSR.fetchDataPackage('TotH', `assets/data/melvorTotH.json?${MICSR.DATA_VERSION}`);
+            MICSR.fetchDataPackage('TotH', `/assets/data/melvorTotH.json?${MICSR.DATA_VERSION}`);
         }
         MICSR.fetching = () => {
-            if (MICSR.dataPackage.Demo === undefined) {
+            if (!MICSR.cloudManager.hasFullVersionEntitlement && MICSR.dataPackage.Demo === undefined) {
                 return true;
             }
             if (MICSR.cloudManager.hasFullVersionEntitlement && MICSR.dataPackage.Full === undefined) {
@@ -160,21 +170,12 @@
             }
             return false;
         }
-        MICSR.setupFetchedData = (game: any) => {
-            game.registerDataPackage(MICSR.dataPackage.Demo);
-            if (MICSR.cloudManager.hasFullVersionEntitlement) {
-                game.registerDataPackage(MICSR.dataPackage.Full);
-            }
-            if (MICSR.cloudManager.hasTotHEntitlement) {
-                game.registerDataPackage(MICSR.dataPackage.TotH);
-            }
-        }
 
         // any setup that requires a game object
-        MICSR.setupGame = (game: any) => {
+        MICSR.setupGame = (game: Game) => {
             MICSR.actualGame = game;
             MICSR.game = MICSR.actualGame; // TODO this should be a mock game object probably
-            MICSR.namespace = MICSR.game.registeredNamespaces.registeredNamespaces.get('micsr');
+            MICSR.namespace = MICSR.game.registeredNamespaces.getNamespace('micsr');
             if (MICSR.namespace === undefined) {
                 MICSR.namespace = MICSR.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
             }
@@ -251,7 +252,6 @@
             MICSR.setupGame(game);
         }
         // run the MICSR setup function
-        // @ts-expect-error TS(2304): Cannot find name 'game'.
         MICSR.setup(game);
 
         /**
@@ -382,11 +382,9 @@
 
     let loadCounter = 0;
     const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         if (typeof characterSelected === typeof undefined) {
             return;
         }
-        // @ts-expect-error TS(2304): Cannot find name 'characterSelected'.
         let reqMet = characterSelected && confirmedLoaded;
         if (reqMet) {
             loadCounter++;
