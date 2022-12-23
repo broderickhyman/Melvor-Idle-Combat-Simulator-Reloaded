@@ -20,7 +20,7 @@
 
 (async () => {
   // spoof MICSR
-  const MICSR: any = {
+  const logging = {
     debug: (...args: any[]) => console.debug('MICSR:', ...args),
     log: (...args: any[]) => console.log('MICSR:', ...args),
     warn: (...args: any[]) => console.warn('MICSR:', ...args),
@@ -113,25 +113,23 @@
       case 'RECEIVE_GAMEDATA':
         // constants
         event.data.constantNames.forEach((name: any) => {
-          // MICSR.log('constant', name, event.data.constants[name])
-          MICSR.log('constant', name)
-          if (name.startsWith('MICSR.')) {
-            MICSR[name.substr(6)] = event.data.constants[name];
-          } else {
-            self[name] = event.data.constants[name];
-          }
+          // this.micsr.log('constant', name, event.data.constants[name])
+          // logging.log('constant', name)
+          self[name] = event.data.constants[name];
         });
+
         // functions
         event.data.functionNames.forEach((name: any) => {
-          // MICSR.log('function', name, event.data.functions[name])
-          MICSR.log('function', name)
+          // this.micsr.log('function', name, event.data.functions[name])
+          // logging.log('function', name)
           eval(event.data.functions[name]);
         });
         // classes
         event.data.classNames.forEach((name: any) => {
-          MICSR.log('class', name)
+          // logging.log('class', name)
           eval(event.data.classes[name]);
         });
+
         // create instances
         // @ts-expect-error TS(2304): Cannot find name 'pako'.
         self.pako = {
@@ -143,31 +141,34 @@
           }
         };
         // restore data
-        // @ts-expect-error
-        const cloneData: ICloneData = new CloneData();
+        const cloneData = new CloneData();
         cloneData.restoreModifierData();
         SlayerTask.data = event.data.slayerTaskData;
-        MICSR.log('Creating exp');
+        logging.log('Creating exp');
         const exp = new ExperienceCalculator()
-        MICSR.log('Creating game');
-        const full = MICSR.dataPackage.Full;
-        const toth = MICSR.dataPackage.TotH;
+        logging.log('Creating game');
+        const full = event.data.dataPackage.Full;
+        const toth = event.data.dataPackage.TotH;
         // @ts-expect-error
         cloudManager.hasTotHEntitlement = !!toth;
         // @ts-expect-error
         cloudManager.hasFullVersionEntitlement = !!full;
 
         const game = new Game();
+
+        const micsr = new MICSR(game);
+        micsr.dataPackage = event.data.dataPackage;
+
         // @ts-expect-error
         self.firstSkillAction = true;
-        self.saveData = (vars?) => {};
+        self.saveData = (vars?) => { };
         // @ts-expect-error
-        self.deleteScheduledPushNotification = () => {};
+        self.deleteScheduledPushNotification = () => { };
         game.constructEventMatcher = (data: GameEventMatcherData): GameEventMatcher => {
           return {} as any;
         };
 
-        game.registerDataPackage(MICSR.dataPackage.Demo);
+        game.registerDataPackage(event.data.dataPackage.Demo);
         // @ts-expect-error
         if (cloudManager.hasFullVersionEntitlement) {
           game.registerDataPackage(full);
@@ -177,9 +178,8 @@
           game.registerDataPackage(toth);
         }
 
-        MICSR.log('Creating MICSR');
-        MICSR.setup(game);
-        combatSimulator = new CombatSimulator();
+        micsr.log('Creating MICSR');
+        combatSimulator = new CombatSimulator(micsr);
         break;
       case 'START_SIMULATION':
         const startTime = performance.now();
@@ -215,55 +215,59 @@
     });
   }
 
-  class CombatSimulator {
-    cancelStatus: any;
 
-    constructor() {
-      this.cancelStatus = false;
-    }
+})();
 
-    /**
-     * Simulation Method for a single monster
-     */
-    async simulateMonster(playerString: string, monsterID: string, dungeonID: string, trials: number, maxTicks: number) {
-      MICSR.log('Creating manager');
-      (self as any).numberMultiplier = undefined;
-      const manager = new MICSR.SimManager(MICSR.game, MICSR.namespace);
-      MICSR.log('Creating player', playerString);
-      // @ts-expect-error TS(2304): Cannot find name 'pako'.
-      console.log('received', pako.inflate(playerString).buffer)
-      const atobCopy = atob;
-      self.atob = (x: any) => x;
-      const player = MICSR.SimPlayer.newFromPlayerString(manager, playerString);
-      manager.player = player;
-      self.atob = atobCopy;
-      player.initForWebWorker();
-      MICSR.log('Finished setup');
-      try {
-        return manager.convertSlowSimToResult(manager.runTrials(monsterID, dungeonID, trials, maxTicks), trials);
-      } catch (error) {
-        MICSR.error(`Error while simulating monster ${monsterID} in dungeon ${dungeonID}: ${error}`);
-        return {
-          simSuccess: false,
-          reason: 'simulation error',
-        }
+class CombatSimulator {
+  cancelStatus: any;
+  micsr: MICSR;
+
+  constructor(micsr: MICSR) {
+    this.micsr = micsr;
+    this.cancelStatus = false;
+  }
+
+  /**
+   * Simulation Method for a single monster
+   */
+  async simulateMonster(playerString: string, monsterID: string, dungeonID: string, trials: number, maxTicks: number) {
+    this.micsr.log('Creating manager');
+    (self as any).numberMultiplier = undefined;
+    const manager = new SimManager(this.micsr, this.micsr.game, this.micsr.namespace);
+    this.micsr.log('Creating player', playerString);
+    // @ts-expect-error TS(2304): Cannot find name 'pako'.
+    console.log('received', pako.inflate(playerString).buffer)
+    const atobCopy = atob;
+    self.atob = (x: any) => x;
+    const player = SimPlayer.newFromPlayerString(manager, playerString);
+    manager.player = player;
+    self.atob = atobCopy;
+    player.initForWebWorker();
+    this.micsr.log('Finished setup');
+    try {
+      return manager.convertSlowSimToResult(manager.runTrials(monsterID, dungeonID, trials, maxTicks), trials);
+    } catch (error) {
+      this.micsr.error(`Error while simulating monster ${monsterID} in dungeon ${dungeonID}: ${error}`);
+      return {
+        simSuccess: false,
+        reason: 'simulation error',
       }
     }
-
-    /**
-     * Checks if the simulation has been messaged to be cancelled
-     * @return {Promise<boolean>}
-     */
-    async isCanceled() {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(this.cancelStatus);
-        });
-      });
-    }
-
-    cancelSimulation() {
-      this.cancelStatus = true;
-    }
   }
-})();
+
+  /**
+   * Checks if the simulation has been messaged to be cancelled
+   * @return {Promise<boolean>}
+   */
+  async isCanceled() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(this.cancelStatus);
+      });
+    });
+  }
+
+  cancelSimulation() {
+    this.cancelStatus = true;
+  }
+}

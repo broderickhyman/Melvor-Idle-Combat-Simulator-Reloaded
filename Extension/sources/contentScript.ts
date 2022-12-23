@@ -18,36 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-// Hack to pass around Mod context
-declare global {
-  interface Window {
-    ctx: Modding.ModContext;
-  }
-}
-
-// Set up listener from page
-window.addEventListener('message', (event) => {
-  // We only accept messages from ourselves
-  if (event.source !== window) {
-    return;
-  }
-  if (event.data.type && (event.data.type === 'MCS_FROM_PAGE')) {
-    switch (event.data.action) {
-      case 'REQUEST_URLS':
-        // Send URLS of web accessible resources to page
-        const urls = {
-          crossedOut: window.ctx.getResourceUrl('icons/crossedOut.svg'),
-          simulationWorker: window.ctx.getResourceUrl('built/workers/simulator.js'),
-        };
-        window.postMessage({ type: 'MCS_FROM_CONTENT', action: 'RECEIVE_URLS', urls: urls });
-        break;
-    }
-  }
-}, false);
-
-// Inject the scripts
 async function loadScripts(ctx: Modding.ModContext) {
-  // Order of scripts shouldn't matter, `waitLoadOrder` takes care of appropriate loading order
   const injectableNames = [
     // MICSR object
     'MICSR',
@@ -58,10 +29,11 @@ async function loadScripts(ctx: Modding.ModContext) {
     'AgilityCourse',
     'Card',
     'CombatData',
+    'CloneData',
     'Consumables',
     'DataExport',
-    'ExportCheat',
     'Import',
+    'ExportCheat',
     'Loot',
     'Plotter',
     'Menu',
@@ -72,9 +44,8 @@ async function loadScripts(ctx: Modding.ModContext) {
     'TabCard',
     // uses the other classes
     'App',
-    // should be last
-    'main',
   ];
+  // debugger;
   for (let i = 0; i < injectableNames.length; i++) {
     const scriptPath = `built/injectable/${injectableNames[i]}.js`;
     await ctx.loadScript(scriptPath);
@@ -82,8 +53,46 @@ async function loadScripts(ctx: Modding.ModContext) {
   await ctx.loadScript('built/workers/simulator.js');
 }
 
-export function setup(ctx: Modding.ModContext) {
-  // Hack to pass around Mod context
-  window.ctx = ctx;
-  loadScripts(ctx);
+export function setup(setupContext: Modding.ModContext) {
+  loadScripts(setupContext);
+
+  setupContext.onCharacterLoaded(async (characterContext) => {
+    // debugger;
+    const urls = {
+      crossedOut: characterContext.getResourceUrl('icons/crossedOut.svg'),
+      simulationWorker: characterContext.getResourceUrl('built/workers/simulator.js'),
+    };
+    const micsr = new MICSR(game);
+    await micsr.initialize();
+
+    // micsr.log('Loading sim with provided URLS');
+    let tryLoad = true;
+    let wrongVersion = false;
+    if (gameVersion !== micsr.gameVersion && gameVersion !== localStorage.getItem('MICSR-gameVersion')) {
+      wrongVersion = true;
+      tryLoad = window.confirm(`${micsr.name} ${micsr.version}\n`
+        + `A different game version was detected (expected: ${micsr.gameVersion}).\n`
+        + `Loading the combat sim may cause unexpected behaviour.\n`
+        + `After a successful load, this popup will be skipped for Melvor ${gameVersion}\n`
+        + `Try loading the simulator?`);
+    }
+    if (tryLoad) {
+      try {
+        const app = new App(micsr);
+        await app.initialize(urls);
+        if (wrongVersion) {
+          micsr.log(`${micsr.name} ${micsr.version} loaded, but simulation results may be inaccurate due to game version incompatibility.`);
+          micsr.log(`No further warnings will be given when loading the simulator in Melvor ${gameVersion}`);
+          localStorage.setItem('MICSR-gameVersion', gameVersion);
+        } else {
+          micsr.log(`${micsr.name} ${micsr.version} loaded.`);
+        }
+      } catch (error) {
+        micsr.warn(`${micsr.name} ${micsr.version} was not loaded due to the following error:`);
+        micsr.error(error);
+      }
+    } else {
+      micsr.warn(`${micsr.name} ${micsr.version} was not loaded due to game version incompatibility.`);
+    }
+  });
 }

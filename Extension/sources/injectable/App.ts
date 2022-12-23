@@ -18,3162 +18,3098 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-(() => {
-    const reqs = [
-        'util',
-        'AgilityCourse',
-        'Card',
-        'CombatData',
-        'Consumables',
-        'DataExport',
-        'Import',
-        'Plotter',
-        'Loot',
-        'Menu',
-        'modifierNames',
-        'SimEnemy',
-        'SimManager',
-        'SimPlayer',
-        'Simulator',
-        'TabCard',
-    ];
 
-    const setup = () => {
+/**
+ * Container Class for the Combat Simulator.
+ * A single instance of this is initiated on load.
+ */
+class App {
+    agilityCourse: any;
+    agilitySelectCard: any;
+    astrologySelectCard: any;
+    astrologySelected: any;
+    barMonsterIDs: any;
+    barSelected: any;
+    barType: any;
+    barTypes: any;
+    botContent: any;
+    combatData: any;
+    combatPotionIDs: any;
+    combatStatCard: any;
+    combatStatKeys: any;
+    compareCard: any;
+    constellationContainers: any;
+    constellationModifierContainers: any;
+    consumables: any;
+    consumablesCard: any;
+    dataExport: any;
+    defaultSpell: any;
+    dropListFilters: any;
+    dungeonBarIDs: any;
+    dungeonToggleState: any;
+    equipmentSelectCard: any;
+    equipmentSubsets: any;
+    failureLabel: any;
+    foodCCContainer: any;
+    foodItems: any;
+    force: any;
+    import: any;
+    importedSettings: any;
+    infoPlaceholder: any;
+    initialTimeUnitIndex: any;
+    isViewingDungeon: any;
+    levelSelectCard: any;
+    loot: any;
+    lootSelectCard: any;
+    mainTabCard: any;
+    manager: SimManager;
+    media: any;
+    menuItemId: any;
+    modalID: any;
+    monsterToggleState: any;
+    petIDs: any;
+    petSelectCard: any;
+    player: Player;
+    plotTypes: any;
+    plotter: any;
+    potionSelectCard: any;
+    prayerSelectCard: any;
+    savedSimulations: any;
+    selectedBar: any;
+    selectedTime: any;
+    selectedTimeShorthand: any;
+    simOptionsCard: any;
+    simulator!: Simulator;
+    skillKeys: any;
+    skipConstellations: any;
+    slayerToggleState: any;
+    spellSelectCard: any;
+    subInfoCard: any;
+    timeMultiplier: any;
+    timeMultipliers: any;
+    timeOptions: any;
+    timeShorthand: any;
+    tippyInstances: any;
+    tippyNoSingletonInstances: any;
+    tippyOptions: any;
+    tippySingleton: any;
+    topContent: any;
+    trackHistory: any;
+    uniqueModifiers: any;
+    viewedDungeonID: any;
+    zoneInfoCard: any;
+    micsr: MICSR;
 
-        const MICSR = (window as any).MICSR;
+    /**
+     * Constructs an instance of mcsApp
+     */
+    constructor(micsr: MICSR) {
+        this.micsr = micsr;
+        // Combat Data Object
+        this.manager = new SimManager(micsr, micsr.game, micsr.namespace)
+        this.manager.initialize();
+        this.player = this.manager.player;
+        this.combatData = new CombatData(this.manager);
+        // prepare tooltips
+        this.tippyOptions = { allowHTML: true, animation: false, hideOnClick: false };
+        this.tippyNoSingletonInstances = [];
+        // Plot Type Options
+        this.plotTypes = [];
+        const addPlotOption = (option: any, isTime: any, value: any, info: any, scale = true) => {
+            this.plotTypes.push({
+                option: option,
+                isTime: isTime,
+                value: value,
+                info: info,
+                scale: scale && isTime,
+            });
+        }
+        // xp gains
+        addPlotOption('XP per ', true, 'xpPerSecond', 'XP/');
+        addPlotOption('HP XP per ', true, 'hpXpPerSecond', 'HP XP/');
+        addPlotOption('Prayer XP per ', true, 'prayerXpPerSecond', 'Prayer XP/');
+        addPlotOption('Slayer XP per ', true, 'slayerXpPerSecond', 'Slayer XP/');
+        addPlotOption('Summoning XP per ', true, 'summoningXpPerSecond', 'Summoning XP/');
+        // resource loss
+        addPlotOption('Prayer Points per ', true, 'ppConsumedPerSecond', 'Prayer Points/');
+        addPlotOption('Ammo per ', true, 'ammoUsedPerSecond', 'Ammo/');
+        addPlotOption('Runes per ', true, 'runesUsedPerSecond', 'Runes/');
+        addPlotOption('Combination Runes per ', true, 'combinationRunesUsedPerSecond', 'Comb. Runes/');
+        addPlotOption('Potions per ', true, 'potionsUsedPerSecond', 'Potions/');
+        addPlotOption('Tablets per type per ', true, 'tabletsUsedPerSecond', 'Tablets per type/');
+        addPlotOption('Food per', true, 'atePerSecond', 'Food/');
+        // survivability
+        addPlotOption('Estimated Death Rate', false, 'deathRate', 'Est. Death Rate');
+        addPlotOption('Highest Hit Taken', false, 'highestDamageTaken', 'Highest Hit Taken');
+        addPlotOption('Lowest Hitpoints', false, 'lowestHitpoints', 'Lowest Hitpoints');
+        // kill time
+        addPlotOption('Average Kill Time (s)', false, 'killTimeS', 'Kill Time(s)');
+        addPlotOption('Kills per ', true, 'killsPerSecond', 'Kills/');
+        // loot gains
+        addPlotOption('GP per ', true, 'gpPerSecond', 'GP/');
+        addPlotOption('Drops per', true, 'dropChance', 'Drops/');
+        addPlotOption('Percent Chance for Signet Part B per', true, 'signetChance', 'Signet (%)/', false);
+        addPlotOption('Pet (%) per ', true, 'petChance', ' Pet (%)/');
+        addPlotOption('Slayer Coins per ', true, 'slayerCoinsPerSecond', 'Slayer Coins/');
+        // addPlotOption('Simulation Time', false, 'simulationTime', 'Sim Time');
+        // Time unit options
+        this.timeOptions = ['Kill', 'Second', 'Minute', 'Hour', 'Day'];
+        this.timeShorthand = ['kill', 's', 'm', 'h', 'd'];
+        this.timeMultipliers = [-1, 1, 60, 3600, 3600 * 24];
+        this.initialTimeUnitIndex = 3;
+        this.selectedTime = this.timeOptions[this.initialTimeUnitIndex];
+        this.selectedTimeShorthand = this.timeShorthand[this.initialTimeUnitIndex];
+        this.timeMultiplier = this.timeMultipliers[this.initialTimeUnitIndex];
 
-        /**
-         * Container Class for the Combat Simulator.
-         * A single instance of this is initiated on load.
-         */
-        MICSR.App = class {
-            agilityCourse: any;
-            agilitySelectCard: any;
-            astrologySelectCard: any;
-            astrologySelected: any;
-            barMonsterIDs: any;
-            barSelected: any;
-            barType: any;
-            barTypes: any;
-            botContent: any;
-            combatData: any;
-            combatPotionIDs: any;
-            combatStatCard: any;
-            combatStatKeys: any;
-            compareCard: any;
-            constellationContainers: any;
-            constellationModifierContainers: any;
-            consumables: any;
-            consumablesCard: any;
-            dataExport: any;
-            defaultSpell: any;
-            dropListFilters: any;
-            dungeonBarIDs: any;
-            dungeonToggleState: any;
-            equipmentSelectCard: any;
-            equipmentSubsets: any;
-            failureLabel: any;
-            foodCCContainer: any;
-            foodItems: any;
-            force: any;
-            import: any;
-            importedSettings: any;
-            infoPlaceholder: any;
-            initialTimeUnitIndex: any;
-            isViewingDungeon: any;
-            levelSelectCard: any;
-            loot: any;
-            lootSelectCard: any;
-            mainTabCard: any;
-            manager: any;
-            media: any;
-            menuItemId: any;
-            modalID: any;
-            monsterToggleState: any;
-            petIDs: any;
-            petSelectCard: any;
-            player: any;
-            plotTypes: any;
-            plotter: any;
-            potionSelectCard: any;
-            prayerSelectCard: any;
-            savedSimulations: any;
-            selectedBar: any;
-            selectedTime: any;
-            selectedTimeShorthand: any;
-            simOptionsCard: any;
-            simulator: any;
-            skillKeys: any;
-            skipConstellations: any;
-            slayerToggleState: any;
-            spellSelectCard: any;
-            subInfoCard: any;
-            timeMultiplier: any;
-            timeMultipliers: any;
-            timeOptions: any;
-            timeShorthand: any;
-            tippyInstances: any;
-            tippyNoSingletonInstances: any;
-            tippyOptions: any;
-            tippySingleton: any;
-            topContent: any;
-            trackHistory: any;
-            uniqueModifiers: any;
-            viewedDungeonID: any;
-            zoneInfoCard: any;
+        // Useful assets
+        this.media = {
+            combat: 'assets/media/skills/combat/combat.png',
+            slayer: 'assets/media/skills/slayer/slayer.png',
+            prayer: 'assets/media/skills/prayer/prayer.svg',
+            spellbook: 'assets/media/skills/combat/spellbook.svg',
+            curse: 'assets/media/skills/combat/curses.svg',
+            aurora: 'assets/media/skills/combat/auroras.svg',
+            ancient: 'assets/media/skills/combat/ancient.svg',
+            emptyPotion: 'assets/media/skills/herblore/potion_empty.svg',
+            pet: 'assets/media/pets/hitpoints.png',
+            settings: 'assets/media/main/settings_header.svg',
+            gp: 'assets/media/main/coins.png',
+            attack: 'assets/media/skills/combat/attack.svg',
+            strength: 'assets/media/skills/combat/strength.svg',
+            ranged: 'assets/media/skills/ranged/ranged.svg',
+            magic: 'assets/media/skills/magic/magic.svg',
+            defence: 'assets/media/skills/defence/defence.svg',
+            hitpoints: 'assets/media/skills/hitpoints/hitpoints.svg',
+            emptyFood: 'assets/media/skills/combat/food_empty.svg',
+            agility: 'assets/media/skills/agility/agility.svg',
+            mastery: 'assets/media/main/mastery_header.png',
+            statistics: 'assets/media/main/statistics_header.svg',
+            loot: 'assets/media/bank/chapeau_noir.png',
+            summoning: 'assets/media/skills/summoning/summoning.svg',
+            synergy: 'assets/media/skills/summoning/synergy.svg',
+            synergyLock: 'assets/media/skills/summoning/synergy_locked.svg',
+            stamina: 'assets/media/main/stamina.png',
+            question: 'assets/media/main/question.svg',
+            airRune: this.micsr.game.items.getObjectByID('melvorD:Air_Rune').media,
+            mistRune: this.micsr.game.items.getObjectByID('melvorD:Mist_Rune').media,
+            bank: 'assets/media/main/bank_header.svg',
+            herblore: 'assets/media/skills/herblore/herblore.svg',
+            cooking: 'assets/media/skills/cooking/cooking.svg',
+            fletching: 'assets/media/skills/fletching/fletching.svg',
+            astrology: 'assets/media/skills/astrology/astrology.svg',
+            standardStar: 'assets/media/skills/astrology/star_standard.svg',
+            uniqueStar: 'assets/media/skills/astrology/star_unique.svg',
+        };
 
-            /**
-             * Constructs an instance of mcsApp
-             * @param {Object} urls URLs from content script
-             * @param {string} urls.simulationWorker URL for simulator script
-             * @param {string} urls.crossedOut URL for crossed out svg
-             */
-            constructor(urls: any) {
-                // Combat Data Object
-                this.manager = new MICSR.SimManager(MICSR.game, MICSR.namespace)
-                this.manager.initialize();
-                this.player = this.manager.player;
-                this.combatData = new MICSR.CombatData(this.manager);
-                // prepare tooltips
-                this.tippyOptions = { allowHTML: true, animation: false, hideOnClick: false };
-                this.tippyNoSingletonInstances = [];
-                // Plot Type Options
-                this.plotTypes = [];
-                const addPlotOption = (option: any, isTime: any, value: any, info: any, scale = true) => {
-                    this.plotTypes.push({
-                        option: option,
-                        isTime: isTime,
-                        value: value,
-                        info: info,
-                        scale: scale && isTime,
-                    });
-                }
-                // xp gains
-                addPlotOption('XP per ', true, 'xpPerSecond', 'XP/');
-                addPlotOption('HP XP per ', true, 'hpXpPerSecond', 'HP XP/');
-                addPlotOption('Prayer XP per ', true, 'prayerXpPerSecond', 'Prayer XP/');
-                addPlotOption('Slayer XP per ', true, 'slayerXpPerSecond', 'Slayer XP/');
-                addPlotOption('Summoning XP per ', true, 'summoningXpPerSecond', 'Summoning XP/');
-                // resource loss
-                addPlotOption('Prayer Points per ', true, 'ppConsumedPerSecond', 'Prayer Points/');
-                addPlotOption('Ammo per ', true, 'ammoUsedPerSecond', 'Ammo/');
-                addPlotOption('Runes per ', true, 'runesUsedPerSecond', 'Runes/');
-                addPlotOption('Combination Runes per ', true, 'combinationRunesUsedPerSecond', 'Comb. Runes/');
-                addPlotOption('Potions per ', true, 'potionsUsedPerSecond', 'Potions/');
-                addPlotOption('Tablets per type per ', true, 'tabletsUsedPerSecond', 'Tablets per type/');
-                addPlotOption('Food per', true, 'atePerSecond', 'Food/');
-                // survivability
-                addPlotOption('Estimated Death Rate', false, 'deathRate', 'Est. Death Rate');
-                addPlotOption('Highest Hit Taken', false, 'highestDamageTaken', 'Highest Hit Taken');
-                addPlotOption('Lowest Hitpoints', false, 'lowestHitpoints', 'Lowest Hitpoints');
-                // kill time
-                addPlotOption('Average Kill Time (s)', false, 'killTimeS', 'Kill Time(s)');
-                addPlotOption('Kills per ', true, 'killsPerSecond', 'Kills/');
-                // loot gains
-                addPlotOption('GP per ', true, 'gpPerSecond', 'GP/');
-                addPlotOption('Drops per', true, 'dropChance', 'Drops/');
-                addPlotOption('Percent Chance for Signet Part B per', true, 'signetChance', 'Signet (%)/', false);
-                addPlotOption('Pet (%) per ', true, 'petChance', ' Pet (%)/');
-                addPlotOption('Slayer Coins per ', true, 'slayerCoinsPerSecond', 'Slayer Coins/');
-                // addPlotOption('Simulation Time', false, 'simulationTime', 'Sim Time');
-                // Time unit options
-                this.timeOptions = ['Kill', 'Second', 'Minute', 'Hour', 'Day'];
-                this.timeShorthand = ['kill', 's', 'm', 'h', 'd'];
-                this.timeMultipliers = [-1, 1, 60, 3600, 3600 * 24];
-                this.initialTimeUnitIndex = 3;
-                this.selectedTime = this.timeOptions[this.initialTimeUnitIndex];
-                this.selectedTimeShorthand = this.timeShorthand[this.initialTimeUnitIndex];
-                this.timeMultiplier = this.timeMultipliers[this.initialTimeUnitIndex];
+        // default spell is wind strike
+        this.defaultSpell = this.micsr.standardSpells.getObjectByID('melvorD:WindStrike');
 
-                // Useful assets
-                this.media = {
-                    combat: 'assets/media/skills/combat/combat.png',
-                    slayer: 'assets/media/skills/slayer/slayer.png',
-                    prayer: 'assets/media/skills/prayer/prayer.svg',
-                    spellbook: 'assets/media/skills/combat/spellbook.svg',
-                    curse: 'assets/media/skills/combat/curses.svg',
-                    aurora: 'assets/media/skills/combat/auroras.svg',
-                    ancient: 'assets/media/skills/combat/ancient.svg',
-                    emptyPotion: 'assets/media/skills/herblore/potion_empty.svg',
-                    pet: 'assets/media/pets/hitpoints.png',
-                    settings: 'assets/media/main/settings_header.svg',
-                    gp: 'assets/media/main/coins.png',
-                    attack: 'assets/media/skills/combat/attack.svg',
-                    strength: 'assets/media/skills/combat/strength.svg',
-                    ranged: 'assets/media/skills/ranged/ranged.svg',
-                    magic: 'assets/media/skills/magic/magic.svg',
-                    defence: 'assets/media/skills/defence/defence.svg',
-                    hitpoints: 'assets/media/skills/hitpoints/hitpoints.svg',
-                    emptyFood: 'assets/media/skills/combat/food_empty.svg',
-                    agility: 'assets/media/skills/agility/agility.svg',
-                    mastery: 'assets/media/main/mastery_header.png',
-                    statistics: 'assets/media/main/statistics_header.svg',
-                    loot: 'assets/media/bank/chapeau_noir.png',
-                    summoning: 'assets/media/skills/summoning/summoning.svg',
-                    synergy: 'assets/media/skills/summoning/synergy.svg',
-                    synergyLock: 'assets/media/skills/summoning/synergy_locked.svg',
-                    stamina: 'assets/media/main/stamina.png',
-                    question: 'assets/media/main/question.svg',
-                    airRune: MICSR.game.items.getObjectByID('melvorD:Air_Rune').media,
-                    mistRune: MICSR.game.items.getObjectByID('melvorD:Mist_Rune').media,
-                    bank: 'assets/media/main/bank_header.svg',
-                    herblore: 'assets/media/skills/herblore/herblore.svg',
-                    cooking: 'assets/media/skills/cooking/cooking.svg',
-                    fletching: 'assets/media/skills/fletching/fletching.svg',
-                    astrology: 'assets/media/skills/astrology/astrology.svg',
-                    standardStar: 'assets/media/skills/astrology/star_standard.svg',
-                    uniqueStar: 'assets/media/skills/astrology/star_unique.svg',
-                };
+        // combat pet IDs
+        this.petIDs = [
+            'melvorD:Pyro', // FM pet
+            // cb skill pets
+            // slayer area pets
+            // dungeon pets
+            // Mark
+            // Bone
+        ];
 
-                // default spell is wind strike
-                this.defaultSpell = MICSR.standardSpells.getObjectByID('melvorD:WindStrike');
+        // Forced equipment sorting
+        this.force = {
+            [this.micsr.skillIDs.Defence]: [
+                'melvorF:Slayer_Helmet_Basic',
+                'melvorF:Slayer_Platebody_Basic',
+            ],
+            [this.micsr.skillIDs.Ranged]: [
+                'melvorF:Slayer_Cowl_Basic',
+                'melvorF:Slayer_Leather_Body_Basic',
+            ],
+            [this.micsr.skillIDs.Magic]: [
+                'melvorF:Slayer_Wizard_Hat_Basic',
+                'melvorF:Slayer_Wizard_Robes_Basic',
+                'melvorF:Enchanted_Shield',
+            ],
+        };
 
-                // combat pet IDs
-                this.petIDs = [
-                    'melvorD:Pyro', // FM pet
-                    // cb skill pets
-                    // slayer area pets
-                    // dungeon pets
-                    // Mark
-                    // Bone
-                ];
-
-                // Forced equipment sorting
-                this.force = {
-                    [MICSR.skillIDs.Defence]: [
-                        'melvorF:Slayer_Helmet_Basic',
-                        'melvorF:Slayer_Platebody_Basic',
-                    ],
-                    [MICSR.skillIDs.Ranged]: [
-                        'melvorF:Slayer_Cowl_Basic',
-                        'melvorF:Slayer_Leather_Body_Basic',
-                    ],
-                    [MICSR.skillIDs.Magic]: [
-                        'melvorF:Slayer_Wizard_Hat_Basic',
-                        'melvorF:Slayer_Wizard_Robes_Basic',
-                        'melvorF:Enchanted_Shield',
-                    ],
-                };
-
-                // Generate equipment subsets
-                this.equipmentSubsets = [];
-                /** @type {number[]} */
-                for (const slot in MICSR.equipmentSlotData) {
-                    const slotId = MICSR.equipmentSlotData[slot].id;
-                    this.equipmentSubsets.push([MICSR.emptyItem]);
-                    MICSR.items.filter((item: any) => item.validSlots)
-                        .forEach((item: any) => {
-                            if (item.validSlots.includes(slot)
-                                || (item.validSlots.includes('Summon')
-                                    && slotId === MICSR.equipmentSlotData.Summon2.id)) {
-                                this.equipmentSubsets[slotId].push(item);
-                            }
-                        });
-                }
-                this.equipmentSubsets[MICSR.equipmentSlotData.Passive.id].push(...MICSR.items.filter((x: any) => x.isPassiveItem));
-                // Add ammoType 2 and 3 to weapon subsets
-                MICSR.items.forEach((item: any) => {
-                    if (item.validSlots && item.validSlots.includes('Quiver') && (item.ammoType === 2 || item.ammoType === 3)) {
-                        this.equipmentSubsets[MICSR.equipmentSlotData.Weapon.id].push(item);
+        // Generate equipment subsets
+        this.equipmentSubsets = [];
+        /** @type {number[]} */
+        for (const slot in this.micsr.equipmentSlotData) {
+            const slotId = this.micsr.equipmentSlotData[slot].id;
+            this.equipmentSubsets.push([this.micsr.emptyItem]);
+            this.micsr.items.filter((item: any) => item.validSlots)
+                .forEach((item: any) => {
+                    if (item.validSlots.includes(slot)
+                        || (item.validSlots.includes('Summon')
+                            && slotId === this.micsr.equipmentSlotData.Summon2.id)) {
+                        this.equipmentSubsets[slotId].push(item);
                     }
                 });
-                // Sort equipment subsets
-                for (const slot in MICSR.equipmentSlotData) {
-                    const slotId = MICSR.equipmentSlotData[slot].id;
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Attack) - this.getItemLevelReq(b, MICSR.skillIDs.Attack));
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Defence) - this.getItemLevelReq(b, MICSR.skillIDs.Defence));
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Ranged) - this.getItemLevelReq(b, MICSR.skillIDs.Ranged));
-                    this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, MICSR.skillIDs.Magic) - this.getItemLevelReq(b, MICSR.skillIDs.Magic));
-                    if (slotId === MICSR.equipmentSlotData.Quiver.id) {
-                        this.equipmentSubsets[slotId].sort((a: any, b: any) => (a.ammoType || 0) - (b.ammoType || 0));
-                    }
-                }
-                this.skillKeys = ['Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer', 'Slayer'];
-                // Simulation Object
-                this.simulator = new MICSR.Simulator(this, urls.simulationWorker);
-                // Import Object
-                this.import = new MICSR.Import(this);
-                // Data Export Object
-                this.dataExport = new MICSR.DataExport(this);
-                // Loot Object
-                this.loot = new MICSR.Loot(this, this.simulator);
+        }
+        this.equipmentSubsets[this.micsr.equipmentSlotData.Passive.id].push(...this.micsr.items.filter((x: any) => x.isPassiveItem));
+        // Add ammoType 2 and 3 to weapon subsets
+        this.micsr.items.forEach((item: any) => {
+            if (item.validSlots && item.validSlots.includes('Quiver') && (item.ammoType === 2 || item.ammoType === 3)) {
+                this.equipmentSubsets[this.micsr.equipmentSlotData.Weapon.id].push(item);
+            }
+        });
+        // Sort equipment subsets
+        for (const slot in this.micsr.equipmentSlotData) {
+            const slotId = this.micsr.equipmentSlotData[slot].id;
+            this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, this.micsr.skillIDs.Attack) - this.getItemLevelReq(b, this.micsr.skillIDs.Attack));
+            this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, this.micsr.skillIDs.Defence) - this.getItemLevelReq(b, this.micsr.skillIDs.Defence));
+            this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, this.micsr.skillIDs.Ranged) - this.getItemLevelReq(b, this.micsr.skillIDs.Ranged));
+            this.equipmentSubsets[slotId].sort((a: any, b: any) => this.getItemLevelReq(a, this.micsr.skillIDs.Magic) - this.getItemLevelReq(b, this.micsr.skillIDs.Magic));
+            if (slotId === this.micsr.equipmentSlotData.Quiver.id) {
+                this.equipmentSubsets[slotId].sort((a: any, b: any) => (a.ammoType || 0) - (b.ammoType || 0));
+            }
+        }
+        this.skillKeys = ['Attack', 'Strength', 'Defence', 'Hitpoints', 'Ranged', 'Magic', 'Prayer', 'Slayer'];
+    }
 
-                // drop list filters
-                this.dropListFilters = {
-                    selectedMonster: false,
-                    onlyUndiscovered: false,
-                }
+    async initialize(urls: any) {
+        // Simulation Object
+        this.simulator = new Simulator(this, urls.simulationWorker);
+        await this.simulator.createWorkers();
+        // Import Object
+        this.import = new Import(this);
+        // Data Export Object
+        this.dataExport = new DataExport(this);
+        // Loot Object
+        this.loot = new Loot(this, this.simulator);
 
-                // Create the top container for the sim
-                this.topContent = document.createElement('div');
-                this.topContent.className = 'mcsTabContent';
-                // Create the bottom container for the sim
-                this.botContent = document.createElement('div');
-                this.botContent.className = 'mcsTabContent';
-                this.botContent.style.flexWrap = 'nowrap';
-                this.botContent.style.minHeight = '452px';
+        // drop list filters
+        this.dropListFilters = {
+            selectedMonster: false,
+            onlyUndiscovered: false,
+        }
 
-                // Plotter Object
-                this.plotter = new MICSR.Plotter(this, urls.crossedOut);
+        // Create the top container for the sim
+        this.topContent = document.createElement('div');
+        this.topContent.className = 'mcsTabContent';
+        // Create the bottom container for the sim
+        this.botContent = document.createElement('div');
+        this.botContent.className = 'mcsTabContent';
+        this.botContent.style.flexWrap = 'nowrap';
+        this.botContent.style.minHeight = '452px';
 
-                // Add Equipment and Food selection card
-                this.createEquipmentSelectCard();
-                // Add tab card
-                this.mainTabCard = new MICSR.TabCard('mcsMainTab', true, this.topContent, '', '150px', true);
+        // Plotter Object
+        this.plotter = new Plotter(this, urls.crossedOut);
 
-                // Add Cards to the tab card
-                this.createLevelSelectCard();
-                this.createSpellSelectCards();
-                this.createPrayerSelectCard();
-                this.createPotionSelectCard();
-                this.createPetSelectCard();
-                //TODO this.createAgilitySelectCard();
-                //TODO this.createAstrologySelectCard();
-                this.createLootOptionsCard();
-                this.createSimulationAndExportCard();
-                this.createCompareCard();
-                this.createConsumablesCard();
-                // Add Combat Stat Display Card
-                this.createCombatStatDisplayCard();
-                // Individual simulation info card
-                this.createIndividualInfoCard();
+        // Add Equipment and Food selection card
+        this.createEquipmentSelectCard();
+        // Add tab card
+        this.mainTabCard = new TabCard(this.micsr, 'mcsMainTab', true, this.topContent, '', '150px', true);
 
-                // Bar Chart Card
-                this.monsterToggleState = true;
-                this.dungeonToggleState = true;
-                this.slayerToggleState = true;
-                // Setup plotter bar clicking
-                this.selectedBar = 0;
-                this.barSelected = false;
-                for (let i = 0; i < this.plotter.bars.length; i++) {
-                    this.plotter.bars[i].parentElement.onclick = (() => this.barOnClick(i));
-                }
-                /** @type {number[]} */
-                this.barMonsterIDs = [];
-                /** @type {boolean[]} */
-                this.barType = [];
-                this.barTypes = {
-                    monster: 0,
-                    dungeon: 1,
-                    task: 2,
-                }
+        // Add Cards to the tab card
+        this.createLevelSelectCard();
+        this.createSpellSelectCards();
+        this.createPrayerSelectCard();
+        this.createPotionSelectCard();
+        this.createPetSelectCard();
+        //TODO this.createAgilitySelectCard();
+        //TODO this.createAstrologySelectCard();
+        this.createLootOptionsCard();
+        this.createSimulationAndExportCard();
+        this.createCompareCard();
+        this.createConsumablesCard();
+        // Add Combat Stat Display Card
+        this.createCombatStatDisplayCard();
+        // Individual simulation info card
+        this.createIndividualInfoCard();
 
-                MICSR.monsterIDs.forEach((monsterID: string) => {
-                    this.barMonsterIDs.push(monsterID);
-                    this.barType.push(this.barTypes.monster);
-                });
-                this.dungeonBarIDs = {};
-                MICSR.dungeonIDs.forEach((dungeonID: any) => {
-                    this.dungeonBarIDs[dungeonID] = this.barMonsterIDs.length;
-                    this.barMonsterIDs.push(dungeonID);
-                    this.barType.push(this.barTypes.dungeon);
-                });
-                MICSR.slayerTaskData.forEach((task: any) => {
-                    this.dungeonBarIDs[task.display] = this.barMonsterIDs.length;
-                    this.barMonsterIDs.push(task.display);
-                    this.barType.push(this.barTypes.task);
-                });
-                // Dungeon View Variables
-                this.isViewingDungeon = false;
-                this.viewedDungeonID = undefined;
+        // Bar Chart Card
+        this.monsterToggleState = true;
+        this.dungeonToggleState = true;
+        this.slayerToggleState = true;
+        // Setup plotter bar clicking
+        this.selectedBar = 0;
+        this.barSelected = false;
+        for (let i = 0; i < this.plotter.bars.length; i++) {
+            this.plotter.bars[i].parentElement.onclick = (() => this.barOnClick(i));
+        }
+        /** @type {number[]} */
+        this.barMonsterIDs = [];
+        /** @type {boolean[]} */
+        this.barType = [];
+        this.barTypes = {
+            monster: 0,
+            dungeon: 1,
+            task: 2,
+        }
 
-                // Now that everything is done we add the menu and modal to the document
+        this.micsr.monsterIDs.forEach((monsterID: string) => {
+            this.barMonsterIDs.push(monsterID);
+            this.barType.push(this.barTypes.monster);
+        });
+        this.dungeonBarIDs = {};
+        this.micsr.dungeonIDs.forEach((dungeonID: any) => {
+            this.dungeonBarIDs[dungeonID] = this.barMonsterIDs.length;
+            this.barMonsterIDs.push(dungeonID);
+            this.barType.push(this.barTypes.dungeon);
+        });
+        this.micsr.slayerTaskData.forEach((task: any) => {
+            this.dungeonBarIDs[task.display] = this.barMonsterIDs.length;
+            this.barMonsterIDs.push(task.display);
+            this.barType.push(this.barTypes.task);
+        });
+        // Dungeon View Variables
+        this.isViewingDungeon = false;
+        this.viewedDungeonID = undefined;
 
-                this.modalID = 'mcsModal';
-                MICSR.addModal(`${MICSR.name} ${MICSR.version}`, this.modalID, [this.topContent, this.botContent]);
-                this.menuItemId = 'mcsButton';
-                MICSR.addMenuItem(MICSR.shortName, this.media.combat, this.menuItemId, this.modalID);
+        // Now that everything is done we add the menu and modal to the document
 
-                // Finalize tooltips
-                // @ts-expect-error TS(2304): Cannot find name 'tippy'.
-                this.tippyInstances = tippy('#mcsModal [data-tippy-content]', this.tippyOptions);
-                this.tippySingleton = tippy.createSingleton(this.tippyInstances, { delay: [0, 200], ...this.tippyOptions });
-                for (const bar of this.plotter.bars) {
-                    this.addNoSingletonTippy(bar, { triggerTarget: bar.parentElement });
-                }
+        this.modalID = 'mcsModal';
+        Menu.addModal(`${this.micsr.name} ${this.micsr.version}`, this.modalID, [this.topContent, this.botContent]);
+        this.menuItemId = 'mcsButton';
+        Menu.addMenuItem(this.micsr.shortName, this.media.combat, this.menuItemId, this.modalID);
 
-                // Setup the default state of the UI
-                this.plotter.timeDropdown.selectedIndex = this.initialTimeUnitIndex;
-                this.subInfoCard.container.style.display = 'none';
-                this.plotter.petSkillDropdown.style.display = 'none';
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
-                this.updateSpellOptions();
-                this.updatePrayerOptions();
+        // Finalize tooltips
+        // @ts-expect-error TS(2304): Cannot find name 'tippy'.
+        this.tippyInstances = tippy('#mcsModal [data-tippy-content]', this.tippyOptions);
+        this.tippySingleton = tippy.createSingleton(this.tippyInstances, { delay: [0, 200], ...this.tippyOptions });
+        for (const bar of this.plotter.bars) {
+            this.addNoSingletonTippy(bar, { triggerTarget: bar.parentElement });
+        }
+
+        // Setup the default state of the UI
+        this.plotter.timeDropdown.selectedIndex = this.initialTimeUnitIndex;
+        this.subInfoCard.container.style.display = 'none';
+        this.plotter.petSkillDropdown.style.display = 'none';
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
+        this.updateSpellOptions();
+        this.updatePrayerOptions();
+        this.updateCombatStats();
+        this.updateHealing();
+        this.updatePlotData();
+        // TODO this.toggleAstrologySelectCard();
+        // slayer sim is off by default, so toggle auto slayer off
+        this.toggleSlayerSims(!this.slayerToggleState, false);
+        // load from local storage
+        this.consumables.loadRates();
+    }
+
+    printRelevantModifiers(modifiers: any, options = {}) {
+        let header = '';
+        if ((options as any).header) {
+            const headerTag = (options as any).headerTag ? (options as any).headerTag : 'h5';
+            const headerClassNames = (options as any).headerClassNames ? `class="${(options as any).headerClassNames}"` : '';
+            header += `<${headerTag} ${headerClassNames}>${(options as any).header}</${headerTag}>`;
+        }
+        let passives = '';
+        this.micsr.showModifiersInstance.printRelevantModifiers(modifiers, 'combat').forEach((toPrint: any) => {
+            const tag = (options as any).tag ? (options as any).tag : 'h5';
+            let classNames = 'class="';
+            if ((options as any).classNames) {
+                classNames += (options as any).classNames;
+                classNames += ' ';
+            }
+            classNames += toPrint[1] + '"';
+            const style = (options as any).style ? `style="${(options as any).style}"` : '';
+            passives += `<${tag} ${classNames} ${style}>${toPrint[0]}</${tag}>`;
+        });
+        return { header: header, passives: passives };
+    }
+
+    showRelevantModifiers(modifiers: any, header: any) {
+        const options = {
+            header: header,
+            headerTag: 'h5',
+            headerClassNames: 'font-w600 font-size-sm mb-1 text-combat-smoke',
+            tag: 'h5',
+            classNames: 'font-w400 font-size-sm mb-1',
+            style: 'text-align: left;',
+        };
+        const printedModifiers = this.printRelevantModifiers(modifiers, options)
+        Swal.fire({
+            // @ts-expect-error TS(2551): Property 'headers' does not exist on type '{ heade... Remove this comment to see the full error message
+            html: printedModifiers.headers + printedModifiers.passives,
+        });
+    }
+
+    setSummoningSynergyText() {
+        // set image
+        const img = document.getElementById('MCS Summoning Synergy Button Image');
+        if (!img) {
+            return;
+        }
+        if (this.player.equippedSummoningSynergy) {
+            (img as any).src = this.media.synergy;
+        } else {
+            (img as any).src = this.media.synergyLock;
+        }
+        // set text
+        const text = document.getElementById('MCS Summoning Synergy Info');
+        if (!text) {
+            return;
+        }
+        if (!this.player.equippedSummoningSynergy) {
+            text.textContent = 'Synergy locked';
+            return;
+        }
+        const synergy = this.player.equippedSummoningSynergy;
+        if (synergy) {
+            text.textContent = synergy.description;
+            return;
+        }
+        text.textContent = 'No synergy possible.';
+    }
+
+    createEquipmentSelectCard() {
+        this.equipmentSelectCard = new Card(this.micsr, this.topContent, '', '150px', true);
+        const equipmentRows = [
+            [EquipmentSlots.Passive, EquipmentSlots.Helmet, EquipmentSlots.Consumable],
+            [EquipmentSlots.Cape, EquipmentSlots.Amulet, EquipmentSlots.Quiver],
+            [EquipmentSlots.Weapon, EquipmentSlots.Platebody, EquipmentSlots.Shield],
+            [EquipmentSlots.Platelegs],
+            [EquipmentSlots.Gloves, EquipmentSlots.Boots, EquipmentSlots.Ring],
+            [EquipmentSlots.Summon1, EquipmentSlots.Summon2]
+        ];
+        equipmentRows.forEach((row) => {
+            const rowSources: any = [];
+            const rowIDs: any = [];
+            const rowPopups: any = [];
+            const tooltips: any = [];
+            row.forEach((slotID) => {
+                rowSources.push(`assets/media/bank/${this.micsr.equipmentSlotData[EquipmentSlots[slotID]].emptyMedia}.png`);
+                rowIDs.push(`MCS ${EquipmentSlots[slotID]} Image`);
+                rowPopups.push(this.createEquipmentPopup(slotID));
+                tooltips.push(EquipmentSlots[slotID]);
+            });
+            this.equipmentSelectCard.addMultiPopupMenu(rowSources, rowIDs, rowPopups, tooltips);
+        });
+        this.equipmentSelectCard.addImageToggleWithInfo(
+            this.media.synergyLock,
+            'Summoning Synergy',
+            () => {
+                //this.player.summoningSynergy = !this.player.summoningSynergy;
+                this.setSummoningSynergyText();
                 this.updateCombatStats();
-                this.updateHealing();
-                this.updatePlotData();
-                // TODO this.toggleAstrologySelectCard();
-                // slayer sim is off by default, so toggle auto slayer off
-                this.toggleSlayerSims(!this.slayerToggleState, false);
-                // load from local storage
-                this.consumables.loadRates();
+            },
+            'Synergy locked.',
+        );
+
+        // Style dropdown (Specially Coded)
+        const combatStyleCCContainer = this.equipmentSelectCard.createCCContainer();
+        const combatStyleLabel = this.equipmentSelectCard.createLabel('Combat Style', '');
+        combatStyleLabel.classList.add('mb-1');
+        const meleeStyleDropdown = this.equipmentSelectCard.createDropdown(['Stab', 'Slash', 'Block'], [0, 1, 2], 'MCS melee Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'melee'));
+        const rangedStyleDropdown = this.equipmentSelectCard.createDropdown(['Accurate', 'Rapid', 'Longrange'], [0, 1, 2], 'MCS ranged Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'ranged'));
+        const magicStyleDropdown = this.equipmentSelectCard.createDropdown(['Magic', 'Defensive'], [0, 1], 'MCS magic Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'magic'));
+        rangedStyleDropdown.style.display = 'none';
+        magicStyleDropdown.style.display = 'none';
+        combatStyleCCContainer.appendChild(combatStyleLabel);
+        combatStyleCCContainer.appendChild(meleeStyleDropdown);
+        combatStyleCCContainer.appendChild(rangedStyleDropdown);
+        combatStyleCCContainer.appendChild(magicStyleDropdown);
+        this.equipmentSelectCard.container.appendChild(combatStyleCCContainer);
+        // food container
+        this.createFoodContainer();
+        // cooking mastery
+        this.equipmentSelectCard.addToggleRadio(
+            '95% Cooking Pool',
+            'cookingPool',
+            this.player,
+            'cookingPool',
+            this.player.cookingPool,
+            25,
+            () => this.updateHealing(),
+        );
+        this.equipmentSelectCard.addToggleRadio(
+            '99 Cooking Mastery',
+            'cookingMastery',
+            this.player,
+            'cookingMastery',
+            this.player.cookingMastery,
+            25,
+            () => this.updateHealing(),
+        );
+        this.equipmentSelectCard.addToggleRadio(
+            'Manual Eating',
+            'isManualEating',
+            this.player,
+            'isManualEating',
+            this.player.isManualEating
+        );
+        // Slayer task
+        this.equipmentSelectCard.addRadio(
+            'Slayer Task',
+            25,
+            'slayerTask',
+            ['Yes', 'No'],
+            [
+                (e: any) => this.slayerTaskRadioOnChange(e, true),
+                (e: any) => this.slayerTaskRadioOnChange(e, false),
+            ],
+            1,
+        );
+        // game mode
+        const gameModeNames: any[] = [];
+        const gameModeValues: number[] = [];
+        this.micsr.gamemodes.forEach((gamemode: any, i: number) => {
+            gameModeNames.push(gamemode.name);
+            gameModeValues.push(i);
+        });
+        const gameModeDropdown = this.equipmentSelectCard.createDropdown(gameModeNames, gameModeValues, 'MCS Game Mode Dropdown', (event: any) => {
+            this.player.currentGamemode = this.micsr.gamemodes[parseInt(event.currentTarget.selectedOptions[0].value)];
+        });
+        const gameModeContainer = this.equipmentSelectCard.createCCContainer();
+        gameModeContainer.appendChild(gameModeDropdown);
+        this.equipmentSelectCard.container.appendChild(gameModeContainer);
+        // import equipment and settings
+        const importSetCCContainer = this.equipmentSelectCard.createCCContainer();
+        importSetCCContainer.appendChild(this.equipmentSelectCard.createLabel('Import Set', ''));
+        // only create buttons for purchased equipment sets
+        let importButtonText = [];
+        let importButtonFunc = [];
+        for (let i = 0; i < this.player.equipmentSets.length; i++) {
+            importButtonText.push(`${i + 1}`);
+            importButtonFunc.push(() => this.import.importButtonOnClick(i));
+        }
+        this.equipmentSelectCard.addMultiButton(importButtonText, importButtonFunc, importSetCCContainer);
+        this.equipmentSelectCard.container.appendChild(importSetCCContainer);
+        // add button to show all modifiers
+        const modifierCCContainer = this.equipmentSelectCard.createCCContainer();
+        modifierCCContainer.appendChild(this.equipmentSelectCard.addButton('Show Modifiers', () => this.showRelevantModifiers(this.player.modifiers, 'Active modifiers')));
+        this.equipmentSelectCard.container.appendChild(modifierCCContainer);
+    }
+
+    createFoodContainer() {
+        this.foodCCContainer = this.equipmentSelectCard.createCCContainer();
+        // food card
+        const containerDiv = document.createElement('div');
+        containerDiv.style.position = 'relative';
+        containerDiv.style.cursor = 'pointer';
+        const newImage = document.createElement('img');
+        newImage.id = 'MCS Food Image';
+        newImage.style.border = '1px solid red';
+        newImage.src = this.media.emptyFood;
+        newImage.className = 'combat-food';
+        newImage.dataset.tippyContent = 'No Food';
+        newImage.dataset.tippyHideonclick = 'true';
+        containerDiv.appendChild(newImage);
+        const foodPopup = (() => {
+            const foodSelectPopup = document.createElement('div');
+            foodSelectPopup.className = 'mcsPopup';
+            const equipmentSelectCard = new Card(this.micsr, foodSelectPopup, '', '600px');
+            equipmentSelectCard.addSectionTitle('Food');
+            this.foodItems = [this.micsr.game.emptyFoodItem, ...this.micsr.items.allObjects].filter((item) => this.filterIfHasKey('healsFor', item));
+            this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
+            const buttonMedia = this.foodItems.map((item: any) => item.media);
+            const buttonIds = this.foodItems.map((item: any) => item.name);
+            const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item));
+            const tooltips = this.foodItems.map((item: any) => this.getFoodTooltip(item));
+            equipmentSelectCard.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
+            return foodSelectPopup;
+        })();
+        containerDiv.appendChild(foodPopup);
+        this.foodCCContainer.appendChild(containerDiv);
+        foodPopup.style.display = 'none';
+        this.equipmentSelectCard.registerPopupMenu(containerDiv, foodPopup);
+        // heal amt
+        let label = document.createElement('span');
+        label.id = 'MICSR-heal-amount-Label';
+        label.className = 'text-bank-desc';
+        label.textContent = '+0';
+        const image = document.createElement('img');
+        image.className = 'skill-icon-xs mr-1';
+        image.src = this.media.hitpoints;
+        const wrapper = document.createElement('h5');
+        wrapper.className = 'font-w400 font-size-sm text-left text-combat-smoke m-1 mb-2';
+        wrapper.appendChild(image);
+        wrapper.appendChild(label);
+        this.foodCCContainer.appendChild(wrapper);
+        // auto eat dropdown
+        let autoEatTierNames = [
+            'No Auto Eat',
+            this.micsr.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_I').name.replace(' - Tier', ''),
+            this.micsr.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_II').name.replace(' - Tier', ''),
+            this.micsr.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_III').name.replace(' - Tier', ''),
+        ];
+        let autoEatTierValues = [-1, 0, 1, 2];
+        const autoEatTierDropdown = this.equipmentSelectCard.createDropdown(autoEatTierNames, autoEatTierValues, 'MCS Auto Eat Tier Dropdown', (event: any) => {
+            this.player.autoEatTier = parseInt(event.currentTarget.selectedOptions[0].value);
+            this.updateCombatStats();
+        });
+        this.foodCCContainer.appendChild(autoEatTierDropdown);
+        // append to equipmentSelectCard
+        this.equipmentSelectCard.container.appendChild(this.foodCCContainer);
+    }
+
+    equipFood(item: any) {
+        this.player.equipFood(item);
+        const img = document.getElementById('MCS Food Image');
+        if (item === 'melvorD:Empty_Equipment') {
+            (img as any).src = 'assets/media/skills/combat/food_empty.svg';
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            img.style.border = '1px solid red';
+        } else {
+            (img as any).src = item.media;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            img.style.border = '';
+        }
+        this.setTooltip(img, this.getFoodTooltip(item));
+        this.updateHealing();
+    }
+
+    getFoodTooltip(item: any) {
+        if (!item || item.id === -1) {
+            return 'No Food';
+        }
+        let tooltip = `<div class="text-center">${item.name}<br><small>`;
+        if (item.description) {
+            tooltip += `<span class='text-info'>${item.description.replace(/<br>\(/, ' (')}</span><br>`;
+        }
+        if (item.healsFor) {
+            const amt = Math.round(item.healsFor * numberMultiplier);
+            tooltip += `<h5 class="font-w400 font-size-sm text-left text-combat-smoke m-1 mb-2">Base healing: <img class="skill-icon-xs mr-1" src="${this.media.hitpoints}"><span class="text-bank-desc">+${amt} HP</span></h5>`;
+        }
+        tooltip += '</small></div>';
+        return tooltip;
+    }
+
+    updateHealing() {
+        const amt = this.player.getFoodHealing(this.player.food.currentSlot.item);
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById('MICSR-heal-amount-Label').textContent = `+${amt}`;
+    }
+
+    createCombatStatDisplayCard() {
+        this.combatStatCard = new Card(this.micsr, this.topContent, '', '60px', true);
+        this.combatStatCard.addSectionTitle('Out-of-Combat Stats');
+        const combatStatNames = [
+            'Attack Interval',
+            'Min Hit',
+            'Max Hit',
+            'Summoning Max Hit',
+            'Accuracy Rating',
+            'Evasion Rating',
+            'Evasion Rating',
+            'Evasion Rating',
+            'Max Hitpoints',
+            'Damage Reduction',
+            'Auto Eat Threshold',
+            'Drop Doubling (%)',
+            'GP Multiplier',
+        ];
+        const combatStatIcons = [
+            '',
+            '',
+            '',
+            '',
+            '',
+            this.media.attack,
+            this.media.ranged,
+            this.media.magic,
+            this.media.hitpoints,
+            '',
+            '',
+            '',
+        ];
+        this.combatStatKeys = [
+            'attackInterval',
+            'minHit',
+            'maxHit',
+            'summoningMaxHit',
+            'maxAttackRoll',
+            'maxDefRoll',
+            'maxRngDefRoll',
+            'maxMagDefRoll',
+            'maxHitpoints',
+            'damageReduction',
+            'autoEatThreshold',
+            'lootBonusPercent',
+            'gpBonus',
+        ];
+        for (let i = 0; i < combatStatNames.length; i++) {
+            this.combatStatCard.addNumberOutput(combatStatNames[i], 0, 20, (combatStatIcons[i] !== '') ? combatStatIcons[i] : '', `MCS ${this.combatStatKeys[i]} CS Output`);
+        }
+        this.combatStatCard.addSectionTitle('Plot Options');
+        this.plotter.addToggles(this.combatStatCard);
+        this.combatStatCard.addSectionTitle('');
+        // this.combatStatCard.addButton('Simulate BLOCKING', () => this.blockingSimulateButtonOnClick());
+        this.combatStatCard.addButton('Simulate All', () => this.simulateButtonOnClick(false));
+        this.combatStatCard.addButton('Simulate Selected', () => this.simulateButtonOnClick(true));
+    }
+
+    createIndividualInfoCard() {
+        this.zoneInfoCard = new Card(this.micsr, this.topContent, '', '100px', true);
+        this.zoneInfoCard.addSectionTitle('Monster/Dungeon Info.', 'MCS Zone Info Title');
+        this.infoPlaceholder = this.zoneInfoCard.addInfoText('Click on a bar for detailed information on a Monster/Dungeon!');
+        this.subInfoCard = new Card(this.micsr, this.zoneInfoCard.container, '', '80px');
+        this.subInfoCard.addImage(this.media.combat, 48, 'MCS Info Image');
+        this.failureLabel = this.subInfoCard.addInfoText('');
+        this.failureLabel.style.color = 'red';
+        const zoneInfoLabelNames = [];
+        for (let i = 0; i < this.plotTypes.length; i++) {
+            if (this.plotTypes[i].isTime) {
+                zoneInfoLabelNames.push(this.plotTypes[i].info + this.selectedTimeShorthand);
+            } else {
+                zoneInfoLabelNames.push(this.plotTypes[i].info);
             }
-
-            printRelevantModifiers(modifiers: any, options = {}) {
-                let header = '';
-                if ((options as any).header) {
-                    const headerTag = (options as any).headerTag ? (options as any).headerTag : 'h5';
-                    const headerClassNames = (options as any).headerClassNames ? `class="${(options as any).headerClassNames}"` : '';
-                    header += `<${headerTag} ${headerClassNames}>${(options as any).header}</${headerTag}>`;
-                }
-                let passives = '';
-                MICSR.showModifiersInstance.printRelevantModifiers(modifiers, 'combat').forEach((toPrint: any) => {
-                    const tag = (options as any).tag ? (options as any).tag : 'h5';
-                    let classNames = 'class="';
-                    if ((options as any).classNames) {
-                        classNames += (options as any).classNames;
-                        classNames += ' ';
-                    }
-                    classNames += toPrint[1] + '"';
-                    const style = (options as any).style ? `style="${(options as any).style}"` : '';
-                    passives += `<${tag} ${classNames} ${style}>${toPrint[0]}</${tag}>`;
-                });
-                return { header: header, passives: passives };
+        }
+        for (let i = 0; i < this.plotTypes.length; i++) {
+            this.subInfoCard.addNumberOutput(zoneInfoLabelNames[i], 'N/A', 20, '', `MCS ${this.plotTypes[i].value} Output`, true);
+        }
+        // attach tooltip to runesUsedPerSecond element
+        let idx = 0;
+        for (; idx < this.subInfoCard.container.children.length; idx++) {
+            const child = this.subInfoCard.container.children[idx].lastChild;
+            if (child && [
+                'MCS prayerXpPerSecond Output',
+                'MCS runesUsedPerSecond Output',
+                'MCS gpPerSecond Output',
+                'MCS deathRate Output',
+            ].includes(child.id)) {
+                // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
+                this.addNoSingletonTippy(child);
             }
+        }
+    }
 
-            showRelevantModifiers(modifiers: any, header: any) {
-                const options = {
-                    header: header,
-                    headerTag: 'h5',
-                    headerClassNames: 'font-w600 font-size-sm mb-1 text-combat-smoke',
-                    tag: 'h5',
-                    classNames: 'font-w400 font-size-sm mb-1',
-                    style: 'text-align: left;',
-                };
-                const printedModifiers = this.printRelevantModifiers(modifiers, options)
-                Swal.fire({
-                    // @ts-expect-error TS(2551): Property 'headers' does not exist on type '{ heade... Remove this comment to see the full error message
-                    html: printedModifiers.headers + printedModifiers.passives,
-                });
+    addNoSingletonTippy(target: any, options: any) {
+        // @ts-expect-error TS(2304): Cannot find name 'tippy'.
+        this.tippyNoSingletonInstances = this.tippyNoSingletonInstances.concat(tippy(target, {
+            ...this.tippyOptions,
+            ...options,
+        }));
+    }
+
+    createLevelSelectCard() {
+        this.levelSelectCard = this.mainTabCard.addTab('Levels', this.media.combat, '', '150px');
+        this.levelSelectCard.addSectionTitle('Player Levels');
+        this.skillKeys.forEach((skillName: any) => {
+            let minLevel = 1;
+            if (skillName === 'Hitpoints') {
+                minLevel = 10;
             }
+            this.levelSelectCard.addNumberInput(skillName, minLevel, minLevel, Infinity, (event: any) => this.levelInputOnChange(event, skillName));
+        });
+    }
 
-            setSummoningSynergyText() {
-                // set image
-                const img = document.getElementById('MCS Summoning Synergy Button Image');
-                if (!img) {
-                    return;
-                }
-                if (this.player.summoningSynergy) {
-                    (img as any).src = this.media.synergy;
-                } else {
-                    (img as any).src = this.media.synergyLock;
-                }
-                // set text
-                const text = document.getElementById('MCS Summoning Synergy Info');
-                if (!text) {
-                    return;
-                }
-                if (!this.player.summoningSynergy) {
-                    text.textContent = 'Synergy locked';
-                    return;
-                }
-                const synergy = this.player.activeSummoningSynergy;
-                if (synergy) {
-                    text.textContent = synergy.description;
-                    return;
-                }
-                text.textContent = 'No synergy possible.';
+    createSpellSelectCards() {
+        this.spellSelectCard = this.mainTabCard.addPremadeTab(
+            'Spells',
+            this.media.spellbook,
+            new TabCard(this.micsr, '', false, this.mainTabCard.tabContainer, '100%', '150px'),
+        );
+        // add title for spellbook tab
+        this.spellSelectCard.addSectionTitle('Spells');
+        // add tab menu, it was not yet created in the constructor
+        this.spellSelectCard.addTabMenu();
+
+        // add spell books
+        this.spellSelectCard.addPremadeTab(
+            'Standard',
+            this.media.spellbook,
+            this.createSpellSelectCard('Standard Magic', 'standard'),
+        );
+        this.spellSelectCard.addPremadeTab(
+            'Curses',
+            this.media.curse,
+            this.createSpellSelectCard('Curses', 'curse'),
+        );
+        this.spellSelectCard.addPremadeTab(
+            'Auroras',
+            this.media.aurora,
+            this.createSpellSelectCard('Auroras', 'aurora'),
+        );
+        this.spellSelectCard.addPremadeTab(
+            'Ancient Magicks',
+            this.media.ancient,
+            this.createSpellSelectCard('Ancient Magicks', 'ancient'),
+        );
+        this.spellSelectCard.addPremadeTab(
+            'Archaic Magic',
+            this.media.ancient,
+            this.createSpellSelectCard('Archaic Magic', 'archaic'),
+        );
+
+        // add combination rune toggle
+        this.spellSelectCard.addToggleRadio(
+            'Use Combination Runes',
+            'combinationRunes',
+            this.player,
+            'useCombinationRunes',
+        );
+    }
+
+    /**
+     * Creates a card for selecting spells
+     * @param {string} title The title of the card
+     * @param {string} spellType The type of spells to generate the select menu for
+     * @return {Card} The created spell select card
+     */
+    createSpellSelectCard(title: any, spellType: any) {
+        const newCard = new Card(this.micsr, this.spellSelectCard.container, '', '100px');
+        newCard.addSectionTitle(title);
+        const spells = this.combatData.spells[spellType].allObjects;
+        const spellImages = spells.map((spell: any) => spell.getMediaURL(spell.media));
+        const spellNames = spells.map((spell: any) => spell.id);
+        const spellCallbacks = spells.map((spell: any) => (event: any) => this.spellButtonOnClick(event, spell, spellType));
+        const tooltips = spells.map((spell: any) => {
+            let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
+            switch (spellType) {
+                case 'standard':
+                    tooltip += `Spell Damage: ${spell.maxHit * numberMultiplier}`;
+                    break;
+                case 'aurora':
+                    tooltip += spell.description;
+                    break;
+                case 'ancient':
+                    tooltip += spell.specialAttack.description;
+                    break;
+                default:
+                    tooltip += spell.description;
             }
+            // @ts-expect-error TS(2304): Cannot find name 'combatMenus'.
+            const runes = combatMenus.spells.standard.getRuneHTML(spell);
+            tooltip += `</span><br><span class="text-warning">Requires:</span><br>${runes}</small></div>`;
+            return tooltip;
+        });
+        newCard.addImageButtons(spellImages, spellNames, 'Medium', spellCallbacks, tooltips);
+        return newCard;
+    }
 
-            createEquipmentSelectCard() {
-                this.equipmentSelectCard = new MICSR.Card(this.topContent, '', '150px', true);
-                const equipmentRows = [
-                    [MICSR.EquipmentSlots.Passive, MICSR.EquipmentSlots.Helmet, MICSR.EquipmentSlots.Consumable],
-                    [MICSR.EquipmentSlots.Cape, MICSR.EquipmentSlots.Amulet, MICSR.EquipmentSlots.Quiver],
-                    [MICSR.EquipmentSlots.Weapon, MICSR.EquipmentSlots.Platebody, MICSR.EquipmentSlots.Shield],
-                    [MICSR.EquipmentSlots.Platelegs],
-                    [MICSR.EquipmentSlots.Gloves, MICSR.EquipmentSlots.Boots, MICSR.EquipmentSlots.Ring],
-                    [MICSR.EquipmentSlots.Summon1, MICSR.EquipmentSlots.Summon2]
-                ];
-                equipmentRows.forEach((row) => {
-                    const rowSources: any = [];
-                    const rowIDs: any = [];
-                    const rowPopups: any = [];
-                    const tooltips: any = [];
-                    row.forEach((slotID) => {
-                        rowSources.push(`assets/media/bank/${MICSR.equipmentSlotData[MICSR.EquipmentSlots[slotID]].emptyMedia}.png`);
-                        rowIDs.push(`MCS ${MICSR.EquipmentSlots[slotID]} Image`);
-                        rowPopups.push(this.createEquipmentPopup(slotID));
-                        tooltips.push(MICSR.EquipmentSlots[slotID]);
-                    });
-                    this.equipmentSelectCard.addMultiPopupMenu(rowSources, rowIDs, rowPopups, tooltips);
-                });
-                this.equipmentSelectCard.addImageToggleWithInfo(
-                    this.media.synergyLock,
-                    'Summoning Synergy',
-                    () => {
-                        this.player.summoningSynergy = !this.player.summoningSynergy;
-                        this.setSummoningSynergyText();
-                        this.updateCombatStats();
-                    },
-                    'Synergy locked.',
-                );
+    createPrayerSelectCard() {
+        this.prayerSelectCard = this.mainTabCard.addTab('Prayers', this.media.prayer, '', '100px');
+        this.prayerSelectCard.addSectionTitle('Prayers');
+        const prayerSources: any = [];
+        const prayerNames: any = [];
+        const prayerCallbacks: any = [];
+        const tooltips: any = [];
+        this.micsr.prayers.forEach((prayer: any) => {
+            prayerSources.push(prayer.media);
+            prayerNames.push(this.getPrayerName(prayer));
+            prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer));
+            tooltips.push(this.createPrayerTooltip(prayer));
+        });
+        this.prayerSelectCard.addImageButtons(prayerSources, prayerNames, 'Medium', prayerCallbacks, tooltips);
+    }
 
-                // Style dropdown (Specially Coded)
-                const combatStyleCCContainer = this.equipmentSelectCard.createCCContainer();
-                const combatStyleLabel = this.equipmentSelectCard.createLabel('Combat Style', '');
-                combatStyleLabel.classList.add('mb-1');
-                const meleeStyleDropdown = this.equipmentSelectCard.createDropdown(['Stab', 'Slash', 'Block'], [0, 1, 2], 'MCS melee Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'melee'));
-                const rangedStyleDropdown = this.equipmentSelectCard.createDropdown(['Accurate', 'Rapid', 'Longrange'], [0, 1, 2], 'MCS ranged Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'ranged'));
-                const magicStyleDropdown = this.equipmentSelectCard.createDropdown(['Magic', 'Defensive'], [0, 1], 'MCS magic Style Dropdown', (event: any) => this.styleDropdownOnChange(event, 'magic'));
-                rangedStyleDropdown.style.display = 'none';
-                magicStyleDropdown.style.display = 'none';
-                combatStyleCCContainer.appendChild(combatStyleLabel);
-                combatStyleCCContainer.appendChild(meleeStyleDropdown);
-                combatStyleCCContainer.appendChild(rangedStyleDropdown);
-                combatStyleCCContainer.appendChild(magicStyleDropdown);
-                this.equipmentSelectCard.container.appendChild(combatStyleCCContainer);
-                // food container
-                this.createFoodContainer();
-                // cooking mastery
-                this.equipmentSelectCard.addToggleRadio(
-                    '95% Cooking Pool',
-                    'cookingPool',
-                    this.player,
-                    'cookingPool',
-                    this.player.cookingPool,
-                    25,
-                    () => this.updateHealing(),
-                );
-                this.equipmentSelectCard.addToggleRadio(
-                    '99 Cooking Mastery',
-                    'cookingMastery',
-                    this.player,
-                    'cookingMastery',
-                    this.player.cookingMastery,
-                    25,
-                    () => this.updateHealing(),
-                );
-                this.equipmentSelectCard.addToggleRadio(
-                    'Manual Eating',
-                    'isManualEating',
-                    this.player,
-                    'isManualEating',
-                    this.player.isManualEating
-                );
-                // Slayer task
-                this.equipmentSelectCard.addRadio(
-                    'Slayer Task',
-                    25,
-                    'slayerTask',
-                    ['Yes', 'No'],
-                    [
-                        (e: any) => this.slayerTaskRadioOnChange(e, true),
-                        (e: any) => this.slayerTaskRadioOnChange(e, false),
-                    ],
-                    1,
-                );
-                // game mode
-                const gameModeNames: any[] = [];
-                const gameModeValues: number[] = [];
-                MICSR.gamemodes.forEach((gamemode: any, i: number) => {
-                    gameModeNames.push(gamemode.name);
-                    gameModeValues.push(i);
-                });
-                const gameModeDropdown = this.equipmentSelectCard.createDropdown(gameModeNames, gameModeValues, 'MCS Game Mode Dropdown', (event: any) => {
-                    this.player.currentGamemode = MICSR.gamemodes[parseInt(event.currentTarget.selectedOptions[0].value)];
-                });
-                const gameModeContainer = this.equipmentSelectCard.createCCContainer();
-                gameModeContainer.appendChild(gameModeDropdown);
-                this.equipmentSelectCard.container.appendChild(gameModeContainer);
-                // import equipment and settings
-                const importSetCCContainer = this.equipmentSelectCard.createCCContainer();
-                importSetCCContainer.appendChild(this.equipmentSelectCard.createLabel('Import Set', ''));
-                // only create buttons for purchased equipment sets
-                let importButtonText = [];
-                let importButtonFunc = [];
-                for (let i = 0; i < this.player.equipmentSets.length; i++) {
-                    importButtonText.push(`${i + 1}`);
-                    importButtonFunc.push(() => this.import.importButtonOnClick(i));
-                }
-                this.equipmentSelectCard.addMultiButton(importButtonText, importButtonFunc, importSetCCContainer);
-                this.equipmentSelectCard.container.appendChild(importSetCCContainer);
-                // add button to show all modifiers
-                const modifierCCContainer = this.equipmentSelectCard.createCCContainer();
-                modifierCCContainer.appendChild(this.equipmentSelectCard.addButton('Show Modifiers', () => this.showRelevantModifiers(this.player.modifiers, 'Active modifiers')));
-                this.equipmentSelectCard.container.appendChild(modifierCCContainer);
+    createPrayerTooltip(prayer: any) {
+        let tooltip = `<div class="text-center">${prayer.name}<br><small><span class='text-info'>`;
+        tooltip += prayer.description;
+        tooltip += '<br></span>';
+        if (prayer.pointsPerPlayer > 0) {
+            tooltip += `<span class='text-success'>+${(prayer.pointsPerPlayer / 3 / numberMultiplier).toFixed(3)} Prayer XP per damage dealt to enemy</span><br>`;
+        }
+        tooltip += '<span class="text-warning">Prayer Point Cost:</span><br><span class="text-info">';
+        if (prayer.pointsPerPlayer > 0) {
+            tooltip += `${prayer.pointsPerPlayer}</span> per <span class='text-success'>PLAYER</span> attack`;
+        }
+        if (prayer.pointsPerEnemy > 0) {
+            tooltip += `${prayer.pointsPerEnemy}</span> per <span class='text-danger'>ENEMY</span> attack`;
+        }
+        if (prayer.pointsPerRegen > 0) {
+            tooltip += `${prayer.pointsPerRegen}</span> per <span class='text-info'>HP REGEN</span>`;
+        }
+        tooltip += '</small></div>';
+        return tooltip;
+    }
+
+    createPotionSelectCard() {
+        this.potionSelectCard = this.mainTabCard.addTab('Potions', this.media.emptyPotion, '', '100px');
+        this.potionSelectCard.addSectionTitle('Potions');
+        this.potionSelectCard.addDropdown('Potion Tier', ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'], [0, 1, 2, 3], (e: any) => this.potionTierDropDownOnChange(e));
+        const potionSources = [];
+        const potionNames = [];
+        const potionCallbacks = [];
+        const tooltips = [];
+        /** @type {number[]} */
+        this.combatPotionIDs = [];
+        for (let i = 0; i < this.micsr.herblorePotions.length; i++) {
+            if (this.micsr.herblorePotions[i].category === 0) {
+                const potion = this.micsr.herblorePotions[i].potions[0];
+                potionSources.push(potion.media);
+                potionNames.push(this.getPotionName(i));
+                potionCallbacks.push((e: any) => this.potionImageButtonOnClick(e, i));
+                tooltips.push(this.getPotionTooltip(potion));
+                this.combatPotionIDs.push(i);
             }
+        }
+        this.potionSelectCard.addImageButtons(potionSources, potionNames, 'Medium', potionCallbacks, tooltips);
+    }
 
-            createFoodContainer() {
-                this.foodCCContainer = this.equipmentSelectCard.createCCContainer();
-                // food card
-                const containerDiv = document.createElement('div');
-                containerDiv.style.position = 'relative';
-                containerDiv.style.cursor = 'pointer';
-                const newImage = document.createElement('img');
-                newImage.id = 'MCS Food Image';
-                newImage.style.border = '1px solid red';
-                newImage.src = this.media.emptyFood;
-                newImage.className = 'combat-food';
-                newImage.dataset.tippyContent = 'No Food';
-                newImage.dataset.tippyHideonclick = 'true';
-                containerDiv.appendChild(newImage);
-                const foodPopup = (() => {
-                    const foodSelectPopup = document.createElement('div');
-                    foodSelectPopup.className = 'mcsPopup';
-                    const equipmentSelectCard = new MICSR.Card(foodSelectPopup, '', '600px');
-                    equipmentSelectCard.addSectionTitle('Food');
-                    this.foodItems = [MICSR.game.emptyFoodItem, ...MICSR.items.allObjects].filter((item) => this.filterIfHasKey('healsFor', item));
-                    this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
-                    const buttonMedia = this.foodItems.map((item: any) => item.media);
-                    const buttonIds = this.foodItems.map((item: any) => item.name);
-                    const buttonCallbacks = this.foodItems.map((item: any) => () => this.equipFood(item));
-                    const tooltips = this.foodItems.map((item: any) => this.getFoodTooltip(item));
-                    equipmentSelectCard.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
-                    return foodSelectPopup;
-                })();
-                containerDiv.appendChild(foodPopup);
-                this.foodCCContainer.appendChild(containerDiv);
-                foodPopup.style.display = 'none';
-                this.equipmentSelectCard.registerPopupMenu(containerDiv, foodPopup);
-                // heal amt
-                let label = document.createElement('span');
-                label.id = 'MICSR-heal-amount-Label';
-                label.className = 'text-bank-desc';
-                label.textContent = '+0';
-                const image = document.createElement('img');
-                image.className = 'skill-icon-xs mr-1';
-                image.src = this.media.hitpoints;
-                const wrapper = document.createElement('h5');
-                wrapper.className = 'font-w400 font-size-sm text-left text-combat-smoke m-1 mb-2';
-                wrapper.appendChild(image);
-                wrapper.appendChild(label);
-                this.foodCCContainer.appendChild(wrapper);
-                // auto eat dropdown
-                let autoEatTierNames = [
-                    'No Auto Eat',
-                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_I').name.replace(' - Tier', ''),
-                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_II').name.replace(' - Tier', ''),
-                    MICSR.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_III').name.replace(' - Tier', ''),
-                ];
-                let autoEatTierValues = [-1, 0, 1, 2];
-                const autoEatTierDropdown = this.equipmentSelectCard.createDropdown(autoEatTierNames, autoEatTierValues, 'MCS Auto Eat Tier Dropdown', (event: any) => {
-                    this.player.autoEatTier = parseInt(event.currentTarget.selectedOptions[0].value);
-                    this.updateCombatStats();
-                });
-                this.foodCCContainer.appendChild(autoEatTierDropdown);
-                // append to equipmentSelectCard
-                this.equipmentSelectCard.container.appendChild(this.foodCCContainer);
-            }
+    createPetSelectCard() {
+        const combatPets = this.petIDs.map((id: any) => this.micsr.pets.getObjectByID(id));
+        this.petSelectCard = this.mainTabCard.addTab('Pets', this.media.pet, '', '100px');
+        this.petSelectCard.addSectionTitle('Pets');
+        const petImageSources = combatPets.map((pet: any) => pet.media);
+        const petNames = combatPets.map((pet: any) => pet.name);
+        const petButtonCallbacks = this.petIDs.map((petId: any) => (e: any) => this.petButtonOnClick(e, petId));
+        const tooltips = combatPets.map((pet: any) => `<div class="text-center">${pet.name}<br><small class='text-info'>${pet.description.replace(/\.$/, '')}</small></div>`);
+        this.petSelectCard.addImageButtons(petImageSources, petNames, 'Medium', petButtonCallbacks, tooltips);
+        this.petSelectCard.addButton("Clear All Pets", () => {
+            this.import.importPets(Array(this.micsr.pets.length).fill(false));
+            this.updateCombatStats();
+        });
+        this.petSelectCard.addImage(this.micsr.pets.getObjectByID('melvorD:CoolRock').media, 100, 'MCS Rock').style.display = 'none';
+    }
 
-            equipFood(item: any) {
-                this.player.equipFood(item);
-                const img = document.getElementById('MCS Food Image');
-                if (item === 'melvorD:Empty_Equipment') {
-                    (img as any).src = 'assets/media/skills/combat/food_empty.svg';
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    img.style.border = '1px solid red';
-                } else {
-                    (img as any).src = item.media;
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    img.style.border = '';
-                }
-                this.setTooltip(img, this.getFoodTooltip(item));
-                this.updateHealing();
-            }
+    createAgilitySelectCard() {
+        if (!this.agilitySelectCard) {
+            this.agilitySelectCard = this.mainTabCard.addTab('Agility', this.media.agility, '', '100px');
+            this.agilityCourse = new AgilityCourse(
+                this,
+                this.player,
+                [{ tag: 'combat', text: 'Combat', media: this.media.combat }],
+            );
+        } else {
+            this.agilitySelectCard.clearContainer();
+        }
+        this.agilityCourse.createAgilityCourseContainer(this.agilitySelectCard, this.agilityCourse.filters[0]);
+    }
 
-            getFoodTooltip(item: any) {
-                if (!item || item.id === -1) {
-                    return 'No Food';
-                }
-                let tooltip = `<div class="text-center">${item.name}<br><small>`;
-                if (item.description) {
-                    tooltip += `<span class='text-info'>${item.description.replace(/<br>\(/, ' (')}</span><br>`;
-                }
-                if (item.healsFor) {
-                    const amt = Math.round(item.healsFor * numberMultiplier);
-                    tooltip += `<h5 class="font-w400 font-size-sm text-left text-combat-smoke m-1 mb-2">Base healing: <img class="skill-icon-xs mr-1" src="${this.media.hitpoints}"><span class="text-bank-desc">+${amt} HP</span></h5>`;
-                }
-                tooltip += '</small></div>';
-                return tooltip;
-            }
+    agilityCourseCallback() {
+        this.updateCombatStats();
+    }
 
-            updateHealing() {
-                const amt = this.player.getFoodHealing(this.player.food.currentSlot.item);
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MICSR-heal-amount-Label').textContent = `+${amt}`;
-            }
-
-            createCombatStatDisplayCard() {
-                this.combatStatCard = new MICSR.Card(this.topContent, '', '60px', true);
-                this.combatStatCard.addSectionTitle('Out-of-Combat Stats');
-                const combatStatNames = [
-                    'Attack Interval',
-                    'Min Hit',
-                    'Max Hit',
-                    'Summoning Max Hit',
-                    'Accuracy Rating',
-                    'Evasion Rating',
-                    'Evasion Rating',
-                    'Evasion Rating',
-                    'Max Hitpoints',
-                    'Damage Reduction',
-                    'Auto Eat Threshold',
-                    'Drop Doubling (%)',
-                    'GP Multiplier',
-                ];
-                const combatStatIcons = [
-                    '',
-                    '',
-                    '',
-                    '',
-                    '',
-                    this.media.attack,
-                    this.media.ranged,
-                    this.media.magic,
-                    this.media.hitpoints,
-                    '',
-                    '',
-                    '',
-                ];
-                this.combatStatKeys = [
-                    'attackInterval',
-                    'minHit',
-                    'maxHit',
-                    'summoningMaxHit',
-                    'maxAttackRoll',
-                    'maxDefRoll',
-                    'maxRngDefRoll',
-                    'maxMagDefRoll',
-                    'maxHitpoints',
-                    'damageReduction',
-                    'autoEatThreshold',
-                    'lootBonusPercent',
-                    'gpBonus',
-                ];
-                for (let i = 0; i < combatStatNames.length; i++) {
-                    this.combatStatCard.addNumberOutput(combatStatNames[i], 0, 20, (combatStatIcons[i] !== '') ? combatStatIcons[i] : '', `MCS ${this.combatStatKeys[i]} CS Output`);
-                }
-                this.combatStatCard.addSectionTitle('Plot Options');
-                this.plotter.addToggles(this.combatStatCard);
-                this.combatStatCard.addSectionTitle('');
-                // this.combatStatCard.addButton('Simulate BLOCKING', () => this.blockingSimulateButtonOnClick());
-                this.combatStatCard.addButton('Simulate All', () => this.simulateButtonOnClick(false));
-                this.combatStatCard.addButton('Simulate Selected', () => this.simulateButtonOnClick(true));
-            }
-
-            createIndividualInfoCard() {
-                this.zoneInfoCard = new MICSR.Card(this.topContent, '', '100px', true);
-                this.zoneInfoCard.addSectionTitle('Monster/Dungeon Info.', 'MCS Zone Info Title');
-                this.infoPlaceholder = this.zoneInfoCard.addInfoText('Click on a bar for detailed information on a Monster/Dungeon!');
-                this.subInfoCard = new MICSR.Card(this.zoneInfoCard.container, '', '80px');
-                this.subInfoCard.addImage(this.media.combat, 48, 'MCS Info Image');
-                this.failureLabel = this.subInfoCard.addInfoText('');
-                this.failureLabel.style.color = 'red';
-                const zoneInfoLabelNames = [];
-                for (let i = 0; i < this.plotTypes.length; i++) {
-                    if (this.plotTypes[i].isTime) {
-                        zoneInfoLabelNames.push(this.plotTypes[i].info + this.selectedTimeShorthand);
-                    } else {
-                        zoneInfoLabelNames.push(this.plotTypes[i].info);
-                    }
-                }
-                for (let i = 0; i < this.plotTypes.length; i++) {
-                    this.subInfoCard.addNumberOutput(zoneInfoLabelNames[i], 'N/A', 20, '', `MCS ${this.plotTypes[i].value} Output`, true);
-                }
-                // attach tooltip to runesUsedPerSecond element
-                let idx = 0;
-                for (; idx < this.subInfoCard.container.children.length; idx++) {
-                    const child = this.subInfoCard.container.children[idx].lastChild;
-                    if (child && [
-                        'MCS prayerXpPerSecond Output',
-                        'MCS runesUsedPerSecond Output',
-                        'MCS gpPerSecond Output',
-                        'MCS deathRate Output',
-                    ].includes(child.id)) {
-                        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-                        this.addNoSingletonTippy(child);
-                    }
-                }
-            }
-
-            addNoSingletonTippy(target: any, options: any) {
-                // @ts-expect-error TS(2304): Cannot find name 'tippy'.
-                this.tippyNoSingletonInstances = this.tippyNoSingletonInstances.concat(tippy(target, {
-                    ...this.tippyOptions,
-                    ...options,
-                }));
-            }
-
-            createLevelSelectCard() {
-                this.levelSelectCard = this.mainTabCard.addTab('Levels', this.media.combat, '', '150px');
-                this.levelSelectCard.addSectionTitle('Player Levels');
-                this.skillKeys.forEach((skillName: any) => {
-                    let minLevel = 1;
-                    if (skillName === 'Hitpoints') {
-                        minLevel = 10;
-                    }
-                    this.levelSelectCard.addNumberInput(skillName, minLevel, minLevel, Infinity, (event: any) => this.levelInputOnChange(event, skillName));
-                });
-            }
-
-            createSpellSelectCards() {
-                this.spellSelectCard = this.mainTabCard.addPremadeTab(
-                    'Spells',
-                    this.media.spellbook,
-                    new MICSR.TabCard('', false, this.mainTabCard.tabContainer, '100%', '150px'),
-                );
-                // add title for spellbook tab
-                this.spellSelectCard.addSectionTitle('Spells');
-                // add tab menu, it was not yet created in the constructor
-                this.spellSelectCard.addTabMenu();
-
-                // add spell books
-                this.spellSelectCard.addPremadeTab(
-                    'Standard',
-                    this.media.spellbook,
-                    this.createSpellSelectCard('Standard Magic', 'standard'),
-                );
-                this.spellSelectCard.addPremadeTab(
-                    'Curses',
-                    this.media.curse,
-                    this.createSpellSelectCard('Curses', 'curse'),
-                );
-                this.spellSelectCard.addPremadeTab(
-                    'Auroras',
-                    this.media.aurora,
-                    this.createSpellSelectCard('Auroras', 'aurora'),
-                );
-                this.spellSelectCard.addPremadeTab(
-                    'Ancient Magicks',
-                    this.media.ancient,
-                    this.createSpellSelectCard('Ancient Magicks', 'ancient'),
-                );
-                this.spellSelectCard.addPremadeTab(
-                    'Archaic Magic',
-                    this.media.ancient,
-                    this.createSpellSelectCard('Archaic Magic', 'archaic'),
-                );
-
-                // add combination rune toggle
-                this.spellSelectCard.addToggleRadio(
-                    'Use Combination Runes',
-                    'combinationRunes',
-                    this.player,
-                    'useCombinationRunes',
-                );
-            }
-
-            /**
-             * Creates a card for selecting spells
-             * @param {string} title The title of the card
-             * @param {string} spellType The type of spells to generate the select menu for
-             * @return {Card} The created spell select card
-             */
-            createSpellSelectCard(title: any, spellType: any) {
-                const newCard = new MICSR.Card(this.spellSelectCard.container, '', '100px');
-                newCard.addSectionTitle(title);
-                const spells = this.combatData.spells[spellType].allObjects;
-                const spellImages = spells.map((spell: any) => spell.getMediaURL(spell.media));
-                const spellNames = spells.map((spell: any) => spell.id);
-                const spellCallbacks = spells.map((spell: any) => (event: any) => this.spellButtonOnClick(event, spell, spellType));
-                const tooltips = spells.map((spell: any) => {
-                    let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
-                    switch (spellType) {
-                        case 'standard':
-                            tooltip += `Spell Damage: ${spell.maxHit * numberMultiplier}`;
-                            break;
-                        case 'aurora':
-                            tooltip += spell.description;
-                            break;
-                        case 'ancient':
-                            tooltip += spell.specialAttack.description;
-                            break;
-                        default:
-                            tooltip += spell.description;
-                    }
-                    // @ts-expect-error TS(2304): Cannot find name 'combatMenus'.
-                    const runes = combatMenus.spells.standard.getRuneHTML(spell);
-                    tooltip += `</span><br><span class="text-warning">Requires:</span><br>${runes}</small></div>`;
-                    return tooltip;
-                });
-                newCard.addImageButtons(spellImages, spellNames, 'Medium', spellCallbacks, tooltips);
-                return newCard;
-            }
-
-            createPrayerSelectCard() {
-                this.prayerSelectCard = this.mainTabCard.addTab('Prayers', this.media.prayer, '', '100px');
-                this.prayerSelectCard.addSectionTitle('Prayers');
-                const prayerSources: any = [];
-                const prayerNames: any = [];
-                const prayerCallbacks: any = [];
-                const tooltips: any = [];
-                MICSR.prayers.forEach((prayer: any) => {
-                    prayerSources.push(prayer.media);
-                    prayerNames.push(this.getPrayerName(prayer));
-                    prayerCallbacks.push((e: any) => this.prayerButtonOnClick(e, prayer));
-                    tooltips.push(this.createPrayerTooltip(prayer));
-                });
-                this.prayerSelectCard.addImageButtons(prayerSources, prayerNames, 'Medium', prayerCallbacks, tooltips);
-            }
-
-            createPrayerTooltip(prayer: any) {
-                let tooltip = `<div class="text-center">${prayer.name}<br><small><span class='text-info'>`;
-                tooltip += prayer.description;
-                tooltip += '<br></span>';
-                if (prayer.pointsPerPlayer > 0) {
-                    tooltip += `<span class='text-success'>+${(prayer.pointsPerPlayer / 3 / numberMultiplier).toFixed(3)} Prayer XP per damage dealt to enemy</span><br>`;
-                }
-                tooltip += '<span class="text-warning">Prayer Point Cost:</span><br><span class="text-info">';
-                if (prayer.pointsPerPlayer > 0) {
-                    tooltip += `${prayer.pointsPerPlayer}</span> per <span class='text-success'>PLAYER</span> attack`;
-                }
-                if (prayer.pointsPerEnemy > 0) {
-                    tooltip += `${prayer.pointsPerEnemy}</span> per <span class='text-danger'>ENEMY</span> attack`;
-                }
-                if (prayer.pointsPerRegen > 0) {
-                    tooltip += `${prayer.pointsPerRegen}</span> per <span class='text-info'>HP REGEN</span>`;
-                }
-                tooltip += '</small></div>';
-                return tooltip;
-            }
-
-            createPotionSelectCard() {
-                this.potionSelectCard = this.mainTabCard.addTab('Potions', this.media.emptyPotion, '', '100px');
-                this.potionSelectCard.addSectionTitle('Potions');
-                this.potionSelectCard.addDropdown('Potion Tier', ['Tier 1', 'Tier 2', 'Tier 3', 'Tier 4'], [0, 1, 2, 3], (e: any) => this.potionTierDropDownOnChange(e));
-                const potionSources = [];
-                const potionNames = [];
-                const potionCallbacks = [];
-                const tooltips = [];
-                /** @type {number[]} */
-                this.combatPotionIDs = [];
-                for (let i = 0; i < MICSR.herblorePotions.length; i++) {
-                    if (MICSR.herblorePotions[i].category === 0) {
-                        const potion = MICSR.herblorePotions[i].potions[0];
-                        potionSources.push(potion.media);
-                        potionNames.push(this.getPotionName(i));
-                        potionCallbacks.push((e: any) => this.potionImageButtonOnClick(e, i));
-                        tooltips.push(this.getPotionTooltip(potion));
-                        this.combatPotionIDs.push(i);
+    createAstrologySelectCard() {
+        let initial = false;
+        if (!this.astrologySelectCard) {
+            this.astrologySelectCard = this.mainTabCard.addTab('Astrology', this.media.astrology, '', '100px');
+            this.astrologySelected = undefined;
+            this.skipConstellations = [0, 2, 7];
+            initial = true;
+            this.uniqueModifiers = [];
+            // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
+            for (const constellation of Astrology.constellations) {
+                const uniques = {};
+                for (const modifiers of constellation.uniqueModifiers) {
+                    for (const modifier of modifiers) {
+                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                        uniques[modifier] = true;
                     }
                 }
-                this.potionSelectCard.addImageButtons(potionSources, potionNames, 'Medium', potionCallbacks, tooltips);
+                this.uniqueModifiers.push(uniques);
             }
-
-            createPetSelectCard() {
-                const combatPets = this.petIDs.map((id: any) => MICSR.pets.getObjectByID(id));
-                this.petSelectCard = this.mainTabCard.addTab('Pets', this.media.pet, '', '100px');
-                this.petSelectCard.addSectionTitle('Pets');
-                const petImageSources = combatPets.map((pet: any) => pet.media);
-                const petNames = combatPets.map((pet: any) => pet.name);
-                const petButtonCallbacks = this.petIDs.map((petId: any) => (e: any) => this.petButtonOnClick(e, petId));
-                const tooltips = combatPets.map((pet: any) => `<div class="text-center">${pet.name}<br><small class='text-info'>${pet.description.replace(/\.$/, '')}</small></div>`);
-                this.petSelectCard.addImageButtons(petImageSources, petNames, 'Medium', petButtonCallbacks, tooltips);
-                this.petSelectCard.addButton("Clear All Pets", () => {
-                    this.import.importPets(Array(MICSR.pets.length).fill(false));
-                    this.updateCombatStats();
-                });
-                this.petSelectCard.addImage(MICSR.pets.getObjectByID('melvorD:CoolRock').media, 100, 'MCS Rock').style.display = 'none';
+        } else {
+            this.astrologySelectCard.clearContainer();
+        }
+        this.astrologySelectCard.addSectionTitle('Astrology');
+        this.constellationContainers = [];
+        this.constellationModifierContainers = [];
+        const card = this.astrologySelectCard;
+        let index = 0;
+        // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
+        for (const constellation of Astrology.constellations) {
+            const constellationIndex = index;
+            index += 1;
+            // create constellation modifier object
+            let activeConstellationModifiers = {};
+            if (initial) {
+                this.player.activeAstrologyModifiers.push(activeConstellationModifiers);
+            } else {
+                activeConstellationModifiers = this.player.activeAstrologyModifiers[constellationIndex]
             }
+            // create constellation container
+            const cc = card.createCCContainer();
+            this.constellationContainers.push(cc);
+            if (this.skipConstellations.includes(constellationIndex)) {
+                this.constellationModifierContainers.push([]);
+                continue;
+            }
+            // constellation symbol and skills
+            const constellationImage = card.createImageButton(
+                constellation.media,
+                `constellation-${constellationIndex}`,
+                () => {
+                },
+                'Small',
+            );
+            cc.appendChild(card.createLabel(`${constellation.name} (${constellation.level})`));
+            cc.appendChild(constellationImage);
+            cc.appendChild(card.createImage(constellation.skills[0].media, 20));
+            cc.appendChild(card.createImage(constellation.skills[1].media, 20));
+            const standardLabel = card.createLabel(`+0%`)
+            standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
+            cc.appendChild(standardLabel);
+            cc.appendChild(card.container.appendChild(card.createImage(this.media.standardStar, 20)));
+            const uniqueLabel = card.createLabel(`+0%`);
+            uniqueLabel.id = `MICSR-${constellation.name}-unique-percentage`;
+            cc.appendChild(uniqueLabel);
+            cc.appendChild(card.container.appendChild(card.createImage(this.media.uniqueStar, 20)));
+            // add constellation to astrology card
+            card.container.appendChild(cc);
+            // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
+            constellationImage.parentElement.onclick = () => this.toggleAstrologySelectCard(constellationIndex);
+            // image buttons to open modifier selection
+            let elementList: any = [];
+            const standardStar = card.createImage(this.media.standardStar, 40);
+            standardStar.id = `MICSR-${constellation.name}-Standard-Image`;
+            card.container.appendChild(standardStar);
+            this.createStandardAstrologyModifiers(card, elementList, constellation, activeConstellationModifiers);
+            const uniqueStar = card.createImage(this.media.uniqueStar, 40);
+            uniqueStar.id = `MICSR-${constellation.name}-Unique-Image`;
+            card.container.appendChild(uniqueStar);
+            this.createUniqueAstrologyModifiers(card, elementList, constellation, activeConstellationModifiers);
+            this.constellationModifierContainers.push(elementList);
+        }
+        this.astrologySelectCard.addButton('Clear All Star Modifiers', () => this.clearAstrology());
+    }
 
-            createAgilitySelectCard() {
-                if (!this.agilitySelectCard) {
-                    this.agilitySelectCard = this.mainTabCard.addTab('Agility', this.media.agility, '', '100px');
-                    this.agilityCourse = new MICSR.AgilityCourse(
-                        this,
-                        this.player,
-                        [{ tag: 'combat', text: 'Combat', media: this.media.combat }],
+    clearAstrology() {
+        // set modifiers to 0
+        this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
+            if (this.skipConstellations.includes(idx)) {
+                return;
+            }
+            for (const modifier in constellation) {
+                if (constellation[modifier].push) {
+                    constellation[modifier].forEach((x: any) => x[1] = 0
                     );
                 } else {
-                    this.agilitySelectCard.clearContainer();
+                    constellation[modifier] = 0;
                 }
-                this.agilityCourse.createAgilityCourseContainer(this.agilitySelectCard, this.agilityCourse.filters[0]);
             }
+        });
+        // set UI to 0
+        this.constellationModifierContainers.forEach((containers: any) => containers.forEach((x: any) => (document.getElementById(x) as any).value = 0));
+        // update summary
+        this.updateAstrologySummary();
+        // update stats
+        this.updateCombatStats();
+    }
 
-            agilityCourseCallback() {
-                this.updateCombatStats();
+    toggleAstrologySelectCard(selected = undefined) {
+        this.astrologySelected = this.astrologySelected === selected ? undefined : selected;
+        if (this.astrologySelected === undefined) {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS Clear All Star Modifiers Button').style.display = 'block';
+        } else {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS Clear All Star Modifiers Button').style.display = 'none';
+        }
+        // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
+        Astrology.constellations.forEach((constellation: any, index: any) => {
+            if (this.skipConstellations.includes(index)) {
+                return;
             }
-
-            createAstrologySelectCard() {
-                let initial = false;
-                if (!this.astrologySelectCard) {
-                    this.astrologySelectCard = this.mainTabCard.addTab('Astrology', this.media.astrology, '', '100px');
-                    this.astrologySelected = undefined;
-                    this.skipConstellations = [0, 2, 7];
-                    initial = true;
-                    this.uniqueModifiers = [];
-                    // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-                    for (const constellation of Astrology.constellations) {
-                        const uniques = {};
-                        for (const modifiers of constellation.uniqueModifiers) {
-                            for (const modifier of modifiers) {
-                                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                                uniques[modifier] = true;
-                            }
-                        }
-                        this.uniqueModifiers.push(uniques);
-                    }
+            if (this.astrologySelected !== undefined && this.astrologySelected !== index) {
+                this.constellationContainers[index].style.display = 'none';
+            } else {
+                this.constellationContainers[index].style.display = 'block';
+            }
+            const els = [
+                document.getElementById(`MICSR-${constellation.name}-Standard-Image`),
+                document.getElementById(`MICSR-${constellation.name}-Unique-Image`),
+            ]
+            for (const id of this.constellationModifierContainers[index]) {
+                const el = document.getElementById(id).parentElement;
+                els.push(el);
+            }
+            for (const el of els) {
+                if (this.astrologySelected !== index) {
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
+                    el.style.display = 'none';
                 } else {
-                    this.astrologySelectCard.clearContainer();
+                    // @ts-expect-error TS(2531): Object is possibly 'null'.
+                    el.style.display = 'flex';
                 }
-                this.astrologySelectCard.addSectionTitle('Astrology');
-                this.constellationContainers = [];
-                this.constellationModifierContainers = [];
-                const card = this.astrologySelectCard;
-                let index = 0;
-                // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-                for (const constellation of Astrology.constellations) {
-                    const constellationIndex = index;
-                    index += 1;
-                    // create constellation modifier object
-                    let activeConstellationModifiers = {};
-                    if (initial) {
-                        this.player.activeAstrologyModifiers.push(activeConstellationModifiers);
-                    } else {
-                        activeConstellationModifiers = this.player.activeAstrologyModifiers[constellationIndex]
-                    }
-                    // create constellation container
-                    const cc = card.createCCContainer();
-                    this.constellationContainers.push(cc);
-                    if (this.skipConstellations.includes(constellationIndex)) {
-                        this.constellationModifierContainers.push([]);
-                        continue;
-                    }
-                    // constellation symbol and skills
-                    const constellationImage = card.createImageButton(
-                        constellation.media,
-                        `constellation-${constellationIndex}`,
-                        () => {
-                        },
-                        'Small',
-                    );
-                    cc.appendChild(card.createLabel(`${constellation.name} (${constellation.level})`));
-                    cc.appendChild(constellationImage);
-                    cc.appendChild(card.createImage(constellation.skills[0].media, 20));
-                    cc.appendChild(card.createImage(constellation.skills[1].media, 20));
-                    const standardLabel = card.createLabel(`+0%`)
-                    standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
-                    cc.appendChild(standardLabel);
-                    cc.appendChild(card.container.appendChild(card.createImage(this.media.standardStar, 20)));
-                    const uniqueLabel = card.createLabel(`+0%`);
-                    uniqueLabel.id = `MICSR-${constellation.name}-unique-percentage`;
-                    cc.appendChild(uniqueLabel);
-                    cc.appendChild(card.container.appendChild(card.createImage(this.media.uniqueStar, 20)));
-                    // add constellation to astrology card
-                    card.container.appendChild(cc);
-                    // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
-                    constellationImage.parentElement.onclick = () => this.toggleAstrologySelectCard(constellationIndex);
-                    // image buttons to open modifier selection
-                    let elementList: any = [];
-                    const standardStar = card.createImage(this.media.standardStar, 40);
-                    standardStar.id = `MICSR-${constellation.name}-Standard-Image`;
-                    card.container.appendChild(standardStar);
-                    this.createStandardAstrologyModifiers(card, elementList, constellation, activeConstellationModifiers);
-                    const uniqueStar = card.createImage(this.media.uniqueStar, 40);
-                    uniqueStar.id = `MICSR-${constellation.name}-Unique-Image`;
-                    card.container.appendChild(uniqueStar);
-                    this.createUniqueAstrologyModifiers(card, elementList, constellation, activeConstellationModifiers);
-                    this.constellationModifierContainers.push(elementList);
-                }
-                this.astrologySelectCard.addButton('Clear All Star Modifiers', () => this.clearAstrology());
             }
+        });
+    }
 
-            clearAstrology() {
-                // set modifiers to 0
-                this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
-                    if (this.skipConstellations.includes(idx)) {
-                        return;
-                    }
-                    for (const modifier in constellation) {
-                        if (constellation[modifier].push) {
-                            constellation[modifier].forEach((x: any) => x[1] = 0
-                            );
-                        } else {
-                            constellation[modifier] = 0;
+    createStandardAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
+        const stdMod: any = [];
+        constellation.skills.forEach((skillID: any, idx: any) => {
+            if (!this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(skillID)) {
+                return;
+            }
+            // summoning has no relevant modifiers other than increasedSkillXP
+            if (this.micsr.skillIDs.Summoning === skillID) {
+                stdMod.push([skillID, 'increasedSkillXP']);
+                return;
+            }
+            // for other combat skills all modifiers are relevant
+            // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
+            constellation.standardModifiers[idx].forEach((modifier: any) => stdMod.push([modifierData[modifier].isSkill ? skillID : undefined, modifier])
+            );
+        });
+        const alreadyAdded: any = [];
+        // @ts-expect-error TS(7006): Parameter 'x' implicitly has an 'any' type.
+        stdMod.forEach(x => {
+            const skillID = x[0];
+            const modifier = x[1];
+            if (skillID !== undefined) {
+                card.addNumberInput(`${constellation.name}-${this.micsr.skillNames[skillID]}-${modifier}`, 0, 0, 15, (event: any) => {
+                    activeConstellationModifiers[modifier] = activeConstellationModifiers[modifier].map((y: any) => {
+                        if (y[0] !== skillID) {
+                            return y;
                         }
+                        return [skillID, parseInt(event.currentTarget.value)];
+                    });
+                    if (activeConstellationModifiers[modifier].find((x: any) => x[0] === skillID) === undefined) {
+                        activeConstellationModifiers[modifier].push([skillID, parseInt(event.currentTarget.value)]);
                     }
+                    this.updateAstrologySummary();
+                    this.updateCombatStats();
                 });
-                // set UI to 0
-                this.constellationModifierContainers.forEach((containers: any) => containers.forEach((x: any) => (document.getElementById(x) as any).value = 0));
-                // update summary
+                const id = `MCS ${constellation.name}-${this.micsr.skillNames[skillID]}-${modifier} Input`;
+                elementList.push(id);
+                card.container.lastChild.firstChild.textContent = `${this.micsr.skillNames[skillID]} ${modifier}`;
+                if (activeConstellationModifiers[modifier] === undefined) {
+                    activeConstellationModifiers[modifier] = [];
+                }
+                activeConstellationModifiers[modifier].push([skillID, 0]);
+            } else if (!alreadyAdded.includes(modifier)) {
+                card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
+                    activeConstellationModifiers[modifier] = parseInt(event.currentTarget.value);
+                    this.updateAstrologySummary();
+                    this.updateCombatStats();
+                });
+                const id = `MCS ${constellation.name}-${modifier} Input`;
+                elementList.push(id);
+                card.container.lastChild.firstChild.textContent = `${modifier}`;
+                activeConstellationModifiers[modifier] = 0;
+                alreadyAdded.push(modifier);
+            }
+        });
+    }
+
+    createUniqueAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
+        // unique modifiers
+        const uniqMod = constellation.uniqueModifiers.reduce((acc: any, val: any) => acc.concat(val), []).filter((m: any) => this.micsr.showModifiersInstance.relevantModifiers.combat.names.includes(m)
+            || this.micsr.showModifiersInstance.relevantModifiers.combat.names.includes(m.substring(9))
+        );
+        uniqMod.forEach((modifier: any) => {
+            card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
+                activeConstellationModifiers[modifier] = parseInt(event.currentTarget.value);
                 this.updateAstrologySummary();
-                // update stats
                 this.updateCombatStats();
-            }
+            });
+            const id = `MCS ${constellation.name}-${modifier} Input`;
+            elementList.push(id);
+            card.container.lastChild.firstChild.textContent = `${modifier}`;
+            activeConstellationModifiers[modifier] = 0;
+        });
+    }
 
-            toggleAstrologySelectCard(selected = undefined) {
-                this.astrologySelected = this.astrologySelected === selected ? undefined : selected;
-                if (this.astrologySelected === undefined) {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS Clear All Star Modifiers Button').style.display = 'block';
-                } else {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS Clear All Star Modifiers Button').style.display = 'none';
-                }
-                // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-                Astrology.constellations.forEach((constellation: any, index: any) => {
-                    if (this.skipConstellations.includes(index)) {
-                        return;
-                    }
-                    if (this.astrologySelected !== undefined && this.astrologySelected !== index) {
-                        this.constellationContainers[index].style.display = 'none';
-                    } else {
-                        this.constellationContainers[index].style.display = 'block';
-                    }
-                    const els = [
-                        document.getElementById(`MICSR-${constellation.name}-Standard-Image`),
-                        document.getElementById(`MICSR-${constellation.name}-Unique-Image`),
-                    ]
-                    for (const id of this.constellationModifierContainers[index]) {
-                        const el = document.getElementById(id).parentElement;
-                        els.push(el);
-                    }
-                    for (const el of els) {
-                        if (this.astrologySelected !== index) {
-                            // @ts-expect-error TS(2531): Object is possibly 'null'.
-                            el.style.display = 'none';
-                        } else {
-                            // @ts-expect-error TS(2531): Object is possibly 'null'.
-                            el.style.display = 'flex';
-                        }
-                    }
-                });
+    updateAstrologySummary() {
+        this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
+            if (this.skipConstellations.includes(idx)) {
+                return;
             }
-
-            createStandardAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
-                const stdMod: any = [];
-                constellation.skills.forEach((skillID: any, idx: any) => {
-                    if (!MICSR.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(skillID)) {
-                        return;
-                    }
-                    // summoning has no relevant modifiers other than increasedSkillXP
-                    if (MICSR.skillIDs.Summoning === skillID) {
-                        stdMod.push([skillID, 'increasedSkillXP']);
-                        return;
-                    }
-                    // for other combat skills all modifiers are relevant
-                    // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
-                    constellation.standardModifiers[idx].forEach((modifier: any) => stdMod.push([modifierData[modifier].isSkill ? skillID : undefined, modifier])
+            let standard = 0;
+            let unique = 0;
+            for (const modifier in constellation) {
+                let val = 0;
+                if (constellation[modifier].push) {
+                    constellation[modifier].forEach((x: any) => val += x[1]
                     );
-                });
-                const alreadyAdded: any = [];
-                // @ts-expect-error TS(7006): Parameter 'x' implicitly has an 'any' type.
-                stdMod.forEach(x => {
-                    const skillID = x[0];
-                    const modifier = x[1];
-                    if (skillID !== undefined) {
-                        card.addNumberInput(`${constellation.name}-${MICSR.skillNames[skillID]}-${modifier}`, 0, 0, 15, (event: any) => {
-                            activeConstellationModifiers[modifier] = activeConstellationModifiers[modifier].map((y: any) => {
-                                if (y[0] !== skillID) {
-                                    return y;
-                                }
-                                return [skillID, parseInt(event.currentTarget.value)];
-                            });
-                            if (activeConstellationModifiers[modifier].find((x: any) => x[0] === skillID) === undefined) {
-                                activeConstellationModifiers[modifier].push([skillID, parseInt(event.currentTarget.value)]);
-                            }
-                            this.updateAstrologySummary();
-                            this.updateCombatStats();
-                        });
-                        const id = `MCS ${constellation.name}-${MICSR.skillNames[skillID]}-${modifier} Input`;
-                        elementList.push(id);
-                        card.container.lastChild.firstChild.textContent = `${MICSR.skillNames[skillID]} ${modifier}`;
-                        if (activeConstellationModifiers[modifier] === undefined) {
-                            activeConstellationModifiers[modifier] = [];
-                        }
-                        activeConstellationModifiers[modifier].push([skillID, 0]);
-                    } else if (!alreadyAdded.includes(modifier)) {
-                        card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
-                            activeConstellationModifiers[modifier] = parseInt(event.currentTarget.value);
-                            this.updateAstrologySummary();
-                            this.updateCombatStats();
-                        });
-                        const id = `MCS ${constellation.name}-${modifier} Input`;
-                        elementList.push(id);
-                        card.container.lastChild.firstChild.textContent = `${modifier}`;
-                        activeConstellationModifiers[modifier] = 0;
-                        alreadyAdded.push(modifier);
-                    }
-                });
-            }
-
-            createUniqueAstrologyModifiers(card: any, elementList: any, constellation: any, activeConstellationModifiers: any) {
-                // unique modifiers
-                const uniqMod = constellation.uniqueModifiers.reduce((acc: any, val: any) => acc.concat(val), []).filter((m: any) => MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m)
-                    || MICSR.showModifiersInstance.relevantModifiers.combat.names.includes(m.substring(9))
-                );
-                uniqMod.forEach((modifier: any) => {
-                    card.addNumberInput(`${constellation.name}-${modifier}`, 0, 0, 15, (event: any) => {
-                        activeConstellationModifiers[modifier] = parseInt(event.currentTarget.value);
-                        this.updateAstrologySummary();
-                        this.updateCombatStats();
-                    });
-                    const id = `MCS ${constellation.name}-${modifier} Input`;
-                    elementList.push(id);
-                    card.container.lastChild.firstChild.textContent = `${modifier}`;
-                    activeConstellationModifiers[modifier] = 0;
-                });
-            }
-
-            updateAstrologySummary() {
-                this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
-                    if (this.skipConstellations.includes(idx)) {
-                        return;
-                    }
-                    let standard = 0;
-                    let unique = 0;
-                    for (const modifier in constellation) {
-                        let val = 0;
-                        if (constellation[modifier].push) {
-                            constellation[modifier].forEach((x: any) => val += x[1]
-                            );
-                        } else {
-                            val += constellation[modifier];
-                        }
-                        if (this.uniqueModifiers[idx][modifier]) {
-                            unique += val;
-                        } else {
-                            standard += val;
-                        }
-                    }
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById(`MICSR-${Astrology.constellations[idx].name}-standard-percentage`).textContent = `+${standard}%`;
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById(`MICSR-${Astrology.constellations[idx].name}-unique-percentage`).textContent = `+${unique}%`;
-                });
-            }
-
-            createLootOptionsCard() {
-                if (!this.lootSelectCard) {
-                    this.lootSelectCard = this.mainTabCard.addTab('Loot Options', this.media.loot, '', '150px');
                 } else {
-                    this.lootSelectCard.clearContainer();
+                    val += constellation[modifier];
                 }
-                // drop chance options
-                this.lootSelectCard.addSectionTitle('Drop Chance Options');
-                this.lootSelectCard.addToggleRadio(
-                    'Only Selected Monster',
-                    'selectedMonster',
-                    this.dropListFilters,
-                    'selectedMonster',
-                    this.dropListFilters.selectedMonster, // default
-                    25, // default
-                    () => {
-                        this.createLootOptionsCard();
-                        this.updatePlotForLoot();
-                    },
-                );
-                this.lootSelectCard.addToggleRadio(
-                    'Only Undiscovered',
-                    'onlyUndiscovered',
-                    this.dropListFilters,
-                    'onlyUndiscovered',
-                    this.dropListFilters.onlyUndiscovered, // default
-                    25, // default
-                    () => {
-                        this.createLootOptionsCard();
-                        this.updatePlotForLoot();
-                    },
-                );
-                const droppedItems = this.buildItemDropList()
-                let index = droppedItems.indexOf(this.combatData.dropSelected);
-                if (index === -1) {
-                    index = 0;
-                    this.combatData.dropSelected = 'micsr:none';
-                    this.updatePlotForLoot();
-                }
-                const dropdown = this.lootSelectCard.addDropdown(
-                    'Choose Item',
-                    droppedItems.map((itemID) => itemID === 'micsr:none' ? 'None' : MICSR.items.getObjectByID(itemID).name),
-                    droppedItems,
-                    (event: any) => this.dropChanceOnChange(event),
-                );
-                dropdown.selectedIndex = index;
-
-                // gp options
-                this.lootSelectCard.addSectionTitle('');
-                this.lootSelectCard.addSectionTitle('GP/s Options');
-                this.lootSelectCard.addRadio(
-                    'Sell Bones',
-                    25,
-                    'sellBones',
-                    ['Yes', 'No'],
-                    [
-                        (e: any) => this.sellBonesRadioOnChange(e, true),
-                        (e: any) => this.sellBonesRadioOnChange(e, false),
-                    ],
-                    this.loot.sellBones ? 0 : 1,
-                );
-                this.lootSelectCard.addRadio(
-                    'Convert Shards',
-                    25,
-                    'convertShards',
-                    ['Yes', 'No'],
-                    [
-                        (e: any) => this.convertShardsRadioOnChange(e, true),
-                        (e: any) => this.convertShardsRadioOnChange(e, false),
-                    ],
-                    this.loot.convertShards ? 0 : 1,
-                );
-                this.lootSelectCard.addRadio(
-                    'High Alch Drops',
-                    25,
-                    'alchHighValueItems',
-                    ['Yes', 'No'],
-                    [
-                        (e: any) => this.alchHighValueItemsRadioOnChange(e, true),
-                        (e: any) => this.alchHighValueItemsRadioOnChange(e, false),
-                    ],
-                    this.loot.alchHighValueItems ? 0 : 1,
-                );
-                this.lootSelectCard.addNumberInput(
-                    'Alch Min Sale Value',
-                    this.loot.alchemyCutoff,
-                    0,
-                    Infinity,
-                    (event: any) => this.alchemyCutoffInputOnChange(event),
-                );
-            }
-
-            addToLootMap(monster: any, lootMap: any) {
-                if (monster.lootTable) {
-                    monster.lootTable.drops.forEach((drop: any) => {
-                        const itemID: string = drop.item.id;
-                        lootMap.set(itemID, true);
-                        const dropTable = drop.item.dropTable;
-                        if (dropTable) {
-                            dropTable.drops.forEach((drp: any) => lootMap.set(drp.item.id, true));
-                        }
-                    });
-                }
-                if (monster.bones) {
-                    lootMap.set(monster.bones.item.id, true);
-                    // TODO: some bones are upgradable, e.g. Earth_Shard
-                }
-                return lootMap;
-            }
-
-            buildItemDropList() {
-                // construct map
-                let lootMap = new Map();
-                if (this.dropListFilters.selectedMonster) {
-                    if (!this.isViewingDungeon) {
-                        if (this.barIsDungeon(this.selectedBar)) {
-                            const dungeonID = this.barMonsterIDs[this.selectedBar];
-                            const monsters = MICSR.dungeons.getObjectByID(dungeonID).monsters;
-                            const boss = monsters[monsters.length - 1];
-                            lootMap = this.addToLootMap(boss, lootMap);
-                        } else if (this.barIsTask(this.selectedBar)) {
-                            const taskID = this.barMonsterIDs[this.selectedBar];
-                            const monsters = this.simulator.slayerTaskMonsters[taskID];
-                            monsters.map((id: any) => MICSR.monsters.getObjectByID(id)).forEach((monster: any) => lootMap = this.addToLootMap(monster, lootMap));
-                        } else {
-                            lootMap = this.addToLootMap(MICSR.monsters.getObjectByID(this.barMonsterIDs[this.selectedBar]), lootMap);
-                        }
-                    } else if (this.loot.godDungeonIDs.includes(this.viewedDungeonID)) {
-                        const monsterID = this.getSelectedDungeonMonsterID();
-                        lootMap = this.addToLootMap(MICSR.monsters.getObjectByID(monsterID), lootMap);
-                    }
+                if (this.uniqueModifiers[idx][modifier]) {
+                    unique += val;
                 } else {
-                    MICSR.monsters.forEach((monster: any) => lootMap = this.addToLootMap(monster, lootMap));
+                    standard += val;
                 }
-                // construct list
-                let lootList: any[] = [];
-                lootMap.forEach((_: boolean, itemID: any) => {
-                    // apply undiscovered filter
-                    if (this.dropListFilters.onlyUndiscovered) {
-                        const item = MICSR.items.getObjectByID(itemID);
-                        if (MICSR.actualGame.stats.itemFindCount(item) === 0) {
-                            lootList.push(itemID);
-                        }
-                    } else {
-                        lootList.push(itemID);
-                    }
-                });
-                // sort by name
-                return ['micsr:none', ...lootList.sort((a, b) => MICSR.items.getObjectByID(a).name > MICSR.items.getObjectByID(b).name ? 1 : -1)];
             }
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById(`MICSR-${Astrology.constellations[idx].name}-standard-percentage`).textContent = `+${standard}%`;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById(`MICSR-${Astrology.constellations[idx].name}-unique-percentage`).textContent = `+${unique}%`;
+        });
+    }
 
-            dropChanceOnChange(event: any) {
-                this.combatData.dropSelected = event.currentTarget.selectedOptions[0].value;
+    createLootOptionsCard() {
+        if (!this.lootSelectCard) {
+            this.lootSelectCard = this.mainTabCard.addTab('Loot Options', this.media.loot, '', '150px');
+        } else {
+            this.lootSelectCard.clearContainer();
+        }
+        // drop chance options
+        this.lootSelectCard.addSectionTitle('Drop Chance Options');
+        this.lootSelectCard.addToggleRadio(
+            'Only Selected Monster',
+            'selectedMonster',
+            this.dropListFilters,
+            'selectedMonster',
+            this.dropListFilters.selectedMonster, // default
+            25, // default
+            () => {
+                this.createLootOptionsCard();
                 this.updatePlotForLoot();
-            }
+            },
+        );
+        this.lootSelectCard.addToggleRadio(
+            'Only Undiscovered',
+            'onlyUndiscovered',
+            this.dropListFilters,
+            'onlyUndiscovered',
+            this.dropListFilters.onlyUndiscovered, // default
+            25, // default
+            () => {
+                this.createLootOptionsCard();
+                this.updatePlotForLoot();
+            },
+        );
+        const droppedItems = this.buildItemDropList()
+        let index = droppedItems.indexOf(this.combatData.dropSelected);
+        if (index === -1) {
+            index = 0;
+            this.combatData.dropSelected = 'micsr:none';
+            this.updatePlotForLoot();
+        }
+        const dropdown = this.lootSelectCard.addDropdown(
+            'Choose Item',
+            droppedItems.map((itemID) => itemID === 'micsr:none' ? 'None' : this.micsr.items.getObjectByID(itemID).name),
+            droppedItems,
+            (event: any) => this.dropChanceOnChange(event),
+        );
+        dropdown.selectedIndex = index;
 
-            getSelectedDropLabel() {
-                if (this.combatData.dropSelected === 'micsr:none') {
-                    return `Drops/${this.selectedTimeShorthand}`;
+        // gp options
+        this.lootSelectCard.addSectionTitle('');
+        this.lootSelectCard.addSectionTitle('GP/s Options');
+        this.lootSelectCard.addRadio(
+            'Sell Bones',
+            25,
+            'sellBones',
+            ['Yes', 'No'],
+            [
+                (e: any) => this.sellBonesRadioOnChange(e, true),
+                (e: any) => this.sellBonesRadioOnChange(e, false),
+            ],
+            this.loot.sellBones ? 0 : 1,
+        );
+        this.lootSelectCard.addRadio(
+            'Convert Shards',
+            25,
+            'convertShards',
+            ['Yes', 'No'],
+            [
+                (e: any) => this.convertShardsRadioOnChange(e, true),
+                (e: any) => this.convertShardsRadioOnChange(e, false),
+            ],
+            this.loot.convertShards ? 0 : 1,
+        );
+        this.lootSelectCard.addRadio(
+            'High Alch Drops',
+            25,
+            'alchHighValueItems',
+            ['Yes', 'No'],
+            [
+                (e: any) => this.alchHighValueItemsRadioOnChange(e, true),
+                (e: any) => this.alchHighValueItemsRadioOnChange(e, false),
+            ],
+            this.loot.alchHighValueItems ? 0 : 1,
+        );
+        this.lootSelectCard.addNumberInput(
+            'Alch Min Sale Value',
+            this.loot.alchemyCutoff,
+            0,
+            Infinity,
+            (event: any) => this.alchemyCutoffInputOnChange(event),
+        );
+    }
+
+    addToLootMap(monster: any, lootMap: any) {
+        if (monster.lootTable) {
+            monster.lootTable.drops.forEach((drop: any) => {
+                const itemID: string = drop.item.id;
+                lootMap.set(itemID, true);
+                const dropTable = drop.item.dropTable;
+                if (dropTable) {
+                    dropTable.drops.forEach((drp: any) => lootMap.set(drp.item.id, true));
                 }
-                const item = MICSR.items.getObjectByID(this.combatData.dropSelected);
-                return `${item.name}/${this.selectedTimeShorthand}`;
-            }
+            });
+        }
+        if (monster.bones) {
+            lootMap.set(monster.bones.item.id, true);
+            // TODO: some bones are upgradable, e.g. Earth_Shard
+        }
+        return lootMap;
+    }
 
-            createSimulationAndExportCard() {
-                this.simOptionsCard = this.mainTabCard.addTab('Simulation Options', this.media.settings, '', '150px');
-                // advanced options
-                this.simOptionsCard.addSectionTitle('Advanced Options');
-                this.simOptionsCard.addNumberInput('# Trials', MICSR.trials, 1, 1e5, (event: any) => this.numTrialsInputOnChange(event));
-                this.simOptionsCard.addNumberInput('Max tick/trial', MICSR.maxTicks, 1, 1e8, (event: any) => this.maxTicksInputOnChange(event));
-                this.simOptionsCard.addToggleRadio(
-                    'Heal After Death',
-                    'healAfterDeath',
-                    this.player,
-                    'healAfterDeath',
-                    this.player.healAfterDeath,
-                );
-                this.simOptionsCard.addToggleRadio(
-                    'Has Runes',
-                    'hasRunes',
-                    this.player,
-                    'hasRunes',
-                    this.player.hasRunes,
-                );
-                // settings export and import
-                this.simOptionsCard.container.appendChild(document.createElement('br'));
-                this.simOptionsCard.addSectionTitle('Settings Export - Import');
-                this.simOptionsCard.addButton('Export Settings', () => this.exportSettingButtonOnClick());
+    buildItemDropList() {
+        // construct map
+        let lootMap = new Map();
+        if (this.dropListFilters.selectedMonster) {
+            if (!this.isViewingDungeon) {
+                if (this.barIsDungeon(this.selectedBar)) {
+                    const dungeonID = this.barMonsterIDs[this.selectedBar];
+                    const monsters = this.micsr.dungeons.getObjectByID(dungeonID).monsters;
+                    const boss = monsters[monsters.length - 1];
+                    lootMap = this.addToLootMap(boss, lootMap);
+                } else if (this.barIsTask(this.selectedBar)) {
+                    const taskID = this.barMonsterIDs[this.selectedBar];
+                    const monsters = this.simulator.slayerTaskMonsters[taskID];
+                    monsters.map((id: any) => this.micsr.monsters.getObjectByID(id)).forEach((monster: any) => lootMap = this.addToLootMap(monster, lootMap));
+                } else {
+                    lootMap = this.addToLootMap(this.micsr.monsters.getObjectByID(this.barMonsterIDs[this.selectedBar]), lootMap);
+                }
+            } else if (this.loot.godDungeonIDs.includes(this.viewedDungeonID)) {
+                const monsterID = this.getSelectedDungeonMonsterID();
+                lootMap = this.addToLootMap(this.micsr.monsters.getObjectByID(monsterID), lootMap);
+            }
+        } else {
+            this.micsr.monsters.forEach((monster: any) => lootMap = this.addToLootMap(monster, lootMap));
+        }
+        // construct list
+        let lootList: any[] = [];
+        lootMap.forEach((_: boolean, itemID: any) => {
+            // apply undiscovered filter
+            if (this.dropListFilters.onlyUndiscovered) {
+                const item = this.micsr.items.getObjectByID(itemID);
+                if (this.micsr.actualGame.stats.itemFindCount(item) === 0) {
+                    lootList.push(itemID);
+                }
+            } else {
+                lootList.push(itemID);
+            }
+        });
+        // sort by name
+        return ['micsr:none', ...lootList.sort((a, b) => this.micsr.items.getObjectByID(a).name > this.micsr.items.getObjectByID(b).name ? 1 : -1)];
+    }
+
+    dropChanceOnChange(event: any) {
+        this.combatData.dropSelected = event.currentTarget.selectedOptions[0].value;
+        this.updatePlotForLoot();
+    }
+
+    getSelectedDropLabel() {
+        if (this.combatData.dropSelected === 'micsr:none') {
+            return `Drops/${this.selectedTimeShorthand}`;
+        }
+        const item = this.micsr.items.getObjectByID(this.combatData.dropSelected);
+        return `${item.name}/${this.selectedTimeShorthand}`;
+    }
+
+    createSimulationAndExportCard() {
+        this.simOptionsCard = this.mainTabCard.addTab('Simulation Options', this.media.settings, '', '150px');
+        // advanced options
+        this.simOptionsCard.addSectionTitle('Advanced Options');
+        this.simOptionsCard.addNumberInput('# Trials', this.micsr.trials, 1, 1e5, (event: any) => this.numTrialsInputOnChange(event));
+        this.simOptionsCard.addNumberInput('Max tick/trial', this.micsr.maxTicks, 1, 1e8, (event: any) => this.maxTicksInputOnChange(event));
+        this.simOptionsCard.addToggleRadio(
+            'Heal After Death',
+            'healAfterDeath',
+            this.player,
+            'healAfterDeath',
+            this.player.healAfterDeath,
+        );
+        this.simOptionsCard.addToggleRadio(
+            'Has Runes',
+            'hasRunes',
+            this.player,
+            'hasRunes',
+            this.player.hasRunes,
+        );
+        // settings export and import
+        this.simOptionsCard.container.appendChild(document.createElement('br'));
+        this.simOptionsCard.addSectionTitle('Settings Export - Import');
+        this.simOptionsCard.addButton('Export Settings', () => this.exportSettingButtonOnClick());
+        this.importedSettings = {};
+        this.simOptionsCard.addTextInput('Settings JSON:', '', (event: any) => {
+            try {
+                this.importedSettings = JSON.parse(event.currentTarget.value)
+            } catch {
+                this.notify('Ignored invalid JSON settings!', 'danger');
                 this.importedSettings = {};
-                this.simOptionsCard.addTextInput('Settings JSON:', '', (event: any) => {
-                    try {
-                        this.importedSettings = JSON.parse(event.currentTarget.value)
-                    } catch {
-                        this.notify('Ignored invalid JSON settings!', 'danger');
-                        this.importedSettings = {};
+            }
+        });
+        this.simOptionsCard.addButton('Import Settings', () => {
+            if (!this.importedSettings) {
+                this.notify('No settings to import.', 'danger');
+                return;
+            }
+            this.import.importSettings(this.importedSettings);
+            this.import.update();
+        });
+        // data export
+        this.simOptionsCard.container.appendChild(document.createElement('br'));
+        this.simOptionsCard.addSectionTitle('Data Export');
+        this.simOptionsCard.addToggleRadio(
+            'Dungeon Monsters',
+            `DungeonMonsterExportRadio`,
+            this.dataExport.exportOptions,
+            'dungeonMonsters',
+            this.dataExport.exportOptions.dungeonMonsters,
+        );
+        this.simOptionsCard.addToggleRadio(
+            'Non-Simulated',
+            `NonSimmedExportRadio`,
+            this.dataExport.exportOptions,
+            'nonSimmed',
+            this.dataExport.exportOptions.nonSimmed,
+        );
+        this.simOptionsCard.addButton('Export Data', () => this.exportDataOnClick());
+    }
+
+    createCompareCard() {
+        if (!this.compareCard) {
+            this.trackHistory = false;
+            this.savedSimulations = [];
+            this.compareCard = this.mainTabCard.addTab('Saved Simulations', this.media.statistics, '', '150px');
+        } else {
+            this.compareCard.clearContainer();
+        }
+        this.compareCard.addButton('Clear History', () => {
+            this.savedSimulations = [];
+            this.createCompareCard();
+        });
+        this.compareCard.addRadio('Track History', 25, 'trackHistory', ['Yes', 'No'], [
+            () => this.trackHistory = true,
+            () => this.trackHistory = false,
+        ], this.trackHistory ? 0 : 1);
+
+        this.compareCard.addSectionTitle('Saved Simulations');
+        this.savedSimulations.forEach((_: any, i: any) => {
+            this.compareCard.addButton(`Load simulation ${i}`, () => this.loadSavedSimulation(i));
+        });
+    }
+
+    loadSavedSimulation(idx: any) {
+        const simulation = this.savedSimulations[idx];
+        if (!simulation) {
+            this.micsr.error(`Unable to load simulation with index ${idx}`);
+            return;
+        }
+        // load settings
+        this.import.importSettings(simulation.settings);
+        this.import.update();
+        // load results
+        for (const id in simulation.monsterSimData) {
+            this.simulator.monsterSimData[id] = { ...simulation.monsterSimData[id] };
+        }
+        this.simulator.performPostSimAnalysis();
+        this.updateDisplayPostSim();
+    }
+
+    createConsumablesCard() {
+        this.consumablesCard = this.mainTabCard.addPremadeTab(
+            'Consumables',
+            this.media.bank,
+            new TabCard(this.micsr, 'consumables', false, this.mainTabCard.tabContainer, '100%', '150px'),
+        );
+        this.consumables = new Consumables(this);
+    }
+
+    /** Adds a multi-button with equipment to the equipment select popup
+     * @param {Card} card The parent card
+     * @param {number} equipmentSlot The equipment slot
+     * @param {Function} filterFunction Filter equipment with this function
+     * @param {Function} sortFunction Sort equipment by this key
+     */
+    addEquipmentMultiButton(card: any, equipmentSlot: any, filterFunction: any, sortFunction = (item: any) => item.id, golbinRaid = false) {
+        const menuItems = this.equipmentSubsets[equipmentSlot].filter(filterFunction).filter((x: any) => !!x.golbinRaidExclusive === golbinRaid);
+        const sortKey = (item: any) => {
+            const x = sortFunction(item);
+            return x ? x : 0;
+        }
+        menuItems.sort((a: any, b: any) => sortKey(a) - sortKey(b));
+        const buttonMedia = menuItems.map((item: any) => item.media);
+        const buttonIds = menuItems.map((item: any) => item.name);
+        const buttonCallbacks = menuItems.map((item: any) => () => this.equipItem(equipmentSlot, item));
+        const tooltips = menuItems.map((item: any) => this.getEquipmentTooltip(equipmentSlot, item));
+        card.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
+    }
+
+    /**
+     * Filters an array by if the array item has the key
+     * @param {string} key
+     * @param {Object} item
+     * @return {boolean}
+     */
+    filterIfHasKey(key: any, item: any) {
+        return key in item || item.id === -1;
+    }
+
+    filterIfHasLevelReq(item: any, skillID: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        if (this.force[skillID].includes(item.id)) {
+            return true;
+        }
+        return this.getItemLevelReq(item, skillID) > 0;
+    }
+
+    getItemLevelReq(item: any, skillID: any) {
+        if (skillID === this.micsr.skillIDs.Summoning) {
+            return item.summoningLevel | 0;
+        }
+        let req = 0;
+        if (item.equipRequirements === undefined) {
+            return req;
+        }
+        const levelReqs = item.equipRequirements
+            .filter((x: any) => x.type === 'Level')
+            .map((x: any) => x.levels)
+            .reduce((a: any, b: any) => [...a, ...b], []);
+        for (let levelReq of levelReqs) {
+            if (levelReq.skill === skillID) {
+                req = Math.max(req, levelReq.level);
+            }
+        }
+        return req;
+    }
+
+    /**
+     * Filters equipment by if it has no level requirements
+     * @param {Object} item
+     * @return {boolean}
+     */
+    filterIfHasNoLevelReq(item: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        const skillIDs = [
+            this.micsr.skillIDs.Defence,
+            this.micsr.skillIDs.Ranged,
+            this.micsr.skillIDs.Magic,
+        ]
+        for (let skillID of skillIDs) {
+            if (this.getItemLevelReq(item, skillID) || (this.force[skillID] && this.force[skillID].includes(item.id))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Filter an item array by the ammoType
+     * @param {number} type
+     * @param {Object} item
+     * @return {boolean}
+     */
+    filterByAmmoType(type: any, item: any) {
+        return item.ammoType === type || item.id === -1;
+    }
+
+    filterNoAmmoType(item: any) {
+        return item.ammoType === undefined || item.id === -1;
+    }
+
+    /**
+     * Filter an item array by the ammoType
+     * @param {number} type
+     * @param {Object} item
+     * @return {boolean}
+     */
+    filterByAmmoReq(type: any, item: any) {
+        return item.ammoTypeRequired === type || item.id === -1;
+    }
+
+    /**
+     * Filter an item if it's twohanded property matches the given state
+     * @param {boolean} is2H Filter if twohanded matches this
+     * @param {Object} item
+     * @return {boolean}
+     */
+    filterByTwoHanded(is2H: any, item: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        return this.isTwoHanded(item) === is2H;
+    }
+
+    isTwoHanded(item: any) {
+        return item.occupiesSlots && item.occupiesSlots.includes('Shield');
+    }
+
+    filterMagicDamage(item: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        if (item.modifiers === undefined) {
+            return false;
+        }
+        return item.modifiers.increasedMinAirSpellDmg > 0
+            || item.modifiers.increasedMinEarthSpellDmg > 0
+            || item.modifiers.increasedMinFireSpellDmg > 0
+            || item.modifiers.increasedMinWaterSpellDmg > 0
+    }
+
+    filterSlayer(item: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        if (item.modifiers === undefined) {
+            return false;
+        }
+        if (item.modifiers.increasedSkillXP && item.modifiers.increasedSkillXP.filter((x: any) => x[0] === this.micsr.skillIDs.Slayer).length > 0) {
+            return true;
+        }
+        return item.modifiers.increasedSlayerAreaEffectNegationFlat > 0
+            || item.modifiers.increasedDamageToSlayerTasks > 0
+            || item.modifiers.increasedDamageToSlayerAreaMonsters > 0
+            || item.modifiers.increasedSlayerTaskLength > 0
+            || item.modifiers.increasedSlayerCoins > 0
+    }
+
+    filterRemainingPassive(item: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        return !this.filterMagicDamage(item) && !this.filterSlayer(item)
+    }
+
+    /**
+     * Filter an item by the weapon type
+     * @param {string} weaponType
+     * @param {Object} item
+     * @return {boolean}
+     */
+    filterByWeaponType(attackType: any, item: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        return item.attackType === attackType;
+    }
+
+    /**
+     * Filter by combat summon
+     * @return {boolean}
+     */
+    filterCombatSummon(item: any, combat: any) {
+        if (item.id === -1) {
+            return true;
+        }
+        let maxhit = 0;
+        if (item.equipmentStats) {
+            const maxhitList = item.equipmentStats.filter((x: any) => x.key === 'summoningMaxhit');
+            if (maxhitList.length > 0) {
+                maxhit = maxhitList[0].value;
+            }
+        }
+        return maxhit > 0 === combat;
+    }
+
+    /**
+     * Filter by returning all elements
+     * @return {boolean}
+     */
+    returnTrue() {
+        return true;
+    }
+
+    /**
+     * Change a button's classes to show that it is selected
+     * @param {HTMLButtonElement} button
+     */
+    selectButton(button: HTMLElement) {
+        button.classList.add('btn-primary');
+        button.classList.remove('btn-outline-dark');
+    }
+
+    /**
+     * Change a button's classes to show that it is not selected
+     * @param {HTMLButtonElement} button
+     */
+    unselectButton(button: HTMLElement) {
+        button.classList.remove('btn-primary');
+        button.classList.add('btn-outline-dark');
+    }
+
+    /**
+     * Creates an equipment popup
+     * @param {number} equipmentSlot
+     * @return {HTMLDivElement}
+     */
+    createEquipmentPopup(equipmentSlot: any) {
+        const equipmentSelectPopup = document.createElement('div');
+        equipmentSelectPopup.className = 'mcsPopup';
+        const equipmentSelectCard = new Card(this.micsr, equipmentSelectPopup, '', '600px');
+        const triSplit = [
+            EquipmentSlots.Helmet,
+            EquipmentSlots.Platebody,
+            EquipmentSlots.Platelegs,
+            EquipmentSlots.Boots,
+            EquipmentSlots.Shield,
+            EquipmentSlots.Gloves,
+        ];
+        const noSplit = [
+            EquipmentSlots.Amulet,
+            EquipmentSlots.Ring,
+            EquipmentSlots.Cape,
+            EquipmentSlots.Consumable,
+        ];
+        if (triSplit.includes(equipmentSlot)) {
+            equipmentSelectCard.addSectionTitle('Melee');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
+                (item: any) => this.filterIfHasLevelReq(item, this.micsr.skillIDs.Defence),
+                x => this.filterIfHasLevelReq(x, this.micsr.skillIDs.Defence)
+            );
+            equipmentSelectCard.addSectionTitle('Ranged');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
+                (item: any) => this.filterIfHasLevelReq(item, this.micsr.skillIDs.Ranged),
+                x => this.filterIfHasLevelReq(x, this.micsr.skillIDs.Ranged)
+            );
+            equipmentSelectCard.addSectionTitle('Magic');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
+                (item: any) => this.filterIfHasLevelReq(item, this.micsr.skillIDs.Magic),
+                x => this.filterIfHasLevelReq(x, this.micsr.skillIDs.Magic)
+            );
+            if (this.equipmentSubsets[equipmentSlot].filter((item: any) => this.filterIfHasNoLevelReq(item)).length > 1) {
+                equipmentSelectCard.addSectionTitle('Other');
+                this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterIfHasNoLevelReq(item), x => x.name);
+            }
+        } else if (noSplit.includes(equipmentSlot)) {
+            equipmentSelectCard.addSectionTitle(EquipmentSlots[equipmentSlot]);
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, () => this.returnTrue());
+        } else if (equipmentSlot === EquipmentSlots.Weapon) {
+            equipmentSelectCard.addSectionTitle('1H Melee');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
+                return this.filterByTwoHanded(false, item) && this.filterByWeaponType('melee', item);
+            }, x => this.getItemLevelReq(x, this.micsr.skillIDs.Attack));
+            equipmentSelectCard.addSectionTitle('2H Melee');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
+                return this.filterByTwoHanded(true, item) && this.filterByWeaponType('melee', item);
+            }, x => this.getItemLevelReq(x, this.micsr.skillIDs.Attack));
+            equipmentSelectCard.addSectionTitle('1H Ranged');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
+                return this.filterByTwoHanded(false, item) && this.filterByWeaponType('ranged', item);
+            }, x => this.getItemLevelReq(x, this.micsr.skillIDs.Ranged));
+            equipmentSelectCard.addSectionTitle('2H Ranged');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
+                return this.filterByTwoHanded(true, item) && this.filterByWeaponType('ranged', item);
+            }, x => this.getItemLevelReq(x, this.micsr.skillIDs.Ranged));
+            equipmentSelectCard.addSectionTitle('1H Magic');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
+                return this.filterByTwoHanded(false, item) && this.filterByWeaponType('magic', item);
+            }, x => this.getItemLevelReq(x, this.micsr.skillIDs.Magic));
+            equipmentSelectCard.addSectionTitle('2H Magic');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
+                return this.filterByTwoHanded(true, item) && this.filterByWeaponType('magic', item);
+            }, x => this.getItemLevelReq(x, this.micsr.skillIDs.Magic));
+        } else if (equipmentSlot === EquipmentSlots.Quiver) {
+            equipmentSelectCard.addSectionTitle('Arrows');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, this.micsr.skillIDs.Ranged));
+            equipmentSelectCard.addSectionTitle('Bolts');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(1, item), x => this.getItemLevelReq(x, this.micsr.skillIDs.Ranged));
+            equipmentSelectCard.addSectionTitle('Javelins');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(2, item), x => this.getItemLevelReq(x, this.micsr.skillIDs.Ranged));
+            equipmentSelectCard.addSectionTitle('Throwing Knives');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, this.micsr.skillIDs.Ranged));
+            equipmentSelectCard.addSectionTitle('Other');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterNoAmmoType(item), x => x.name);
+        } else if (equipmentSlot === EquipmentSlots.Passive) {
+            equipmentSelectCard.addSectionTitle('Magic Damage');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterMagicDamage(item), x => x.name);
+            equipmentSelectCard.addSectionTitle('Slayer');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterSlayer(item), x => x.name);
+            equipmentSelectCard.addSectionTitle('Other');
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterRemainingPassive(item), x => x.name);
+        } else if (equipmentSlot === EquipmentSlots.Summon1 || equipmentSlot === EquipmentSlots.Summon2) {
+            equipmentSelectCard.addSectionTitle('Combat Familiars')
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, this.micsr.skillIDs.Summoning));
+            equipmentSelectCard.addSectionTitle('Non-Combat Familiars')
+            this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, false), x => this.getItemLevelReq(x, this.micsr.skillIDs.Summoning));
+        } else {
+            throw Error(`Invalid equipmentSlot: ${equipmentSlot}`);
+        }
+        equipmentSelectCard.addSectionTitle('Golbin Raid Exclusive');
+        this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, () => true, x => x.name, true);
+        return equipmentSelectPopup;
+    }
+
+    // Callback Functions for equipment select card
+    /**
+     * Equips an item to an equipment slot
+     */
+    equipItem(slotID: any, item: any) {
+        let slot = EquipmentSlots[slotID];
+        // determine equipment slot
+        if (item.occupiesSlots && item.occupiesSlots.includes(slot)) {
+            slot = item.validSlots[0];
+            slotID = this.micsr.equipmentSlotData[slot].id;
+        }
+        // clear previous item
+        let slots = [slot];
+        if (item.occupiesSlots) {
+            slots = [
+                slot,
+                ...item.occupiesSlots,
+            ]
+        }
+        slots.forEach(slotToOccupy => {
+            const equipment = this.player.equipment;
+            const prevSlot = equipment.getRootSlot(slotToOccupy);
+            equipment.slots[prevSlot].occupies.forEach((occupied: any) => {
+                this.setEquipmentImage(this.micsr.equipmentSlotData[occupied].id);
+            });
+            this.player.unequipItem(0, prevSlot);
+            this.setEquipmentImage(this.micsr.equipmentSlotData[prevSlot].id);
+        });
+        // equip new item
+        this.player.equipItem(item, 0, slot);
+        this.setEquipmentImage(slotID, item);
+        // update stats
+        this.updateStyleDropdowns();
+        this.updateSpellOptions();
+        this.updateCombatStats();
+    }
+
+    /**
+     * Change the equipment image
+     */
+    setEquipmentImage(equipmentSlot: any, occupy = true) {
+        const slotKey = EquipmentSlots[equipmentSlot];
+        const img = document.getElementById(`MCS ${slotKey} Image`);
+        const slot = this.player.equipment.slots[slotKey];
+        let imgSrc = `assets/media/bank/${this.micsr.equipmentSlotData[slotKey].emptyMedia}.png`;
+        if (!slot.isEmpty) {
+            imgSrc = slot.item.media;
+        }
+        (img as any).src = imgSrc;
+        this.setTooltip(img, this.getEquipmentTooltip(equipmentSlot, slot.item));
+        if (occupy && slot.item.occupiesSlots) {
+            slot.item.occupiesSlots.forEach((slot: any) => this.setEquipmentImage(this.micsr.equipmentSlotData[slot].id, false));
+        }
+    }
+
+    /**
+     * Gets the content for the tooltip of a piece of equipment
+     *
+     * @param equipmentSlot The equipment slot of the item
+     * @param item The item to get the tooltip for
+     * @returns {string} The tooltip content
+     */
+    getEquipmentTooltip(equipmentSlot: any, item: any) {
+        if (!item) {
+            return EquipmentSlots[equipmentSlot];
+        }
+
+        let tooltip = `<div class="text-center">${item.name}<br><small>`;
+
+        if (item.hasSpecialAttack) {
+            for (let special of item.specialAttacks) {
+                // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
+                tooltip += `<span class='text-danger'>${special.name} (${special.defaultChance}%): </span><span class='text-warning'>${describeAttack(special, youNoun, enemyNoun)}</span><br>`;
+            }
+        }
+
+        const pushBonus = (list: any, header = '', footer = '') => {
+            const statBonuses: any = [];
+            if (item.equipmentStats === undefined) {
+                return;
+            }
+            list.forEach((bonusInfo: any) => {
+                const name = bonusInfo[0];
+                const tag = bonusInfo[1];
+                const suffix = bonusInfo[2] === undefined ? '' : bonusInfo[2];
+                const value = item.equipmentStats.filter((y: any) => y.key === tag).reduce((a: any, b: any) => a + b.value, 0);
+                if (value !== 0) {
+                    statBonuses.push(this.getTooltipStatBonus(name, value, suffix));
+                }
+            });
+            if (statBonuses.length > 0) {
+                tooltip += header;
+                tooltip += statBonuses.join(', ');
+                tooltip += footer;
+            }
+        }
+
+        pushBonus(
+            [
+                ['Attack Speed', 'attackSpeed'],
+                ['Melee Strength', 'meleeStrengthBonus'],
+                ['Stab', 'stabAttackBonus'],
+                ['Slash', 'slashAttackBonus'],
+                ['Block', 'blockAttackBonus'],
+                ['Ranged Strength', 'rangedStrengthBonus'],
+                ['Ranged Attack', 'rangedAttackBonus'],
+                ['Magic Damage', 'magicDamageBonus', '%'],
+                ['Magic Attack', 'magicAttackBonus'],
+            ],
+            `<div>Offence:</div><span>`,
+            '</span>',
+        );
+
+        pushBonus(
+            [
+                ['Damage Reduction', 'damageReduction', '%'],
+                ['Melee Defence', 'defenceBonus'],
+                ['Ranged Defence', 'rangedDefenceBonus'],
+                ['Magic Defence', 'magicDefenceBonus'],
+            ],
+            `<div>Defence:</div><span>`,
+            '</span>',
+        );
+
+        if (item.modifiers) {
+            const printedModifiers = this.printRelevantModifiers(item.modifiers, {
+                headerTag: 'div',
+                header: 'Combat Modifiers:',
+                tag: 'div',
+                style: 'white-space: nowrap;',
+            });
+            if (printedModifiers.passives.length > 0) {
+                tooltip += printedModifiers.header + printedModifiers.passives;
+            }
+        }
+
+        if (item.equipRequirements) {
+            const requirements: any = [];
+            const levelReqs = item.equipRequirements.find((x: any) => x.type === 'Level');
+            if (levelReqs) {
+                this.skillKeys.forEach((skill: any) => {
+                    const levelReq = levelReqs.levels.find((x: any) => x.skill.name === skill);
+                    if (levelReq) {
+                        requirements.push(`${skill} Level ${levelReq.level}`);
                     }
                 });
-                this.simOptionsCard.addButton('Import Settings', () => {
-                    if (!this.importedSettings) {
-                        this.notify('No settings to import.', 'danger');
-                        return;
-                    }
-                    this.import.importSettings(this.importedSettings);
-                    this.import.update();
-                });
-                // data export
-                this.simOptionsCard.container.appendChild(document.createElement('br'));
-                this.simOptionsCard.addSectionTitle('Data Export');
-                this.simOptionsCard.addToggleRadio(
-                    'Dungeon Monsters',
-                    `DungeonMonsterExportRadio`,
-                    this.dataExport.exportOptions,
-                    'dungeonMonsters',
-                    this.dataExport.exportOptions.dungeonMonsters,
-                );
-                this.simOptionsCard.addToggleRadio(
-                    'Non-Simulated',
-                    `NonSimmedExportRadio`,
-                    this.dataExport.exportOptions,
-                    'nonSimmed',
-                    this.dataExport.exportOptions.nonSimmed,
-                );
-                this.simOptionsCard.addButton('Export Data', () => this.exportDataOnClick());
             }
-
-            createCompareCard() {
-                if (!this.compareCard) {
-                    this.trackHistory = false;
-                    this.savedSimulations = [];
-                    this.compareCard = this.mainTabCard.addTab('Saved Simulations', this.media.statistics, '', '150px');
-                } else {
-                    this.compareCard.clearContainer();
-                }
-                this.compareCard.addButton('Clear History', () => {
-                    this.savedSimulations = [];
-                    this.createCompareCard();
-                });
-                this.compareCard.addRadio('Track History', 25, 'trackHistory', ['Yes', 'No'], [
-                    () => this.trackHistory = true,
-                    () => this.trackHistory = false,
-                ], this.trackHistory ? 0 : 1);
-
-                this.compareCard.addSectionTitle('Saved Simulations');
-                this.savedSimulations.forEach((_: any, i: any) => {
-                    this.compareCard.addButton(`Load simulation ${i}`, () => this.loadSavedSimulation(i));
-                });
+            if (requirements.length > 0) {
+                tooltip += `<div>Requires:</div><span class="text-warning">${requirements.join(', ')}</span>`;
             }
+        }
 
-            loadSavedSimulation(idx: any) {
-                const simulation = this.savedSimulations[idx];
-                if (!simulation) {
-                    MICSR.error(`Unable to load simulation with index ${idx}`);
-                    return;
-                }
-                // load settings
-                this.import.importSettings(simulation.settings);
-                this.import.update();
-                // load results
-                for (const id in simulation.monsterSimData) {
-                    this.simulator.monsterSimData[id] = { ...simulation.monsterSimData[id] };
-                }
-                this.simulator.performPostSimAnalysis();
-                this.updateDisplayPostSim();
-            }
+        tooltip += '</small></div>';
+        return tooltip;
+    }
 
-            createConsumablesCard() {
-                this.consumablesCard = this.mainTabCard.addPremadeTab(
-                    'Consumables',
-                    this.media.bank,
-                    new MICSR.TabCard('consumables', false, this.mainTabCard.tabContainer, '100%', '150px'),
-                );
-                this.consumables = new MICSR.Consumables(this);
-            }
+    /**
+     * Returns a span containing a description of the given stat bonus
+     * @param {string} stat The name of the stat
+     * @param {number} bonus The value of the bonus
+     * @param {string} suffix A suffix to add after the bonus
+     * @returns {HTMLSpanElement}
+     */
+    getTooltipStatBonus(stat: any, bonus: any, suffix = '') {
+        return `<span style="white-space: nowrap;" class="text-${bonus > 0 ? 'success">+' : 'danger">'}${bonus}${suffix} ${stat}</span>`;
+    }
 
-            /** Adds a multi-button with equipment to the equipment select popup
-             * @param {Card} card The parent card
-             * @param {number} equipmentSlot The equipment slot
-             * @param {Function} filterFunction Filter equipment with this function
-             * @param {Function} sortFunction Sort equipment by this key
-             */
-            addEquipmentMultiButton(card: any, equipmentSlot: any, filterFunction: any, sortFunction = (item: any) => item.id, golbinRaid = false) {
-                const menuItems = this.equipmentSubsets[equipmentSlot].filter(filterFunction).filter((x: any) => !!x.golbinRaidExclusive === golbinRaid);
-                const sortKey = (item: any) => {
-                    const x = sortFunction(item);
-                    return x ? x : 0;
-                }
-                menuItems.sort((a: any, b: any) => sortKey(a) - sortKey(b));
-                const buttonMedia = menuItems.map((item: any) => item.media);
-                const buttonIds = menuItems.map((item: any) => item.name);
-                const buttonCallbacks = menuItems.map((item: any) => () => this.equipItem(equipmentSlot, item));
-                const tooltips = menuItems.map((item: any) => this.getEquipmentTooltip(equipmentSlot, item));
-                card.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
-            }
+    /**
+     * Returns an image element containing the given icon for use in a tooltip
+     * @param {string} icon The source of the icon
+     * @returns {HTMLImageElement} The image element
+     */
+    getTooltipIcon(icon: any) {
+        return `<img class="tooltip-icon" src="${icon}">`;
+    }
 
-            /**
-             * Filters an array by if the array item has the key
-             * @param {string} key
-             * @param {Object} item
-             * @return {boolean}
-             */
-            filterIfHasKey(key: any, item: any) {
-                return key in item || item.id === -1;
-            }
+    /**
+     * Updates the style selection dropdowns
+     * @memberof McsApp
+     */
+    updateStyleDropdowns() {
+        const itemID = this.player.equipmentID(this.micsr.equipmentSlotData.Weapon.id);
+        const item = this.micsr.items.getObjectByID(itemID);
+        this.disableStyleDropdown('melee');
+        this.disableStyleDropdown('ranged');
+        this.disableStyleDropdown('magic');
+        this.enableStyleDropdown(item.attackType ?? 'melee');
+    }
 
-            filterIfHasLevelReq(item: any, skillID: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                if (this.force[skillID].includes(item.id)) {
-                    return true;
-                }
-                return this.getItemLevelReq(item, skillID) > 0;
-            }
-
-            getItemLevelReq(item: any, skillID: any) {
-                if (skillID === MICSR.skillIDs.Summoning) {
-                    return item.summoningLevel | 0;
-                }
-                let req = 0;
-                if (item.equipRequirements === undefined) {
-                    return req;
-                }
-                const levelReqs = item.equipRequirements
-                    .filter((x: any) => x.type === 'Level')
-                    .map((x: any) => x.levels)
-                    .reduce((a: any, b: any) => [...a, ...b], []);
-                for (let levelReq of levelReqs) {
-                    if (levelReq.skill === skillID) {
-                        req = Math.max(req, levelReq.level);
-                    }
-                }
-                return req;
-            }
-
-            /**
-             * Filters equipment by if it has no level requirements
-             * @param {Object} item
-             * @return {boolean}
-             */
-            filterIfHasNoLevelReq(item: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                const skillIDs = [
-                    MICSR.skillIDs.Defence,
-                    MICSR.skillIDs.Ranged,
-                    MICSR.skillIDs.Magic,
-                ]
-                for (let skillID of skillIDs) {
-                    if (this.getItemLevelReq(item, skillID) || (this.force[skillID] && this.force[skillID].includes(item.id))) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-
-            /**
-             * Filter an item array by the ammoType
-             * @param {number} type
-             * @param {Object} item
-             * @return {boolean}
-             */
-            filterByAmmoType(type: any, item: any) {
-                return item.ammoType === type || item.id === -1;
-            }
-
-            filterNoAmmoType(item: any) {
-                return item.ammoType === undefined || item.id === -1;
-            }
-
-            /**
-             * Filter an item array by the ammoType
-             * @param {number} type
-             * @param {Object} item
-             * @return {boolean}
-             */
-            filterByAmmoReq(type: any, item: any) {
-                return item.ammoTypeRequired === type || item.id === -1;
-            }
-
-            /**
-             * Filter an item if it's twohanded property matches the given state
-             * @param {boolean} is2H Filter if twohanded matches this
-             * @param {Object} item
-             * @return {boolean}
-             */
-            filterByTwoHanded(is2H: any, item: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                return this.isTwoHanded(item) === is2H;
-            }
-
-            isTwoHanded(item: any) {
-                return item.occupiesSlots && item.occupiesSlots.includes('Shield');
-            }
-
-            filterMagicDamage(item: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                if (item.modifiers === undefined) {
-                    return false;
-                }
-                return item.modifiers.increasedMinAirSpellDmg > 0
-                    || item.modifiers.increasedMinEarthSpellDmg > 0
-                    || item.modifiers.increasedMinFireSpellDmg > 0
-                    || item.modifiers.increasedMinWaterSpellDmg > 0
-            }
-
-            filterSlayer(item: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                if (item.modifiers === undefined) {
-                    return false;
-                }
-                if (item.modifiers.increasedSkillXP && item.modifiers.increasedSkillXP.filter((x: any) => x[0] === MICSR.skillIDs.Slayer).length > 0) {
-                    return true;
-                }
-                return item.modifiers.increasedSlayerAreaEffectNegationFlat > 0
-                    || item.modifiers.increasedDamageToSlayerTasks > 0
-                    || item.modifiers.increasedDamageToSlayerAreaMonsters > 0
-                    || item.modifiers.increasedSlayerTaskLength > 0
-                    || item.modifiers.increasedSlayerCoins > 0
-            }
-
-            filterRemainingPassive(item: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                return !this.filterMagicDamage(item) && !this.filterSlayer(item)
-            }
-
-            /**
-             * Filter an item by the weapon type
-             * @param {string} weaponType
-             * @param {Object} item
-             * @return {boolean}
-             */
-            filterByWeaponType(attackType: any, item: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                return item.attackType === attackType;
-            }
-
-            /**
-             * Filter by combat summon
-             * @return {boolean}
-             */
-            filterCombatSummon(item: any, combat: any) {
-                if (item.id === -1) {
-                    return true;
-                }
-                let maxhit = 0;
-                if (item.equipmentStats) {
-                    const maxhitList = item.equipmentStats.filter((x: any) => x.key === 'summoningMaxhit');
-                    if (maxhitList.length > 0) {
-                        maxhit = maxhitList[0].value;
-                    }
-                }
-                return maxhit > 0 === combat;
-            }
-
-            /**
-             * Filter by returning all elements
-             * @return {boolean}
-             */
-            returnTrue() {
-                return true;
-            }
-
-            /**
-             * Change a button's classes to show that it is selected
-             * @param {HTMLButtonElement} button
-             */
-            selectButton(button: HTMLElement) {
-                button.classList.add('btn-primary');
-                button.classList.remove('btn-outline-dark');
-            }
-
-            /**
-             * Change a button's classes to show that it is not selected
-             * @param {HTMLButtonElement} button
-             */
-            unselectButton(button: HTMLElement) {
-                button.classList.remove('btn-primary');
-                button.classList.add('btn-outline-dark');
-            }
-
-            /**
-             * Creates an equipment popup
-             * @param {number} equipmentSlot
-             * @return {HTMLDivElement}
-             */
-            createEquipmentPopup(equipmentSlot: any) {
-                const equipmentSelectPopup = document.createElement('div');
-                equipmentSelectPopup.className = 'mcsPopup';
-                const equipmentSelectCard = new MICSR.Card(equipmentSelectPopup, '', '600px');
-                const triSplit = [
-                    MICSR.EquipmentSlots.Helmet,
-                    MICSR.EquipmentSlots.Platebody,
-                    MICSR.EquipmentSlots.Platelegs,
-                    MICSR.EquipmentSlots.Boots,
-                    MICSR.EquipmentSlots.Shield,
-                    MICSR.EquipmentSlots.Gloves,
-                ];
-                const noSplit = [
-                    MICSR.EquipmentSlots.Amulet,
-                    MICSR.EquipmentSlots.Ring,
-                    MICSR.EquipmentSlots.Cape,
-                    MICSR.EquipmentSlots.Consumable,
-                ];
-                if (triSplit.includes(equipmentSlot)) {
-                    equipmentSelectCard.addSectionTitle('Melee');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        (item: any) => this.filterIfHasLevelReq(item, MICSR.skillIDs.Defence),
-                        x => this.filterIfHasLevelReq(x, MICSR.skillIDs.Defence)
-                    );
-                    equipmentSelectCard.addSectionTitle('Ranged');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        (item: any) => this.filterIfHasLevelReq(item, MICSR.skillIDs.Ranged),
-                        x => this.filterIfHasLevelReq(x, MICSR.skillIDs.Ranged)
-                    );
-                    equipmentSelectCard.addSectionTitle('Magic');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot,
-                        (item: any) => this.filterIfHasLevelReq(item, MICSR.skillIDs.Magic),
-                        x => this.filterIfHasLevelReq(x, MICSR.skillIDs.Magic)
-                    );
-                    if (this.equipmentSubsets[equipmentSlot].filter((item: any) => this.filterIfHasNoLevelReq(item)).length > 1) {
-                        equipmentSelectCard.addSectionTitle('Other');
-                        this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterIfHasNoLevelReq(item), x => x.name);
-                    }
-                } else if (noSplit.includes(equipmentSlot)) {
-                    equipmentSelectCard.addSectionTitle(MICSR.EquipmentSlots[equipmentSlot]);
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, () => this.returnTrue());
-                } else if (equipmentSlot === MICSR.EquipmentSlots.Weapon) {
-                    equipmentSelectCard.addSectionTitle('1H Melee');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
-                        return this.filterByTwoHanded(false, item) && this.filterByWeaponType('melee', item);
-                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Attack));
-                    equipmentSelectCard.addSectionTitle('2H Melee');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
-                        return this.filterByTwoHanded(true, item) && this.filterByWeaponType('melee', item);
-                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Attack));
-                    equipmentSelectCard.addSectionTitle('1H Ranged');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
-                        return this.filterByTwoHanded(false, item) && this.filterByWeaponType('ranged', item);
-                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
-                    equipmentSelectCard.addSectionTitle('2H Ranged');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
-                        return this.filterByTwoHanded(true, item) && this.filterByWeaponType('ranged', item);
-                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
-                    equipmentSelectCard.addSectionTitle('1H Magic');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
-                        return this.filterByTwoHanded(false, item) && this.filterByWeaponType('magic', item);
-                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Magic));
-                    equipmentSelectCard.addSectionTitle('2H Magic');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => {
-                        return this.filterByTwoHanded(true, item) && this.filterByWeaponType('magic', item);
-                    }, x => this.getItemLevelReq(x, MICSR.skillIDs.Magic));
-                } else if (equipmentSlot === MICSR.EquipmentSlots.Quiver) {
-                    equipmentSelectCard.addSectionTitle('Arrows');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(0, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
-                    equipmentSelectCard.addSectionTitle('Bolts');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(1, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
-                    equipmentSelectCard.addSectionTitle('Javelins');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(2, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
-                    equipmentSelectCard.addSectionTitle('Throwing Knives');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterByAmmoType(3, item), x => this.getItemLevelReq(x, MICSR.skillIDs.Ranged));
-                    equipmentSelectCard.addSectionTitle('Other');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterNoAmmoType(item), x => x.name);
-                } else if (equipmentSlot === MICSR.EquipmentSlots.Passive) {
-                    equipmentSelectCard.addSectionTitle('Magic Damage');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterMagicDamage(item), x => x.name);
-                    equipmentSelectCard.addSectionTitle('Slayer');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterSlayer(item), x => x.name);
-                    equipmentSelectCard.addSectionTitle('Other');
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterRemainingPassive(item), x => x.name);
-                } else if (equipmentSlot === MICSR.EquipmentSlots.Summon1 || equipmentSlot === MICSR.EquipmentSlots.Summon2) {
-                    equipmentSelectCard.addSectionTitle('Combat Familiars')
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, true), x => this.getItemLevelReq(x, MICSR.skillIDs.Summoning));
-                    equipmentSelectCard.addSectionTitle('Non-Combat Familiars')
-                    this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, (item: any) => this.filterCombatSummon(item, false), x => this.getItemLevelReq(x, MICSR.skillIDs.Summoning));
-                } else {
-                    throw Error(`Invalid equipmentSlot: ${equipmentSlot}`);
-                }
-                equipmentSelectCard.addSectionTitle('Golbin Raid Exclusive');
-                this.addEquipmentMultiButton(equipmentSelectCard, equipmentSlot, () => true, x => x.name, true);
-                return equipmentSelectPopup;
-            }
-
-            // Callback Functions for equipment select card
-            /**
-             * Equips an item to an equipment slot
-             */
-            equipItem(slotID: any, item: any) {
-                let slot = MICSR.EquipmentSlots[slotID];
-                // determine equipment slot
-                if (item.occupiesSlots && item.occupiesSlots.includes(slot)) {
-                    slot = item.validSlots[0];
-                    slotID = MICSR.equipmentSlotData[slot].id;
-                }
-                // clear previous item
-                let slots = [slot];
-                if (item.occupiesSlots) {
-                    slots = [
-                        slot,
-                        ...item.occupiesSlots,
-                    ]
-                }
-                slots.forEach(slotToOccupy => {
-                    const equipment = this.player.equipment;
-                    const prevSlot = equipment.getRootSlot(slotToOccupy);
-                    equipment.slots[prevSlot].occupies.forEach((occupied: any) => {
-                        this.setEquipmentImage(MICSR.equipmentSlotData[occupied].id);
-                    });
-                    this.player.unequipItem(0, prevSlot);
-                    this.setEquipmentImage(MICSR.equipmentSlotData[prevSlot].id);
-                });
-                // equip new item
-                this.player.equipItem(item, 0, slot);
-                this.setEquipmentImage(slotID, item);
-                // update stats
-                this.updateStyleDropdowns();
+    /**
+     * Callback for when a level input is changed
+     * @param {Event} event The change event for an input
+     * @param {string} skillName The key of playerLevels to Change
+     */
+    levelInputOnChange(event: any, skillName: any) {
+        const newLevel = parseInt(event.currentTarget.value);
+        if (newLevel >= 1) {
+            this.player.skillLevel[this.micsr.skillIDs[skillName]] = newLevel;
+            // Update Spell and Prayer Button UIS, and deselect things if they become invalid
+            if (skillName === 'Magic') {
                 this.updateSpellOptions();
-                this.updateCombatStats();
             }
-
-            /**
-             * Change the equipment image
-             */
-            setEquipmentImage(equipmentSlot: any, occupy = true) {
-                const slotKey = MICSR.EquipmentSlots[equipmentSlot];
-                const img = document.getElementById(`MCS ${slotKey} Image`);
-                const slot = this.player.equipment.slots[slotKey];
-                let imgSrc = `assets/media/bank/${MICSR.equipmentSlotData[slotKey].emptyMedia}.png`;
-                if (!slot.isEmpty) {
-                    imgSrc = slot.item.media;
-                }
-                (img as any).src = imgSrc;
-                this.setTooltip(img, this.getEquipmentTooltip(equipmentSlot, slot.item));
-                if (occupy && slot.item.occupiesSlots) {
-                    slot.item.occupiesSlots.forEach((slot: any) => this.setEquipmentImage(MICSR.equipmentSlotData[slot].id, false));
-                }
+            if (skillName === 'Prayer') {
+                this.updatePrayerOptions();
             }
+        }
+        this.updateCombatStats();
+    }
 
-            /**
-             * Gets the content for the tooltip of a piece of equipment
-             *
-             * @param equipmentSlot The equipment slot of the item
-             * @param item The item to get the tooltip for
-             * @returns {string} The tooltip content
-             */
-            getEquipmentTooltip(equipmentSlot: any, item: any) {
-                if (!item) {
-                    return EquipmentSlots[equipmentSlot];
-                }
+    /**
+     * Callback for when a combat style is changed
+     * @param {Event} event The change event for a dropdown
+     * @param {string} combatType The key of styles to change
+     */
+    styleDropdownOnChange(event: any, combatType: any) {
+        let idx = parseInt(event.currentTarget.selectedOptions[0].value);
+        if (this.player.attackType === 'magic') {
+            idx += 3;
+        }
+        if (this.player.attackType === 'ranged') {
+            idx += 5;
+        }
+        this.player.setAttackStyle(combatType, this.micsr.actualGame.attackStyles.allObjects[idx]);
+        this.updateCombatStats();
+    }
 
-                let tooltip = `<div class="text-center">${item.name}<br><small>`;
-
-                if (item.hasSpecialAttack) {
-                    for (let special of item.specialAttacks) {
-                        // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
-                        tooltip += `<span class='text-danger'>${special.name} (${special.defaultChance}%): </span><span class='text-warning'>${describeAttack(special, youNoun, enemyNoun)}</span><br>`;
-                    }
-                }
-
-                const pushBonus = (list: any, header = '', footer = '') => {
-                    const statBonuses: any = [];
-                    if (item.equipmentStats === undefined) {
-                        return;
-                    }
-                    list.forEach((bonusInfo: any) => {
-                        const name = bonusInfo[0];
-                        const tag = bonusInfo[1];
-                        const suffix = bonusInfo[2] === undefined ? '' : bonusInfo[2];
-                        const value = item.equipmentStats.filter((y: any) => y.key === tag).reduce((a: any, b: any) => a + b.value, 0);
-                        if (value !== 0) {
-                            statBonuses.push(this.getTooltipStatBonus(name, value, suffix));
-                        }
-                    });
-                    if (statBonuses.length > 0) {
-                        tooltip += header;
-                        tooltip += statBonuses.join(', ');
-                        tooltip += footer;
-                    }
-                }
-
-                pushBonus(
-                    [
-                        ['Attack Speed', 'attackSpeed'],
-                        ['Melee Strength', 'meleeStrengthBonus'],
-                        ['Stab', 'stabAttackBonus'],
-                        ['Slash', 'slashAttackBonus'],
-                        ['Block', 'blockAttackBonus'],
-                        ['Ranged Strength', 'rangedStrengthBonus'],
-                        ['Ranged Attack', 'rangedAttackBonus'],
-                        ['Magic Damage', 'magicDamageBonus', '%'],
-                        ['Magic Attack', 'magicAttackBonus'],
-                    ],
-                    `<div>Offence:</div><span>`,
-                    '</span>',
-                );
-
-                pushBonus(
-                    [
-                        ['Damage Reduction', 'damageReduction', '%'],
-                        ['Melee Defence', 'defenceBonus'],
-                        ['Ranged Defence', 'rangedDefenceBonus'],
-                        ['Magic Defence', 'magicDefenceBonus'],
-                    ],
-                    `<div>Defence:</div><span>`,
-                    '</span>',
-                );
-
-                if (item.modifiers) {
-                    const printedModifiers = this.printRelevantModifiers(item.modifiers, {
-                        headerTag: 'div',
-                        header: 'Combat Modifiers:',
-                        tag: 'div',
-                        style: 'white-space: nowrap;',
-                    });
-                    if (printedModifiers.passives.length > 0) {
-                        tooltip += printedModifiers.header + printedModifiers.passives;
-                    }
-                }
-
-                if (item.equipRequirements) {
-                    const requirements: any = [];
-                    const levelReqs = item.equipRequirements.find((x: any) => x.type === 'Level');
-                    if (levelReqs) {
-                        this.skillKeys.forEach((skill: any) => {
-                            const levelReq = levelReqs.levels.find((x: any) => x.skill.name === skill);
-                            if (levelReq) {
-                                requirements.push(`${skill} Level ${levelReq.level}`);
-                            }
-                        });
-                    }
-                    if (requirements.length > 0) {
-                        tooltip += `<div>Requires:</div><span class="text-warning">${requirements.join(', ')}</span>`;
-                    }
-                }
-
-                tooltip += '</small></div>';
-                return tooltip;
+    // Callback Functions for the Prayer Select Card
+    /**
+     * Callback for when a prayer image button is clicked
+     * @param {MouseEvent} event The onclick event for a button
+     * @param {number} prayerID Index of this.micsr.prayersS
+     */
+    prayerButtonOnClick(event: any, prayer: any) {
+        // Escape if prayer level is not reached
+        if (!this.player.activePrayers.has(prayer) && this.player.skillLevel[this.micsr.skillIDs.Prayer] < prayer.level) {
+            this.micsr.imageNotify(this.media.prayer, `${this.getPrayerName(prayer)} requires level ${prayer.level} Prayer.`, 'danger');
+            return;
+        }
+        let prayerChanged = false;
+        if (this.player.activePrayers.has(prayer)) {
+            this.player.activePrayers.delete(prayer);
+            this.unselectButton(event.currentTarget);
+            prayerChanged = true;
+        } else {
+            if (this.player.activePrayers.size < 2) {
+                this.player.activePrayers.add(prayer);
+                this.selectButton(event.currentTarget);
+                prayerChanged = true;
+            } else {
+                this.micsr.imageNotify(this.media.prayer, 'You can only have 2 prayers active at once.', 'danger');
             }
+        }
+        if (prayerChanged) {
+            this.updateCombatStats();
+        }
+    }
 
-            /**
-             * Returns a span containing a description of the given stat bonus
-             * @param {string} stat The name of the stat
-             * @param {number} bonus The value of the bonus
-             * @param {string} suffix A suffix to add after the bonus
-             * @returns {HTMLSpanElement}
-             */
-            getTooltipStatBonus(stat: any, bonus: any, suffix = '') {
-                return `<span style="white-space: nowrap;" class="text-${bonus > 0 ? 'success">+' : 'danger">'}${bonus}${suffix} ${stat}</span>`;
-            }
+    /**
+     * Callback for when the potion tier is changed
+     * @param {Event} event The change event for a dropdown
+     */
+    potionTierDropDownOnChange(event: any) {
+        const potionTier = parseInt(event.currentTarget.selectedOptions[0].value);
+        this.player.potionTier = potionTier;
+        this.updateCombatStats();
+        this.updatePotionTier(potionTier);
+    }
 
-            /**
-             * Returns an image element containing the given icon for use in a tooltip
-             * @param {string} icon The source of the icon
-             * @returns {HTMLImageElement} The image element
-             */
-            getTooltipIcon(icon: any) {
-                return `<img class="tooltip-icon" src="${icon}">`;
-            }
-
-            /**
-             * Updates the style selection dropdowns
-             * @memberof McsApp
-             */
-            updateStyleDropdowns() {
-                const itemID = this.player.equipmentID(MICSR.equipmentSlotData.Weapon.id);
-                const item = MICSR.items.getObjectByID(itemID);
-                this.disableStyleDropdown('melee');
-                this.disableStyleDropdown('ranged');
-                this.disableStyleDropdown('magic');
-                this.enableStyleDropdown(item.attackType ?? 'melee');
-            }
-
-            /**
-             * Callback for when a level input is changed
-             * @param {Event} event The change event for an input
-             * @param {string} skillName The key of playerLevels to Change
-             */
-            levelInputOnChange(event: any, skillName: any) {
-                const newLevel = parseInt(event.currentTarget.value);
-                if (newLevel >= 1) {
-                    this.player.skillLevel[MICSR.skillIDs[skillName]] = newLevel;
-                    // Update Spell and Prayer Button UIS, and deselect things if they become invalid
-                    if (skillName === 'Magic') {
-                        this.updateSpellOptions();
-                    }
-                    if (skillName === 'Prayer') {
-                        this.updatePrayerOptions();
-                    }
-                }
-                this.updateCombatStats();
-            }
-
-            /**
-             * Callback for when a combat style is changed
-             * @param {Event} event The change event for a dropdown
-             * @param {string} combatType The key of styles to change
-             */
-            styleDropdownOnChange(event: any, combatType: any) {
-                let idx = parseInt(event.currentTarget.selectedOptions[0].value);
-                if (this.player.attackType === 'magic') {
-                    idx += 3;
-                }
-                if (this.player.attackType === 'ranged') {
-                    idx += 5;
-                }
-                this.player.setAttackStyle(combatType, MICSR.actualGame.attackStyles.allObjects[idx]);
-                this.updateCombatStats();
-            }
-
-            // Callback Functions for the Prayer Select Card
-            /**
-             * Callback for when a prayer image button is clicked
-             * @param {MouseEvent} event The onclick event for a button
-             * @param {number} prayerID Index of MICSR.prayersS
-             */
-            prayerButtonOnClick(event: any, prayer: any) {
-                // Escape if prayer level is not reached
-                if (!this.player.activePrayers.has(prayer) && this.player.skillLevel[MICSR.skillIDs.Prayer] < prayer.level) {
-                    MICSR.imageNotify(this.media.prayer, `${this.getPrayerName(prayer)} requires level ${prayer.level} Prayer.`, 'danger');
-                    return;
-                }
-                let prayerChanged = false;
-                if (this.player.activePrayers.has(prayer)) {
-                    this.player.activePrayers.delete(prayer);
-                    this.unselectButton(event.currentTarget);
-                    prayerChanged = true;
-                } else {
-                    if (this.player.activePrayers.size < 2) {
-                        this.player.activePrayers.add(prayer);
-                        this.selectButton(event.currentTarget);
-                        prayerChanged = true;
-                    } else {
-                        MICSR.imageNotify(this.media.prayer, 'You can only have 2 prayers active at once.', 'danger');
-                    }
-                }
-                if (prayerChanged) {
-                    this.updateCombatStats();
-                }
-            }
-
-            /**
-             * Callback for when the potion tier is changed
-             * @param {Event} event The change event for a dropdown
-             */
-            potionTierDropDownOnChange(event: any) {
-                const potionTier = parseInt(event.currentTarget.selectedOptions[0].value);
-                this.player.potionTier = potionTier;
-                this.updateCombatStats();
-                this.updatePotionTier(potionTier);
-            }
-
-            /**
-             * Callback for when a potion button is clicked
-             * @param {MouseEvent} event The onclick event for a button
-             * @param {number} potionID The ID of the potion
-             */
-            potionImageButtonOnClick(event: any, potionID: any) {
-                if (this.player.potionSelected) {
-                    if (this.player.potionID === potionID) { // Deselect Potion
-                        this.player.potionSelected = false;
-                        this.player.potionID = -1;
-                        this.unselectButton(event.currentTarget);
-                    } else { // Change Potion
-                        const button = document.getElementById(`MCS ${this.getPotionName(this.player.potionID)} Button`);
-                        if (button) {
-                            this.unselectButton(button);
-                        }
-                        this.player.potionID = potionID;
-                        this.selectButton(event.currentTarget);
-                    }
-                } else { // Select Potion
-                    this.player.potionSelected = true;
-                    this.player.potionID = potionID;
-                    this.selectButton(event.currentTarget);
-                }
-                this.updateCombatStats();
-            }
-
-            // Callback Functions for the spell select buttons
-            spellButtonOnClick(event: any, spell: any, spellType: any) {
-                const selected = this.player.spellSelection[spellType];
-                if (selected === spell) {
-                    this.disableSpell(spellType, spell);
-                } else {
-                    this.enableSpell(spellType, spell);
-                }
-                // Clean up invalid configurations
-                this.spellSanityCheck();
-                // Update combat stats for new spell
-                this.updateCombatStats();
-            }
-
-            disableSpell(spellType: any, spell: any, message: string | undefined = undefined) {
-                // do nothing
-                if (spell === undefined || this.player.spellSelection[spellType] !== spell) {
-                    return;
-                }
-                // unselect spell
-                const button = document.getElementById(`MCS ${spell.id} Button`);
+    /**
+     * Callback for when a potion button is clicked
+     * @param {MouseEvent} event The onclick event for a button
+     * @param {number} potionID The ID of the potion
+     */
+    potionImageButtonOnClick(event: any, potionID: any) {
+        if (this.player.potionSelected) {
+            if (this.player.potionID === potionID) { // Deselect Potion
+                this.player.potionSelected = false;
+                this.player.potionID = -1;
+                this.unselectButton(event.currentTarget);
+            } else { // Change Potion
+                const button = document.getElementById(`MCS ${this.getPotionName(this.player.potionID)} Button`);
                 if (button) {
                     this.unselectButton(button);
                 }
+                this.player.potionID = potionID;
+                this.selectButton(event.currentTarget);
+            }
+        } else { // Select Potion
+            this.player.potionSelected = true;
+            this.player.potionID = potionID;
+            this.selectButton(event.currentTarget);
+        }
+        this.updateCombatStats();
+    }
+
+    // Callback Functions for the spell select buttons
+    spellButtonOnClick(event: any, spell: any, spellType: any) {
+        const selected = this.player.spellSelection[spellType];
+        if (selected === spell) {
+            this.disableSpell(spellType, spell);
+        } else {
+            this.enableSpell(spellType, spell);
+        }
+        // Clean up invalid configurations
+        this.spellSanityCheck();
+        // Update combat stats for new spell
+        this.updateCombatStats();
+    }
+
+    disableSpell(spellType: any, spell: any, message: string | undefined = undefined) {
+        // do nothing
+        if (spell === undefined || this.player.spellSelection[spellType] !== spell) {
+            return;
+        }
+        // unselect spell
+        const button = document.getElementById(`MCS ${spell.id} Button`);
+        if (button) {
+            this.unselectButton(button);
+        }
+        this.player.spellSelection[spellType] = undefined;
+        // send message if required
+        if (message) {
+            this.micsr.imageNotify(this.media.magic, message, 'danger');
+        }
+    }
+
+    enableSpell(spellType: any, spell: any, message: string | undefined = undefined) {
+        // do nothing
+        if (spell === undefined) {
+            return;
+        }
+        // Escape for not meeting the level/item requirement
+        if (this.player.skillLevel[this.micsr.skillIDs.Magic] < spell.level) {
+            this.micsr.imageNotify(this.media.magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
+            return;
+        }
+        if (this.checkRequiredItem(spell)) {
+            this.micsr.imageNotify(this.media.magic, `${spell.name} requires ${spell.requiredItem.name}.`, 'danger');
+            return;
+        }
+        // remove previous selection
+        this.disableSpell(spellType, this.player.spellSelection[spellType]);
+        if (spellType === 'ancient') {
+            this.disableSpell('standard', this.player.spellSelection.standard, 'Disabled standard magic spell.');
+        }
+        if (spellType === 'standard') {
+            this.disableSpell('ancient', this.player.spellSelection.ancient, 'Disabled ancient magick spell.');
+        }
+        // select spell
+        const button = document.getElementById(`MCS ${spell.id} Button`);
+        if (button) {
+            this.selectButton(button);
+        }
+        this.player.spellSelection[spellType] = spell;
+        // send message if required
+        if (message) {
+            this.micsr.imageNotify(this.media.magic, message, 'danger');
+        }
+    }
+
+    spellSanityCheck() {
+        const spellSelection = this.player.spellSelection;
+        // can we even use magic?
+        this.player.checkMagicUsage();
+        if (!this.player.canAurora) {
+            this.disableSpell('aurora', spellSelection.aurora, `Disabled aurora, can't use auroras!`);
+        }
+        if (!this.player.canCurse) {
+            this.disableSpell('curse', spellSelection.curse, `Disabled curse, can't use curses!`);
+        }
+        if (this.player.attackType !== "magic") {
+            this.disableSpell('ancient', spellSelection.ancient, `Disabled ancient magicks spell, can't use magic!`);
+            this.disableSpell('standard', spellSelection.standard, `Disabled standard magic spell, can't use magic!`);
+            this.disableSpell('archaic', spellSelection.archaic, `Disabled archaic magic spell, can't use magic!`);
+            return;
+        }
+        // get rid of invalid spells selections
+        Object.keys(this.combatData.spells).forEach(spellType => {
+            if (spellSelection[spellType] === undefined) {
+                return;
+            }
+            if (spellSelection[spellType] === undefined) {
                 this.player.spellSelection[spellType] = undefined;
-                // send message if required
-                if (message) {
-                    MICSR.imageNotify(this.media.magic, message, 'danger');
-                }
+                this.micsr.imageNotify(this.media.magic, `disabled invalid ${spellType} spell ${spellSelection[spellType].id}`, 'danger');
             }
+        });
+        // check that at least one spell is selected
+        if (spellSelection.standard === undefined && spellSelection.ancient === undefined) {
+            this.enableSpell('standard', this.defaultSpell, `Enabled ${this.defaultSpell.name}.`);
+        }
+        // if both standard and ancient magic are selected, disable ancient magic
+        if (spellSelection.standard !== undefined && spellSelection.ancient !== undefined) {
+            this.disableSpell('ancient', spellSelection.ancient, `Disabled ${this.combatData.spells.ancient[spellSelection.ancient].name}.`);
+        }
+        // if ancient magic is selected, disable curses
+        if (spellSelection.ancient !== undefined && spellSelection.curse !== undefined) {
+            this.disableSpell('curse', spellSelection.curse, `Disabled ${this.combatData.spells.curse[spellSelection.curse].name}.`);
+        }
+    }
 
-            enableSpell(spellType: any, spell: any, message: string | undefined = undefined) {
-                // do nothing
-                if (spell === undefined) {
-                    return;
-                }
-                // Escape for not meeting the level/item requirement
-                if (this.player.skillLevel[MICSR.skillIDs.Magic] < spell.level) {
-                    MICSR.imageNotify(this.media.magic, `${spell.name} requires level ${spell.level} Magic.`, 'danger');
-                    return;
-                }
-                if (this.checkRequiredItem(spell)) {
-                    MICSR.imageNotify(this.media.magic, `${spell.name} requires ${spell.requiredItem.name}.`, 'danger');
-                    return;
-                }
-                // remove previous selection
-                this.disableSpell(spellType, this.player.spellSelection[spellType]);
-                if (spellType === 'ancient') {
-                    this.disableSpell('standard', this.player.spellSelection.standard, 'Disabled standard magic spell.');
-                }
-                if (spellType === 'standard') {
-                    this.disableSpell('ancient', this.player.spellSelection.ancient, 'Disabled ancient magick spell.');
-                }
-                // select spell
-                const button = document.getElementById(`MCS ${spell.id} Button`);
-                if (button) {
-                    this.selectButton(button);
-                }
-                this.player.spellSelection[spellType] = spell;
-                // send message if required
-                if (message) {
-                    MICSR.imageNotify(this.media.magic, message, 'danger');
-                }
+    // Callback Functions for the pet select card
+    /**
+     *
+     * @param {MouseEvent} event
+     * @param {number} petID
+     */
+    petButtonOnClick(event: any, petID: any) {
+        if (this.player.petUnlocked[petID]) {
+            this.player.petUnlocked[petID] = false;
+            this.unselectButton(event.currentTarget);
+        } else {
+            this.player.petUnlocked[petID] = true;
+            this.selectButton(event.currentTarget);
+        }
+        this.updateCombatStats();
+    }
+
+    // Callback Functions for the Sim Options Card
+    /**
+     * Callback for when the max actions input is changed
+     * @param {Event} event The change event for an input
+     */
+    maxActionsInputOnChange(event: any) {
+        const newMaxActions = parseInt(event.currentTarget.value);
+        if (newMaxActions > 0) {
+            this.micsr.maxActions = newMaxActions;
+        }
+    }
+
+    /**
+     * Callback for when the number of trials input is changed
+     * @param {Event} event The change event for an input
+     */
+    numTrialsInputOnChange(event: any) {
+        const newNumTrials = parseInt(event.currentTarget.value);
+        if (newNumTrials > 0) {
+            this.micsr.trials = newNumTrials;
+        }
+    }
+
+    /**
+     * Callback for when the number of ticks input is changed
+     * @param {Event} event The change event for an input
+     */
+    maxTicksInputOnChange(event: any) {
+        const maxTicks = parseInt(event.currentTarget.value);
+        if (maxTicks > 0) {
+            this.micsr.maxTicks = maxTicks;
+        }
+    }
+
+    /**
+     * Callback for when the alchemyCutoff input is changed
+     * @param {Event} event The change event for an input
+     */
+    alchemyCutoffInputOnChange(event: any) {
+        const alchemyCutoff = parseInt(event.currentTarget.value);
+        this.loot.alchemyCutoff = alchemyCutoff;
+        this.updatePlotForGP();
+    }
+
+    /**
+     * Callback for when the plot type is changed
+     * @param {Event} event The change event for a dropdown
+     */
+    plottypeDropdownOnChange(event: any) {
+        this.plotter.plotType = event.currentTarget.value;
+        this.plotter.plotID = event.currentTarget.selectedIndex;
+        this.simulator.selectedPlotIsTime = this.plotTypes[event.currentTarget.selectedIndex].isTime;
+        this.simulator.selectedPlotScales = this.plotTypes[event.currentTarget.selectedIndex].scale;
+        if (this.simulator.selectedPlotIsTime) {
+            this.plotter.timeDropdown.style.display = '';
+        } else {
+            this.plotter.timeDropdown.style.display = 'none';
+        }
+        if (this.plotter.plotType === 'petChance') {
+            this.plotter.petSkillDropdown.style.display = '';
+        } else {
+            this.plotter.petSkillDropdown.style.display = 'none';
+        }
+        this.updatePlotData();
+    }
+
+    /**
+     * Callback for when the pet skill type is changed
+     * @param {Event} event The change event for a dropdown
+     */
+    petSkillDropdownOnChange(event: any) {
+        this.loot.petSkill = event.currentTarget.value;
+        this.loot.updatePetChance();
+        if (this.plotter.plotType === 'petChance') {
+            this.updatePlotData();
+        }
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
+        this.updateZoneInfoCard();
+    }
+
+    /**
+     * Callback for when the simulate button is clicked
+     * @param {boolean} single
+     */
+    simulateButtonOnClick(single: any) {
+        if (this.simulator.simInProgress) {
+            this.simulator.cancelSimulation();
+            const simButton = document.getElementById('MCS Simulate All Button');
+            (simButton as any).disabled = true;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            simButton.textContent = 'Cancelling...';
+        }
+        if (!this.simulator.simInProgress && this.simulator.simulationWorkers.length === this.simulator.maxThreads) {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS Simulate Selected Button').style.display = 'none';
+            this.simulator.simulateCombat(single);
+        }
+    }
+
+    blockingSimulateButtonOnClick() {
+        const startTimeStamp = performance.now();
+        // queue the desired monsters
+        this.simulator.setupCurrentSim(true);
+        const ids = this.simulator.currentSim.ids;
+        this.simulator.simulationQueue.forEach((queueItem: any) => {
+            const simResult = this.manager.runTrials(queueItem.monsterID, ids.dungeonID, this.micsr.trials, this.micsr.maxTicks, true);
+            const simID = this.simulator.simID(queueItem.monsterID, ids.dungeonID);
+            this.simulator.monsterSimData[simID] = this.manager.convertSlowSimToResult(simResult, this.micsr.trials);
+        });
+        this.simulator.performPostSimAnalysis(true);
+        this.updateDisplayPostSim();
+        const processingTime = performance.now() - startTimeStamp;
+        this.micsr.log(`Simulation took ${processingTime / 1000}s.`);
+    }
+
+    exportSettingButtonOnClick() {
+        const settings = this.import.exportSettings();
+        const data = JSON.stringify(settings, null, 1);
+        this.popExport(data);
+    }
+
+    /**
+     * Callback for when the sell bones option is changed
+     * @param {Event} event The change event for a radio
+     * @param {boolean} newState The new value for the option
+     */
+    sellBonesRadioOnChange(event: any, newState: any) {
+        this.loot.sellBones = newState;
+        this.updatePlotForGP();
+    }
+
+    /**
+     * Callback for when the convert shards option is changed
+     * @param {Event} event The change event for a radio
+     * @param {boolean} newState The new value for the option
+     */
+    convertShardsRadioOnChange(event: any, newState: any) {
+        this.loot.convertShards = newState;
+        this.updatePlotForGP();
+    }
+
+    /**
+     * Callback for when the alchHighValueItems option is changed
+     * @param {Event} event The change event for a radio
+     * @param {boolean} newState The new value for the option
+     */
+    alchHighValueItemsRadioOnChange(event: any, newState: any) {
+        this.loot.alchHighValueItems = newState;
+        this.updatePlotForGP();
+    }
+
+    /**
+     * Callback for when the slayer task option is changed
+     * @param {Event} event The change event for a radio
+     * @param {boolean} newState The new value for the option
+     */
+    slayerTaskRadioOnChange(event: any, newState: any) {
+        this.player.isSlayerTask = newState;
+        this.slayerTaskSimsToggle();
+    }
+
+    slayerTaskSimsToggle() {
+        // toggle dungeon sims off if slayer task is on
+        if (this.player.isSlayerTask) {
+            this.toggleDungeonSims(false, true);
+        }
+        // toggle auto slayer sims off if slayer task is off
+        if (!this.player.isSlayerTask) {
+            this.toggleSlayerSims(false, true);
+        }
+    }
+
+    /**
+     * The callback for when the time unit dropdown is changed
+     * @param {Event} event The change event for a dropdown
+     */
+    timeUnitDropdownOnChange(event: any) {
+        this.timeMultiplier = this.timeMultipliers[event.currentTarget.selectedIndex];
+        this.simulator.selectedPlotIsTime = this.plotTypes[this.plotter.plotID].isTime;
+        this.simulator.selectedPlotScales = this.plotTypes[this.plotter.plotID].scale;
+        this.selectedTime = this.timeOptions[event.currentTarget.selectedIndex];
+        this.selectedTimeShorthand = this.timeShorthand[event.currentTarget.selectedIndex];
+        // Updated Signet chance
+        this.loot.updateSignetChance();
+        // Update pet chance
+        this.loot.updatePetChance();
+        // Update zone info card time units
+        for (let i = 0; i < this.plotTypes.length; i++) {
+            const name = this.plotTypes[i].info;
+            const value = this.plotTypes[i].value;
+            let newName = '';
+            if (value === 'petChance') {
+                newName = this.loot.petSkill + name + this.selectedTimeShorthand;
+            } else if (value === 'dropChance') {
+                newName = this.getSelectedDropLabel();
+            } else if (this.plotTypes[i].isTime) {
+                newName = name + this.selectedTimeShorthand;
             }
-
-            spellSanityCheck() {
-                const spellSelection = this.player.spellSelection;
-                // can we even use magic?
-                this.player.checkMagicUsage();
-                if (!this.player.canAurora) {
-                    this.disableSpell('aurora', spellSelection.aurora, `Disabled aurora, can't use auroras!`);
-                }
-                if (!this.player.canCurse) {
-                    this.disableSpell('curse', spellSelection.curse, `Disabled curse, can't use curses!`);
-                }
-                if (this.player.attackType !== "magic") {
-                    this.disableSpell('ancient', spellSelection.ancient, `Disabled ancient magicks spell, can't use magic!`);
-                    this.disableSpell('standard', spellSelection.standard, `Disabled standard magic spell, can't use magic!`);
-                    this.disableSpell('archaic', spellSelection.archaic, `Disabled archaic magic spell, can't use magic!`);
-                    return;
-                }
-                // get rid of invalid spells selections
-                Object.keys(this.combatData.spells).forEach(spellType => {
-                    if (spellSelection[spellType] === undefined) {
-                        return;
-                    }
-                    if (spellSelection[spellType] === undefined) {
-                        this.player.spellSelection[spellType] = undefined;
-                        MICSR.imageNotify(this.media.magic, `disabled invalid ${spellType} spell ${spellSelection[spellType].id}`, 'danger');
-                    }
-                });
-                // check that at least one spell is selected
-                if (spellSelection.standard === undefined && spellSelection.ancient === undefined) {
-                    this.enableSpell('standard', this.defaultSpell, `Enabled ${this.defaultSpell.name}.`);
-                }
-                // if both standard and ancient magic are selected, disable ancient magic
-                if (spellSelection.standard !== undefined && spellSelection.ancient !== undefined) {
-                    this.disableSpell('ancient', spellSelection.ancient, `Disabled ${this.combatData.spells.ancient[spellSelection.ancient].name}.`);
-                }
-                // if ancient magic is selected, disable curses
-                if (spellSelection.ancient !== undefined && spellSelection.curse !== undefined) {
-                    this.disableSpell('curse', spellSelection.curse, `Disabled ${this.combatData.spells.curse[spellSelection.curse].name}.`);
-                }
-            }
-
-            // Callback Functions for the pet select card
-            /**
-             *
-             * @param {MouseEvent} event
-             * @param {number} petID
-             */
-            petButtonOnClick(event: any, petID: any) {
-                if (this.player.petUnlocked[petID]) {
-                    this.player.petUnlocked[petID] = false;
-                    this.unselectButton(event.currentTarget);
-                } else {
-                    this.player.petUnlocked[petID] = true;
-                    this.selectButton(event.currentTarget);
-                }
-                this.updateCombatStats();
-            }
-
-            // Callback Functions for the Sim Options Card
-            /**
-             * Callback for when the max actions input is changed
-             * @param {Event} event The change event for an input
-             */
-            maxActionsInputOnChange(event: any) {
-                const newMaxActions = parseInt(event.currentTarget.value);
-                if (newMaxActions > 0) {
-                    MICSR.maxActions = newMaxActions;
-                }
-            }
-
-            /**
-             * Callback for when the number of trials input is changed
-             * @param {Event} event The change event for an input
-             */
-            numTrialsInputOnChange(event: any) {
-                const newNumTrials = parseInt(event.currentTarget.value);
-                if (newNumTrials > 0) {
-                    MICSR.trials = newNumTrials;
-                }
-            }
-
-            /**
-             * Callback for when the number of ticks input is changed
-             * @param {Event} event The change event for an input
-             */
-            maxTicksInputOnChange(event: any) {
-                const maxTicks = parseInt(event.currentTarget.value);
-                if (maxTicks > 0) {
-                    MICSR.maxTicks = maxTicks;
-                }
-            }
-
-            /**
-             * Callback for when the alchemyCutoff input is changed
-             * @param {Event} event The change event for an input
-             */
-            alchemyCutoffInputOnChange(event: any) {
-                const alchemyCutoff = parseInt(event.currentTarget.value);
-                this.loot.alchemyCutoff = alchemyCutoff;
-                this.updatePlotForGP();
-            }
-
-            /**
-             * Callback for when the plot type is changed
-             * @param {Event} event The change event for a dropdown
-             */
-            plottypeDropdownOnChange(event: any) {
-                this.plotter.plotType = event.currentTarget.value;
-                this.plotter.plotID = event.currentTarget.selectedIndex;
-                this.simulator.selectedPlotIsTime = this.plotTypes[event.currentTarget.selectedIndex].isTime;
-                this.simulator.selectedPlotScales = this.plotTypes[event.currentTarget.selectedIndex].scale;
-                if (this.simulator.selectedPlotIsTime) {
-                    this.plotter.timeDropdown.style.display = '';
-                } else {
-                    this.plotter.timeDropdown.style.display = 'none';
-                }
-                if (this.plotter.plotType === 'petChance') {
-                    this.plotter.petSkillDropdown.style.display = '';
-                } else {
-                    this.plotter.petSkillDropdown.style.display = 'none';
-                }
-                this.updatePlotData();
-            }
-
-            /**
-             * Callback for when the pet skill type is changed
-             * @param {Event} event The change event for a dropdown
-             */
-            petSkillDropdownOnChange(event: any) {
-                this.loot.petSkill = event.currentTarget.value;
-                this.loot.updatePetChance();
-                if (this.plotter.plotType === 'petChance') {
-                    this.updatePlotData();
-                }
+            if (newName) {
                 // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
-                this.updateZoneInfoCard();
+                document.getElementById(`MCS ${name}h Label`).textContent = newName;
             }
+        }
+        // Update Plot
+        this.updatePlotData();
+        // Update Info Card
+        this.updateZoneInfoCard();
+    }
 
-            /**
-             * Callback for when the simulate button is clicked
-             * @param {boolean} single
-             */
-            simulateButtonOnClick(single: any) {
-                if (this.simulator.simInProgress) {
-                    this.simulator.cancelSimulation();
-                    const simButton = document.getElementById('MCS Simulate All Button');
-                    (simButton as any).disabled = true;
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    simButton.textContent = 'Cancelling...';
-                }
-                if (!this.simulator.simInProgress && this.simulator.simulationWorkers.length === this.simulator.maxThreads) {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS Simulate Selected Button').style.display = 'none';
-                    this.simulator.simulateCombat(single);
-                }
-            }
+    notify(message: any, type = 'success') {
+        let img = this.media.combat;
+        this.micsr.imageNotify(img, message, type);
+    }
 
-            blockingSimulateButtonOnClick() {
-                const startTimeStamp = performance.now();
-                // queue the desired monsters
-                this.simulator.setupCurrentSim(true);
-                const ids = this.simulator.currentSim.ids;
-                this.simulator.simulationQueue.forEach((queueItem: any) => {
-                    const simResult = this.manager.runTrials(queueItem.monsterID, ids.dungeonID, MICSR.trials, MICSR.maxTicks, true);
-                    const simID = this.simulator.simID(queueItem.monsterID, ids.dungeonID);
-                    this.simulator.monsterSimData[simID] = this.manager.convertSlowSimToResult(simResult, MICSR.trials);
-                });
-                this.simulator.performPostSimAnalysis(true);
-                this.updateDisplayPostSim();
-                const processingTime = performance.now() - startTimeStamp;
-                MICSR.log(`Simulation took ${processingTime / 1000}s.`);
-            }
+    popExport(data: any) {
+        navigator.clipboard.writeText(data).then(() => {
+            this.notify('Exported to clipboard!');
+        }, () => {
+            Swal.fire({
+                title: 'Clipboard API error!',
+                html: `<h5 class="font-w600 text-combat-smoke mb-1">Manually copy the data below, e.g. with ctrl-A ctrl-C.</h5><textarea class="mcsLabel mb-1">${data}</textarea>`,
+                showCancelButton: false,
+                confirmButtonColor: '#3085d6',
+                confirmButtonText: 'Bye',
+            });
+        });
+    }
 
-            exportSettingButtonOnClick() {
-                const settings = this.import.exportSettings();
-                const data = JSON.stringify(settings, null, 1);
-                this.popExport(data);
-            }
+    /**
+     * The callback for when the export button is clicked
+     */
+    exportDataOnClick() {
+        let data = this.dataExport.exportData();
+        this.popExport(data);
+    }
 
-            /**
-             * Callback for when the sell bones option is changed
-             * @param {Event} event The change event for a radio
-             * @param {boolean} newState The new value for the option
-             */
-            sellBonesRadioOnChange(event: any, newState: any) {
-                this.loot.sellBones = newState;
-                this.updatePlotForGP();
-            }
+    barIsMonster(idx: any) {
+        return this.barType[idx] === this.barTypes.monster;
+    }
 
-            /**
-             * Callback for when the convert shards option is changed
-             * @param {Event} event The change event for a radio
-             * @param {boolean} newState The new value for the option
-             */
-            convertShardsRadioOnChange(event: any, newState: any) {
-                this.loot.convertShards = newState;
-                this.updatePlotForGP();
-            }
+    barIsDungeon(idx: any) {
+        return this.barType[idx] === this.barTypes.dungeon;
+    }
 
-            /**
-             * Callback for when the alchHighValueItems option is changed
-             * @param {Event} event The change event for a radio
-             * @param {boolean} newState The new value for the option
-             */
-            alchHighValueItemsRadioOnChange(event: any, newState: any) {
-                this.loot.alchHighValueItems = newState;
-                this.updatePlotForGP();
-            }
+    barIsTask(idx: any) {
+        return this.barType[idx] === this.barTypes.task;
+    }
 
-            /**
-             * Callback for when the slayer task option is changed
-             * @param {Event} event The change event for a radio
-             * @param {boolean} newState The new value for the option
-             */
-            slayerTaskRadioOnChange(event: any, newState: any) {
-                this.player.isSlayerTask = newState;
-                this.slayerTaskSimsToggle();
-            }
+    // Callback Functions for Bar inspection
+    /**
+     * The callback for when the inspect dungeon button is clicked
+     */
+    inspectDungeonOnClick() {
+        if (this.barSelected && !this.barIsMonster(this.selectedBar)) {
+            this.setPlotToDungeon(this.barMonsterIDs[this.selectedBar]);
+        } else {
+            this.micsr.warn('How did you click this?');
+        }
+    }
 
-            slayerTaskSimsToggle() {
-                // toggle dungeon sims off if slayer task is on
-                if (this.player.isSlayerTask) {
-                    this.toggleDungeonSims(false, true);
-                }
-                // toggle auto slayer sims off if slayer task is off
-                if (!this.player.isSlayerTask) {
-                    this.toggleSlayerSims(false, true);
-                }
-            }
+    /**
+     * The callback for when the stop dungeon inspection button is clicked
+     */
+    stopInspectOnClick() {
+        this.setPlotToGeneral();
+    }
 
-            /**
-             * The callback for when the time unit dropdown is changed
-             * @param {Event} event The change event for a dropdown
-             */
-            timeUnitDropdownOnChange(event: any) {
-                this.timeMultiplier = this.timeMultipliers[event.currentTarget.selectedIndex];
-                this.simulator.selectedPlotIsTime = this.plotTypes[this.plotter.plotID].isTime;
-                this.simulator.selectedPlotScales = this.plotTypes[this.plotter.plotID].scale;
-                this.selectedTime = this.timeOptions[event.currentTarget.selectedIndex];
-                this.selectedTimeShorthand = this.timeShorthand[event.currentTarget.selectedIndex];
-                // Updated Signet chance
-                this.loot.updateSignetChance();
-                // Update pet chance
-                this.loot.updatePetChance();
-                // Update zone info card time units
-                for (let i = 0; i < this.plotTypes.length; i++) {
-                    const name = this.plotTypes[i].info;
-                    const value = this.plotTypes[i].value;
-                    let newName = '';
-                    if (value === 'petChance') {
-                        newName = this.loot.petSkill + name + this.selectedTimeShorthand;
-                    } else if (value === 'dropChance') {
-                        newName = this.getSelectedDropLabel();
-                    } else if (this.plotTypes[i].isTime) {
-                        newName = name + this.selectedTimeShorthand;
-                    }
-                    if (newName) {
-                        // @ts-expect-error TS(2531): Object is possibly 'null'.
-                        document.getElementById(`MCS ${name}h Label`).textContent = newName;
-                    }
-                }
-                // Update Plot
-                this.updatePlotData();
-                // Update Info Card
-                this.updateZoneInfoCard();
-            }
-
-            notify(message: any, type = 'success') {
-                let img = this.media.combat;
-                MICSR.imageNotify(img, message, type);
-            }
-
-            popExport(data: any) {
-                navigator.clipboard.writeText(data).then(() => {
-                    this.notify('Exported to clipboard!');
-                }, () => {
-                    Swal.fire({
-                        title: 'Clipboard API error!',
-                        html: `<h5 class="font-w600 text-combat-smoke mb-1">Manually copy the data below, e.g. with ctrl-A ctrl-C.</h5><textarea class="mcsLabel mb-1">${data}</textarea>`,
-                        showCancelButton: false,
-                        confirmButtonColor: '#3085d6',
-                        confirmButtonText: 'Bye',
-                    });
-                });
-            }
-
-            /**
-             * The callback for when the export button is clicked
-             */
-            exportDataOnClick() {
-                let data = this.dataExport.exportData();
-                this.popExport(data);
-            }
-
-            barIsMonster(idx: any) {
-                return this.barType[idx] === this.barTypes.monster;
-            }
-
-            barIsDungeon(idx: any) {
-                return this.barType[idx] === this.barTypes.dungeon;
-            }
-
-            barIsTask(idx: any) {
-                return this.barType[idx] === this.barTypes.task;
-            }
-
-            // Callback Functions for Bar inspection
-            /**
-             * The callback for when the inspect dungeon button is clicked
-             */
-            inspectDungeonOnClick() {
-                if (this.barSelected && !this.barIsMonster(this.selectedBar)) {
-                    this.setPlotToDungeon(this.barMonsterIDs[this.selectedBar]);
-                } else {
-                    MICSR.warn('How did you click this?');
-                }
-            }
-
-            /**
-             * The callback for when the stop dungeon inspection button is clicked
-             */
-            stopInspectOnClick() {
-                this.setPlotToGeneral();
-            }
-
-            /**
-             * The callback for when a plotter bar is clicked
-             * @param {number} barID The id of the bar
-             */
-            barOnClick(barID: any) {
-                if (this.barSelected) {
-                    if (this.selectedBar === barID) {
-                        this.barSelected = false;
-                        this.removeBarhighlight(barID);
-                    } else {
-                        this.removeBarhighlight(this.selectedBar);
-                        this.selectedBar = barID;
-                        this.setBarHighlight(barID);
-                    }
-                } else {
-                    this.barSelected = true;
-                    this.selectedBar = barID;
-                    this.setBarHighlight(barID);
-                }
-                if (this.barSelected && !this.isViewingDungeon && !this.barIsMonster(barID)) {
-                    this.plotter.inspectButton.style.display = '';
-                } else {
-                    this.plotter.inspectButton.style.display = 'none';
-                }
-                this.updateZoneInfoCard();
-                this.createLootOptionsCard();
-            }
-
-            /**
-             * Turns on the border for a bar
-             * @param {number} barID The id of the bar
-             */
-            setBarHighlight(barID: any) {
-                if (this.plotter.bars[barID].className === 'mcsBar') {
-                    this.plotter.bars[barID].style.border = 'thin solid red';
-                } else {
-                    this.plotter.bars[barID].style.border = 'thin solid blue';
-                }
-            }
-
-            /**
-             * Turns off the border for a bar
-             * @param {number} barID The id of the bar
-             */
-            removeBarhighlight(barID: any) {
-                this.plotter.bars[barID].style.border = 'none';
-            }
-
-            /**
-             * Callback for when a monster/dungeon image below a bar is clicked
-             * @param {number} imageID The id of the image that was clicked
-             */
-            barImageOnClick(imageID: any) {
-                if (this.isViewingDungeon) {
-                    return;
-                }
-                let newState;
-                if (this.barIsDungeon(imageID)) {
-                    newState = !this.simulator.dungeonSimFilter[this.barMonsterIDs[imageID]];
-                    if (newState && this.player.isSlayerTask) {
-                        this.notify('no dungeon simulation on slayer task', 'danger');
-                        newState = false;
-                    }
-                    this.simulator.dungeonSimFilter[this.barMonsterIDs[imageID]] = newState;
-                } else if (this.barIsTask(imageID)) {
-                    const taskID = this.barMonsterIDs[imageID];
-                    newState = !this.simulator.slayerSimFilter[taskID];
-                    if (newState && !this.player.isSlayerTask) {
-                        this.notify('no auto slayer simulation off slayer task', 'danger');
-                        newState = false;
-                    }
-                    this.simulator.slayerSimFilter[taskID] = newState;
-                } else {
-                    this.simulator.monsterSimFilter[this.barMonsterIDs[imageID]] = !this.simulator.monsterSimFilter[this.barMonsterIDs[imageID]];
-                    newState = this.simulator.monsterSimFilter[this.barMonsterIDs[imageID]];
-                }
-                // UI Changes
-                if (newState) {
-                    // Uncross
-                    this.plotter.unCrossOutBarImage(imageID);
-                } else {
-                    // Crossout
-                    this.plotter.crossOutBarImage(imageID);
-                    if (this.selectedBar === imageID) {
-                        this.barSelected = false;
-                        this.removeBarhighlight(imageID);
-                    }
-                }
-                this.updatePlotData();
-            }
-
-            /**
-             * Callback to toggle the simulation of dungeons
-             */
-            toggleDungeonSims(newState: any, silent: any) {
-                if (newState && this.player.isSlayerTask) {
-                    if (!silent) {
-                        this.notify('no dungeon simulation on slayer task', 'danger')
-                    }
-                    newState = false;
-                }
-                this.dungeonToggleState = newState;
-                MICSR.dungeonIDs.forEach((dungeonID: any) => {
-                    this.simulator.dungeonSimFilter[dungeonID] = newState;
-                });
-                this.updatePlotData();
-                this.plotter.crossImagesPerSetting();
-            }
-
-            /**
-             * Callback to toggle the simulation of dungeons
-             */
-            toggleSlayerSims(newState: any, silent: any) {
-                if (newState && !this.player.isSlayerTask) {
-                    if (!silent) {
-                        this.notify('no auto slayer simulation off slayer task', 'danger');
-                    }
-                    newState = false;
-                }
-                this.slayerToggleState = newState;
-                MICSR.taskIDs.forEach((taskID: string) => {
-                    this.simulator.slayerSimFilter[taskID] = newState;
-                });
-                this.updatePlotData();
-                this.plotter.crossImagesPerSetting();
-            }
-
-            /**
-             * Callback to toggle the simulation of monsters in combat and slayer areas
-             */
-            toggleMonsterSims() {
-                const newState = !this.monsterToggleState;
-                this.monsterToggleState = newState;
-                // Set all non-dungeon monsters to newState
-                MICSR.monsterIDs.forEach((monsterID: any) => {
-                    this.simulator.monsterSimFilter[monsterID] = newState;
-                });
-                this.updatePlotData();
-                this.plotter.crossImagesPerSetting();
-            }
-
-            /**
-             * Updates the bars in the plot to the currently selected plot type
-             */
-            updatePlotData() {
-                this.plotter.updateBarData(this.simulator.getDataSet(this.plotter.plotType), this.simulator.getRawData());
-            }
-
-            getSimFailureText(data: any) {
-                const prefix = 'No valid simulation data';
-                if (data.reason) {
-                    if (data.tickCount >= MICSR.maxTicks * MICSR.trials) {
-                        return `Insufficient simulation time: ${data.reason}.`
-                    }
-                    return `${prefix}: ${data.reason}.`;
-                }
-                if (!data.simSuccess) {
-                    return `${prefix}: unknown simulation error.`;
-                }
-                return '';
-            }
-
-            setZoneInfoCard(title: any, id: any, media: any, data: any) {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MCS Zone Info Title').textContent = `${title}`;
-                (document.getElementById('MCS Info Image') as any).src = media;
-                this.failureLabel.textContent = this.getSimFailureText(data);
-                const updateInfo = data.simSuccess;
-                for (let i = 0; i < this.plotTypes.length; i++) {
-                    const dataKey = this.plotTypes[i].value;
-                    const outElem = document.getElementById(`MCS ${dataKey} Output`);
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    outElem.textContent = updateInfo && !isNaN(data[dataKey])
-                        ? MICSR.mcsFormatNum(this.simulator.getValue(true, data, dataKey, this.plotTypes[i].scale), 4)
-                        : 'N/A';
-                }
-                if (data.highestDamageTaken >= data.lowestHitpoints) {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS highestDamageTaken Output').style.color = 'orange';
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS lowestHitpoints Output').style.color = 'orange';
-                } else {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS highestDamageTaken Output').style.color = '';
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS lowestHitpoints Output').style.color = '';
-                }
-                if (data.deathRate > 0) {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS deathRate Output').style.color = 'red';
-                } else {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS deathRate Output').style.color = '';
-                }
-                this.setDeathRateTooltip(data.deathRate, data.killTimeS);
-                this.setGPTooltip(data.baseGpPerSecond, data.killTimeS);
-                this.setRuneTooltip(data.usedRunesBreakdown, data.killTimeS);
-                this.setPrayerTooltip(data.prayerXpPerSecond, data.ppConsumedPerSecond);
-            }
-
-            setDeathRateTooltip(deathRate: any, killTimeS: any) {
-                let dataMultiplier = this.timeMultiplier;
-                if (dataMultiplier === -1) {
-                    dataMultiplier = killTimeS;
-                }
-                let tooltip = `<span>${Math.floor(deathRate / killTimeS * dataMultiplier * 10000) / 10000} Est. Deaths/${this.selectedTimeShorthand}</span><br/>`;
-                tooltip = `<div className="text-center">${tooltip}</div>`;
-                this.setTooltipById(`MCS deathRate Output`, tooltip);
-            }
-
-            setTooltipById(id: string, tooltip: string) {
-                this.setTooltip(document.getElementById(id), tooltip);
-            }
-
-            setTooltip(element: HTMLElement | null, tooltip: string) {
-                // @ts-expect-error TS(2339): Property _tippy does not exist on type 'HTMLElement'.
-                element._tippy.setContent(tooltip);
-            }
-
-            setGPTooltip(baseGpPerSecond: any, killTimeS: any) {
-                let dataMultiplier = this.timeMultiplier;
-                if (dataMultiplier === -1) {
-                    dataMultiplier = killTimeS;
-                }
-                let tooltip = `<span>${formatNumber(Math.floor(baseGpPerSecond * dataMultiplier))} Raw GP/${this.selectedTimeShorthand}</span><br/>`;
-                tooltip = `<div className="text-center">${tooltip}</div>`;
-                this.setTooltipById(`MCS gpPerSecond Output`, tooltip);
-            }
-
-            setPrayerTooltip(prayerXpPerSecond: any, ppConsumedPerSecond: any) {
-                let xpPerPP = prayerXpPerSecond / ppConsumedPerSecond;
-                if (prayerXpPerSecond === 0) {
-                    xpPerPP = 0;
-                }
-                let tooltip = `<span>${(xpPerPP).toFixed(3)} Prayer XP/Point</span><br/>`;
-                tooltip = `<div className="text-center">${tooltip}</div>`;
-                this.setTooltipById(`MCS prayerXpPerSecond Output`, tooltip);
-            }
-
-            setRuneTooltip(runesUsed: any, killTimeS: any) {
-                let dataMultiplier = this.timeMultiplier;
-                if (dataMultiplier === -1) {
-                    dataMultiplier = killTimeS;
-                }
-                let tooltip = '';
-                for (const id in runesUsed) {
-                    tooltip += `<img class="skill-icon-xs" src="${this.getItemMedia(id)}"><span>${(runesUsed[id] * dataMultiplier).toFixed(2)}</span><br/>`
-                }
-                if (tooltip.length > 0) {
-                    tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`;
-                    this.setTooltipById(`MCS runesUsedPerSecond Output`, tooltip);
-                } else {
-                    this.setTooltipById(`MCS runesUsedPerSecond Output`, `No runes used.`);
-                }
-            }
-
-            /**
-             * Updates the zone info card text fields
-             */
-            updateZoneInfoCard() {
-                if (this.barSelected) {
-                    this.subInfoCard.container.style.display = '';
-                    this.infoPlaceholder.style.display = 'none';
-                    if (!this.isViewingDungeon && this.barIsDungeon(this.selectedBar)) {
-                        const dungeonID = this.barMonsterIDs[this.selectedBar];
-                        this.setZoneInfoCard(
-                            this.getDungeonName(dungeonID),
-                            dungeonID,
-                            MICSR.dungeons.getObjectByID(dungeonID).media,
-                            this.simulator.dungeonSimData[dungeonID],
-                        );
-                    } else if (!this.isViewingDungeon && this.barIsTask(this.selectedBar)) {
-                        const taskID = this.barMonsterIDs[this.selectedBar];
-                        this.setZoneInfoCard(
-                            taskID,
-                            taskID,
-                            MICSR.game.slayer.media,
-                            this.simulator.slayerSimData[taskID],
-                        );
-                    } else {
-                        let monsterID;
-                        let dungeonID;
-                        if (this.isViewingDungeon) {
-                            dungeonID = this.viewedDungeonID;
-                            monsterID = this.getSelectedDungeonMonsterID();
-                        } else {
-                            monsterID = this.barMonsterIDs[this.selectedBar];
-                        }
-                        this.setZoneInfoCard(
-                            this.getMonsterName(monsterID),
-                            monsterID,
-                            MICSR.monsters.getObjectByID(monsterID).media,
-                            this.simulator.monsterSimData[this.simulator.simID(
-                                monsterID,
-                                dungeonID >= MICSR.dungeonCount ? undefined : dungeonID,
-                            )],
-                        );
-                    }
-                } else {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    document.getElementById('MCS Zone Info Title').textContent = 'Monster/Dungeon Info.';
-                    this.subInfoCard.container.style.display = 'none';
-                    this.infoPlaceholder.style.display = '';
-                }
-            }
-
-            getSelectedDungeonMonsterID() {
-                const monsters = this.getMonsterList(this.viewedDungeonID);
-                return monsters[this.selectedBar + monsters.length - this.plotter.bars.length].id;
-            }
-
-            /**
-             * get list of monsters for dungeon (or slayer task, where task IDs start at MICSR.dungeonCount)
-             */
-            getMonsterList(dungeonID: any) {
-                if (MICSR.isDungeonID(dungeonID)) {
-                    return MICSR.dungeons.getObjectByID(this.viewedDungeonID).monsters;
-                }
-                return this.simulator.slayerTaskMonsters[dungeonID];
-            }
-
-            // Functions that manipulate the UI
-            /**
-             * Toggles the display of a style dropdown, and the spell selection dropdown off
-             * @param {string} combatType The combat type to disable
-             */
-            disableStyleDropdown(combatType: any) {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(`MCS ${combatType} Style Dropdown`).style.display = 'none';
-            }
-
-            /**
-             * Toggles the display of a style dropdown, and the spell selection dropdown on
-             * @param {string} combatType The combat type to enable
-             */
-            enableStyleDropdown(combatType: any) {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(`MCS ${combatType} Style Dropdown`).style.display = 'inline';
-            }
-
-            /**
-             * Updates the list of options in the spell menus, based on if the player can use it
-             */
-            updateSpellOptions() {
-                this.player.computeAttackType();
-                this.player.checkMagicUsage();
-                this.checkForSpellLevel();
-                this.checkForSpellItem();
-                this.spellSanityCheck();
-            }
-
-            /**
-             * Checks if magic level required for spell is met
-             */
-            checkForSpellLevel() {
-                const magicLevel = this.player.skillLevel[MICSR.skillIDs.Magic];
-                const setSpellsPerLevel = (spell: any, spellType: any) => {
-                    const id = `MCS ${spell.id} Button Image`;
-                    const elt = document.getElementById(id);
-                    if (magicLevel < spell.level) {
-                        (elt as any).src = this.media.question;
-                        this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires level ${spell.level} Magic.`);
-                    } else {
-                        (elt as any).src = spell.media;
-                    }
-                };
-                MICSR.standardSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'standard'));
-                MICSR.auroraSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'aurora'));
-                MICSR.curseSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'curse'));
-                MICSR.ancientSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'ancient'));
-                MICSR.archaicSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'archaic'));
-            }
-
-            checkRequiredItem(spell: any) {
-                return spell.requiredItem !== undefined && !this.player.equipmentIDs().includes(spell.requiredItem.id);
-            }
-
-            /**
-             * Checks if item required for spell is equipped
-             */
-            checkForSpellItem() {
-                const disableSpellsForItem = (spell: any, spellType: any) => {
-                    if (this.checkRequiredItem(spell)) {
-                        (document.getElementById(`MCS ${spell.id} Button Image`) as any).src = this.media.question;
-                        this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires ${spell.requiredItem.name}.`);
-                    }
-                };
-                MICSR.standardSpells.forEach((spell: any) => disableSpellsForItem(spell, 'standard'));
-                MICSR.auroraSpells.forEach((spell: any) => disableSpellsForItem(spell, 'aurora'));
-                MICSR.curseSpells.forEach((spell: any) => disableSpellsForItem(spell, 'curse'));
-                MICSR.ancientSpells.forEach((spell: any) => disableSpellsForItem(spell, 'ancient'));
-                MICSR.archaicSpells.forEach((spell: any) => disableSpellsForItem(spell, 'archaic'));
-            }
-
-            /**
-             * Updates the prayers that display in the prayer selection card, based on if the player can use it
-             */
-            updatePrayerOptions() {
-                const prayerLevel = this.player.skillLevel[MICSR.skillIDs.Prayer];
-                MICSR.prayers.forEach((prayer: any) => {
-                    const prayerName = this.getPrayerName(prayer);
-                    if (prayer.prayerLevel > prayerLevel) {
-                        (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = this.media.question;
-                        if (this.player.activePrayers.has(prayer.id)) {
-                            this.prayerButtonOnClick({ currentTarget: document.getElementById(`MCS ${prayerName} Button`) }, prayer.id);
-                            MICSR.imageNotify(this.media.prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
-                        }
-                    } else {
-                        (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = prayer.media;
-                    }
-                });
-            }
-
-            /**
-             * Updates the text fields for the computed combat stats
-             */
-            updateCombatStats() {
-                // first update the values
-                this.combatData.updateCombatStats();
-                // second update the view
-                this.combatStatKeys.forEach((key: any) => {
-                    if (key === 'attackSpeed') {
-                        const attackSpeed = this.combatData.playerAttackSpeed();
-                        // @ts-expect-error TS(2531): Object is possibly 'null'.
-                        document.getElementById(`MCS ${key} CS Output`).textContent = attackSpeed.toLocaleString();
-                    } else {
-                        // @ts-expect-error TS(2531): Object is possibly 'null'.
-                        document.getElementById(`MCS ${key} CS Output`).textContent = this.combatData.combatStats[key].toLocaleString();
-                    }
-                });
-                this.setSummoningSynergyText();
-                this.consumables.updateView();
-            }
-
-            /**
-             * Updates the simulator display for when a gp option is changed
-             */
-            updatePlotForGP() {
-                this.loot.updateGPData();
-                if (this.plotter.plotType === 'gpPerSecond') {
-                    this.updatePlotData();
-                }
-                this.updateZoneInfoCard();
-            }
-
-            /**
-             * Updates the simulator display for when a loot option is changed
-             */
-            updatePlotForLoot() {
-                const elt = document.getElementById('MCS Drops/h Label');
-                if (elt === null) {
-                    MICSR.error('Could not find element with id "MCS Drops/h Label".');
-                    return;
-                }
-                elt.textContent = this.getSelectedDropLabel();
-                this.loot.updateDropChance();
-                this.consumables.update();
-                if (this.plotter.plotType === 'dropChance') {
-                    this.updatePlotData();
-                }
-                this.updateZoneInfoCard();
-            }
-
-            /**
-             * Updates the images and tooltips for potions when the potion tier is changed
-             * @param {number} potionTier The new potion tier
-             */
-            updatePotionTier(potionTier: any) {
-                this.combatPotionIDs.forEach((potionId: any) => {
-                    const potion = MICSR.herblorePotions[potionId].potions[potionTier];
-                    const img = document.getElementById(`MCS ${this.getPotionName(potionId)} Button Image`);
-                    (img as any).src = potion.media;
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    this.setTooltip(img.parentElement, this.getPotionTooltip(potion));
-                });
-            }
-
-            /**
-             * Gets the content for the tooltip of a potion
-             * @param potion The potion object to get the tooltip for
-             * @returns {string} The tooltip content
-             */
-            getPotionTooltip(potion: any) {
-                return `<div class="text-center">${potion.name}<small>`
-                    + `<br><span class='text-info'>${potion.description.replace(/\.$/, '')}</span>`
-                    + `<br><span class='text-warning'>${potion.potionCharges} Potion Charges</span>`
-                    + `</small></div>`;
-            }
-
-            // Functions for dungeon display
-            /**
-             * Changes the simulator to display an individual dungeon
-             * @param {number} dungeonID the index of the dungeon in MICSR.dungeons
-             */
-            setPlotToDungeon(dungeonID: any) {
-                this.isViewingDungeon = true;
-                this.viewedDungeonID = dungeonID;
-                this.loot.update();
-                this.updatePlotData();
-                // Undo bar selection if needed
-                if (this.barSelected) {
-                    this.barSelected = false;
-                    this.removeBarhighlight(this.selectedBar);
-                }
-                this.updateZoneInfoCard();
-                this.plotter.displayDungeon(dungeonID);
-            }
-
-            /**
-             * Changes the simulator to display non-dungeon monsters and dungeon summary results
-             */
-            setPlotToGeneral() {
-                this.isViewingDungeon = false;
-                this.loot.update();
-                if (this.barSelected) {
-                    this.removeBarhighlight(this.selectedBar);
-                }
-                this.barSelected = true;
-                const barID = this.dungeonBarIDs[this.viewedDungeonID];
+    /**
+     * The callback for when a plotter bar is clicked
+     * @param {number} barID The id of the bar
+     */
+    barOnClick(barID: any) {
+        if (this.barSelected) {
+            if (this.selectedBar === barID) {
+                this.barSelected = false;
+                this.removeBarhighlight(barID);
+            } else {
+                this.removeBarhighlight(this.selectedBar);
                 this.selectedBar = barID;
                 this.setBarHighlight(barID);
-                this.plotter.inspectButton.style.display = '';
-                this.updatePlotData();
-                this.updateZoneInfoCard();
-                this.plotter.displayGeneral();
             }
-
-            // Data Sanitizing Functions
-            /**
-             * Removes HTML from the dungeon name
-             * @param {number} dungeonID The index of Dungeons
-             * @return {string} The name of a dungeon
-             */
-            getDungeonName(dungeonID: any) {
-                let name = undefined;
-                if (MICSR.dungeons.getObjectByID(dungeonID)) {
-                    name = MICSR.dungeons.getObjectByID(dungeonID).name;
-                } else if (dungeonID && dungeonID.name) {
-                    name = dungeonID.name;
-                }
-                if (name === undefined) {
-                    MICSR.error(`Unknown dungeon in getDungeonName ${dungeonID}`);
-                    return 'Unknown Dungeon';
-                }
-                return this.replaceApostrophe(name);
-            }
-
-            /**
-             * Removes HTML from the potion name
-             * @param {number} potionID The index of MICSR.herblorePotions
-             * @return {string} The name of a potion
-             */
-            getPotionName(potionID: any) {
-                return this.replaceApostrophe(MICSR.herblorePotions[potionID].name);
-            }
-
-            /**
-             * Removes HTML from a prayer name
-             * @param {number} prayerID The index of MICSR.prayers
-             * @return {string} the name of a prayer
-             */
-            getPrayerName(prayer: any) {
-                return this.replaceApostrophe(prayer.name);
-            }
-
-            getItemMedia(itemID: number | string) {
-                return MICSR.items[itemID].media
-            }
-
-            /**
-             * Removes HTML from a monster name
-             * @param {number} monsterID The index of MICSR.monsters
-             * @return {string} the name of a monster
-             */
-            getMonsterName(monsterID: any) {
-                const monster = MICSR.monsters.getObjectByID(monsterID);
-                const name = monster.name;
-                if (name === undefined) {
-                    MICSR.error(`Unknown monster in getMonsterName ${monsterID}`);
-                    return 'Unknown Monster';
-                }
-                return this.replaceApostrophe(name);
-            }
-
-            /**
-             * Replaces &apos; with an actual ' character
-             * @param {string} stringToFix The string to replace
-             * @return {string} the fixed string
-             */
-            replaceApostrophe(stringToFix: any) {
-                return stringToFix.replace(/&apos;/g, '\'');
-            }
-
-            /** Updates the display post simulation */
-            updateDisplayPostSim() {
-                this.createLootOptionsCard(); // update in case slayer task monsters changed
-                this.updatePlotData();
-                this.updateZoneInfoCard();
-                if (this.isViewingDungeon) {
-                    this.setPlotToGeneral();
-                    this.setPlotToDungeon(this.barMonsterIDs[this.selectedBar]);
-                }
-                (document.getElementById('MCS Simulate All Button') as any).disabled = false;
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MCS Simulate All Button').textContent = 'Simulate All';
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MCS Simulate Selected Button').style.display = 'block';
-            }
-
-            destroy() {
-                // terminate any workers
-                this.simulator.simulationWorkers.forEach((worker: any) => worker.worker.terminate());
-                // remove all tool tips
-                this.tippySingleton.destroy();
-                this.tippyInstances.forEach((instance: any) => instance.destroy());
-                this.tippyNoSingletonInstances.forEach((instance: any) => instance.destroy());
-                // remove the interface
-                MICSR.destroyMenu(this.menuItemId, this.modalID);
-            }
-        }
-    }
-
-    let loadCounter = 0;
-    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        if (typeof characterSelected === typeof undefined) {
-            return;
-        }
-        let reqMet = characterSelected && confirmedLoaded;
-        if (reqMet) {
-            loadCounter++;
-        }
-        if (loadCounter > 100) {
-            console.log('Failed to load ' + id);
-            return;
-        }
-        // check requirements
-        if ((window as any).MICSR === undefined) {
-            reqMet = false;
-            console.log(id + ' is waiting for the MICSR object');
         } else {
-            for (const req of reqs) {
-                if ((window as any).MICSR.loadedFiles[req]) {
-                    continue;
-                }
-                reqMet = false;
-                // not defined yet: try again later
-                if (loadCounter === 1) {
-                    (window as any).MICSR.log(id + ' is waiting for ' + req);
-                }
-            }
+            this.barSelected = true;
+            this.selectedBar = barID;
+            this.setBarHighlight(barID);
         }
-        if (!reqMet) {
-            setTimeout(() => waitLoadOrder(reqs, setup, id), 50);
+        if (this.barSelected && !this.isViewingDungeon && !this.barIsMonster(barID)) {
+            this.plotter.inspectButton.style.display = '';
+        } else {
+            this.plotter.inspectButton.style.display = 'none';
+        }
+        this.updateZoneInfoCard();
+        this.createLootOptionsCard();
+    }
+
+    /**
+     * Turns on the border for a bar
+     * @param {number} barID The id of the bar
+     */
+    setBarHighlight(barID: any) {
+        if (this.plotter.bars[barID].className === 'mcsBar') {
+            this.plotter.bars[barID].style.border = 'thin solid red';
+        } else {
+            this.plotter.bars[barID].style.border = 'thin solid blue';
+        }
+    }
+
+    /**
+     * Turns off the border for a bar
+     * @param {number} barID The id of the bar
+     */
+    removeBarhighlight(barID: any) {
+        this.plotter.bars[barID].style.border = 'none';
+    }
+
+    /**
+     * Callback for when a monster/dungeon image below a bar is clicked
+     * @param {number} imageID The id of the image that was clicked
+     */
+    barImageOnClick(imageID: any) {
+        if (this.isViewingDungeon) {
             return;
         }
-        // requirements met
-        (window as any).MICSR.log('setting up ' + id);
-        setup();
-        // mark as loaded
-        (window as any).MICSR.loadedFiles[id] = true;
+        let newState;
+        if (this.barIsDungeon(imageID)) {
+            newState = !this.simulator.dungeonSimFilter[this.barMonsterIDs[imageID]];
+            if (newState && this.player.isSlayerTask) {
+                this.notify('no dungeon simulation on slayer task', 'danger');
+                newState = false;
+            }
+            this.simulator.dungeonSimFilter[this.barMonsterIDs[imageID]] = newState;
+        } else if (this.barIsTask(imageID)) {
+            const taskID = this.barMonsterIDs[imageID];
+            newState = !this.simulator.slayerSimFilter[taskID];
+            if (newState && !this.player.isSlayerTask) {
+                this.notify('no auto slayer simulation off slayer task', 'danger');
+                newState = false;
+            }
+            this.simulator.slayerSimFilter[taskID] = newState;
+        } else {
+            this.simulator.monsterSimFilter[this.barMonsterIDs[imageID]] = !this.simulator.monsterSimFilter[this.barMonsterIDs[imageID]];
+            newState = this.simulator.monsterSimFilter[this.barMonsterIDs[imageID]];
+        }
+        // UI Changes
+        if (newState) {
+            // Uncross
+            this.plotter.unCrossOutBarImage(imageID);
+        } else {
+            // Crossout
+            this.plotter.crossOutBarImage(imageID);
+            if (this.selectedBar === imageID) {
+                this.barSelected = false;
+                this.removeBarhighlight(imageID);
+            }
+        }
+        this.updatePlotData();
     }
-    waitLoadOrder(reqs, setup, 'App');
 
-})();
+    /**
+     * Callback to toggle the simulation of dungeons
+     */
+    toggleDungeonSims(newState: any, silent: any) {
+        if (newState && this.player.isSlayerTask) {
+            if (!silent) {
+                this.notify('no dungeon simulation on slayer task', 'danger')
+            }
+            newState = false;
+        }
+        this.dungeonToggleState = newState;
+        this.micsr.dungeonIDs.forEach((dungeonID: any) => {
+            this.simulator.dungeonSimFilter[dungeonID] = newState;
+        });
+        this.updatePlotData();
+        this.plotter.crossImagesPerSetting();
+    }
+
+    /**
+     * Callback to toggle the simulation of dungeons
+     */
+    toggleSlayerSims(newState: any, silent: any) {
+        if (newState && !this.player.isSlayerTask) {
+            if (!silent) {
+                this.notify('no auto slayer simulation off slayer task', 'danger');
+            }
+            newState = false;
+        }
+        this.slayerToggleState = newState;
+        this.micsr.taskIDs.forEach((taskID: string) => {
+            this.simulator.slayerSimFilter[taskID] = newState;
+        });
+        this.updatePlotData();
+        this.plotter.crossImagesPerSetting();
+    }
+
+    /**
+     * Callback to toggle the simulation of monsters in combat and slayer areas
+     */
+    toggleMonsterSims() {
+        const newState = !this.monsterToggleState;
+        this.monsterToggleState = newState;
+        // Set all non-dungeon monsters to newState
+        this.micsr.monsterIDs.forEach((monsterID: any) => {
+            this.simulator.monsterSimFilter[monsterID] = newState;
+        });
+        this.updatePlotData();
+        this.plotter.crossImagesPerSetting();
+    }
+
+    /**
+     * Updates the bars in the plot to the currently selected plot type
+     */
+    updatePlotData() {
+        this.plotter.updateBarData(this.simulator.getDataSet(this.plotter.plotType), this.simulator.getRawData());
+    }
+
+    getSimFailureText(data: any) {
+        const prefix = 'No valid simulation data';
+        if (data.reason) {
+            if (data.tickCount >= this.micsr.maxTicks * this.micsr.trials) {
+                return `Insufficient simulation time: ${data.reason}.`
+            }
+            return `${prefix}: ${data.reason}.`;
+        }
+        if (!data.simSuccess) {
+            return `${prefix}: unknown simulation error.`;
+        }
+        return '';
+    }
+
+    setZoneInfoCard(title: any, id: any, media: any, data: any) {
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById('MCS Zone Info Title').textContent = `${title}`;
+        (document.getElementById('MCS Info Image') as any).src = media;
+        this.failureLabel.textContent = this.getSimFailureText(data);
+        const updateInfo = data.simSuccess;
+        for (let i = 0; i < this.plotTypes.length; i++) {
+            const dataKey = this.plotTypes[i].value;
+            const outElem = document.getElementById(`MCS ${dataKey} Output`);
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            outElem.textContent = updateInfo && !isNaN(data[dataKey])
+                ? Util.mcsFormatNum(this.simulator.getValue(true, data, dataKey, this.plotTypes[i].scale), 4)
+                : 'N/A';
+        }
+        if (data.highestDamageTaken >= data.lowestHitpoints) {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS highestDamageTaken Output').style.color = 'orange';
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS lowestHitpoints Output').style.color = 'orange';
+        } else {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS highestDamageTaken Output').style.color = '';
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS lowestHitpoints Output').style.color = '';
+        }
+        if (data.deathRate > 0) {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS deathRate Output').style.color = 'red';
+        } else {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS deathRate Output').style.color = '';
+        }
+        this.setDeathRateTooltip(data.deathRate, data.killTimeS);
+        this.setGPTooltip(data.baseGpPerSecond, data.killTimeS);
+        this.setRuneTooltip(data.usedRunesBreakdown, data.killTimeS);
+        this.setPrayerTooltip(data.prayerXpPerSecond, data.ppConsumedPerSecond);
+    }
+
+    setDeathRateTooltip(deathRate: any, killTimeS: any) {
+        let dataMultiplier = this.timeMultiplier;
+        if (dataMultiplier === -1) {
+            dataMultiplier = killTimeS;
+        }
+        let tooltip = `<span>${Math.floor(deathRate / killTimeS * dataMultiplier * 10000) / 10000} Est. Deaths/${this.selectedTimeShorthand}</span><br/>`;
+        tooltip = `<div className="text-center">${tooltip}</div>`;
+        this.setTooltipById(`MCS deathRate Output`, tooltip);
+    }
+
+    setTooltipById(id: string, tooltip: string) {
+        this.setTooltip(document.getElementById(id), tooltip);
+    }
+
+    setTooltip(element: HTMLElement | null, tooltip: string) {
+        // @ts-expect-error TS(2339): Property _tippy does not exist on type 'HTMLElement'.
+        element._tippy.setContent(tooltip);
+    }
+
+    setGPTooltip(baseGpPerSecond: any, killTimeS: any) {
+        let dataMultiplier = this.timeMultiplier;
+        if (dataMultiplier === -1) {
+            dataMultiplier = killTimeS;
+        }
+        let tooltip = `<span>${formatNumber(Math.floor(baseGpPerSecond * dataMultiplier))} Raw GP/${this.selectedTimeShorthand}</span><br/>`;
+        tooltip = `<div className="text-center">${tooltip}</div>`;
+        this.setTooltipById(`MCS gpPerSecond Output`, tooltip);
+    }
+
+    setPrayerTooltip(prayerXpPerSecond: any, ppConsumedPerSecond: any) {
+        let xpPerPP = prayerXpPerSecond / ppConsumedPerSecond;
+        if (prayerXpPerSecond === 0) {
+            xpPerPP = 0;
+        }
+        let tooltip = `<span>${(xpPerPP).toFixed(3)} Prayer XP/Point</span><br/>`;
+        tooltip = `<div className="text-center">${tooltip}</div>`;
+        this.setTooltipById(`MCS prayerXpPerSecond Output`, tooltip);
+    }
+
+    setRuneTooltip(runesUsed: any, killTimeS: any) {
+        let dataMultiplier = this.timeMultiplier;
+        if (dataMultiplier === -1) {
+            dataMultiplier = killTimeS;
+        }
+        let tooltip = '';
+        for (const id in runesUsed) {
+            tooltip += `<img class="skill-icon-xs" src="${this.getItemMedia(id)}"><span>${(runesUsed[id] * dataMultiplier).toFixed(2)}</span><br/>`
+        }
+        if (tooltip.length > 0) {
+            tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`;
+            this.setTooltipById(`MCS runesUsedPerSecond Output`, tooltip);
+        } else {
+            this.setTooltipById(`MCS runesUsedPerSecond Output`, `No runes used.`);
+        }
+    }
+
+    /**
+     * Updates the zone info card text fields
+     */
+    updateZoneInfoCard() {
+        if (this.barSelected) {
+            this.subInfoCard.container.style.display = '';
+            this.infoPlaceholder.style.display = 'none';
+            if (!this.isViewingDungeon && this.barIsDungeon(this.selectedBar)) {
+                const dungeonID = this.barMonsterIDs[this.selectedBar];
+                this.setZoneInfoCard(
+                    this.getDungeonName(dungeonID),
+                    dungeonID,
+                    this.micsr.dungeons.getObjectByID(dungeonID).media,
+                    this.simulator.dungeonSimData[dungeonID],
+                );
+            } else if (!this.isViewingDungeon && this.barIsTask(this.selectedBar)) {
+                const taskID = this.barMonsterIDs[this.selectedBar];
+                this.setZoneInfoCard(
+                    taskID,
+                    taskID,
+                    this.micsr.game.slayer.media,
+                    this.simulator.slayerSimData[taskID],
+                );
+            } else {
+                let monsterID;
+                let dungeonID;
+                if (this.isViewingDungeon) {
+                    dungeonID = this.viewedDungeonID;
+                    monsterID = this.getSelectedDungeonMonsterID();
+                } else {
+                    monsterID = this.barMonsterIDs[this.selectedBar];
+                }
+                this.setZoneInfoCard(
+                    this.getMonsterName(monsterID),
+                    monsterID,
+                    this.micsr.monsters.getObjectByID(monsterID).media,
+                    this.simulator.monsterSimData[this.simulator.simID(
+                        monsterID,
+                        dungeonID >= this.micsr.dungeonCount ? undefined : dungeonID,
+                    )],
+                );
+            }
+        } else {
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            document.getElementById('MCS Zone Info Title').textContent = 'Monster/Dungeon Info.';
+            this.subInfoCard.container.style.display = 'none';
+            this.infoPlaceholder.style.display = '';
+        }
+    }
+
+    getSelectedDungeonMonsterID() {
+        const monsters = this.getMonsterList(this.viewedDungeonID);
+        return monsters[this.selectedBar + monsters.length - this.plotter.bars.length].id;
+    }
+
+    /**
+     * get list of monsters for dungeon (or slayer task, where task IDs start at this.micsr.dungeonCount)
+     */
+    getMonsterList(dungeonID: any) {
+        if (this.micsr.isDungeonID(dungeonID)) {
+            return this.micsr.dungeons.getObjectByID(this.viewedDungeonID).monsters;
+        }
+        return this.simulator.slayerTaskMonsters[dungeonID];
+    }
+
+    // Functions that manipulate the UI
+    /**
+     * Toggles the display of a style dropdown, and the spell selection dropdown off
+     * @param {string} combatType The combat type to disable
+     */
+    disableStyleDropdown(combatType: any) {
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById(`MCS ${combatType} Style Dropdown`).style.display = 'none';
+    }
+
+    /**
+     * Toggles the display of a style dropdown, and the spell selection dropdown on
+     * @param {string} combatType The combat type to enable
+     */
+    enableStyleDropdown(combatType: any) {
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById(`MCS ${combatType} Style Dropdown`).style.display = 'inline';
+    }
+
+    /**
+     * Updates the list of options in the spell menus, based on if the player can use it
+     */
+    updateSpellOptions() {
+        this.player.computeAttackType();
+        this.player.checkMagicUsage();
+        this.checkForSpellLevel();
+        this.checkForSpellItem();
+        this.spellSanityCheck();
+    }
+
+    /**
+     * Checks if magic level required for spell is met
+     */
+    checkForSpellLevel() {
+        const magicLevel = this.player.skillLevel[this.micsr.skillIDs.Magic];
+        const setSpellsPerLevel = (spell: any, spellType: any) => {
+            const id = `MCS ${spell.id} Button Image`;
+            const elt = document.getElementById(id);
+            if (magicLevel < spell.level) {
+                (elt as any).src = this.media.question;
+                this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires level ${spell.level} Magic.`);
+            } else {
+                (elt as any).src = spell.media;
+            }
+        };
+        this.micsr.standardSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'standard'));
+        this.micsr.auroraSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'aurora'));
+        this.micsr.curseSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'curse'));
+        this.micsr.ancientSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'ancient'));
+        this.micsr.archaicSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'archaic'));
+    }
+
+    checkRequiredItem(spell: any) {
+        return spell.requiredItem !== undefined && !this.player.equipmentIDs().includes(spell.requiredItem.id);
+    }
+
+    /**
+     * Checks if item required for spell is equipped
+     */
+    checkForSpellItem() {
+        const disableSpellsForItem = (spell: any, spellType: any) => {
+            if (this.checkRequiredItem(spell)) {
+                (document.getElementById(`MCS ${spell.id} Button Image`) as any).src = this.media.question;
+                this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires ${spell.requiredItem.name}.`);
+            }
+        };
+        this.micsr.standardSpells.forEach((spell: any) => disableSpellsForItem(spell, 'standard'));
+        this.micsr.auroraSpells.forEach((spell: any) => disableSpellsForItem(spell, 'aurora'));
+        this.micsr.curseSpells.forEach((spell: any) => disableSpellsForItem(spell, 'curse'));
+        this.micsr.ancientSpells.forEach((spell: any) => disableSpellsForItem(spell, 'ancient'));
+        this.micsr.archaicSpells.forEach((spell: any) => disableSpellsForItem(spell, 'archaic'));
+    }
+
+    /**
+     * Updates the prayers that display in the prayer selection card, based on if the player can use it
+     */
+    updatePrayerOptions() {
+        const prayerLevel = this.player.skillLevel[this.micsr.skillIDs.Prayer];
+        this.micsr.prayers.forEach((prayer: any) => {
+            const prayerName = this.getPrayerName(prayer);
+            if (prayer.prayerLevel > prayerLevel) {
+                (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = this.media.question;
+                if (this.player.activePrayers.has(prayer.id)) {
+                    this.prayerButtonOnClick({ currentTarget: document.getElementById(`MCS ${prayerName} Button`) }, prayer.id);
+                    this.micsr.imageNotify(this.media.prayer, `${prayerName} has been de-selected. It requires level ${prayer.prayerLevel} Prayer.`, 'danger');
+                }
+            } else {
+                (document.getElementById(`MCS ${prayerName} Button Image`) as any).src = prayer.media;
+            }
+        });
+    }
+
+    /**
+     * Updates the text fields for the computed combat stats
+     */
+    updateCombatStats() {
+        // first update the values
+        this.combatData.updateCombatStats();
+        // second update the view
+        this.combatStatKeys.forEach((key: any) => {
+            if (key === 'attackSpeed') {
+                const attackSpeed = this.combatData.playerAttackSpeed();
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
+                document.getElementById(`MCS ${key} CS Output`).textContent = attackSpeed.toLocaleString();
+            } else {
+                // @ts-expect-error TS(2531): Object is possibly 'null'.
+                document.getElementById(`MCS ${key} CS Output`).textContent = this.combatData.combatStats[key].toLocaleString();
+            }
+        });
+        this.setSummoningSynergyText();
+        this.consumables.updateView();
+    }
+
+    /**
+     * Updates the simulator display for when a gp option is changed
+     */
+    updatePlotForGP() {
+        this.loot.updateGPData();
+        if (this.plotter.plotType === 'gpPerSecond') {
+            this.updatePlotData();
+        }
+        this.updateZoneInfoCard();
+    }
+
+    /**
+     * Updates the simulator display for when a loot option is changed
+     */
+    updatePlotForLoot() {
+        const elt = document.getElementById('MCS Drops/h Label');
+        if (elt === null) {
+            this.micsr.error('Could not find element with id "MCS Drops/h Label".');
+            return;
+        }
+        elt.textContent = this.getSelectedDropLabel();
+        this.loot.updateDropChance();
+        this.consumables.update();
+        if (this.plotter.plotType === 'dropChance') {
+            this.updatePlotData();
+        }
+        this.updateZoneInfoCard();
+    }
+
+    /**
+     * Updates the images and tooltips for potions when the potion tier is changed
+     * @param {number} potionTier The new potion tier
+     */
+    updatePotionTier(potionTier: any) {
+        this.combatPotionIDs.forEach((potionId: any) => {
+            const potion = this.micsr.herblorePotions[potionId].potions[potionTier];
+            const img = document.getElementById(`MCS ${this.getPotionName(potionId)} Button Image`);
+            (img as any).src = potion.media;
+            // @ts-expect-error TS(2531): Object is possibly 'null'.
+            this.setTooltip(img.parentElement, this.getPotionTooltip(potion));
+        });
+    }
+
+    /**
+     * Gets the content for the tooltip of a potion
+     * @param potion The potion object to get the tooltip for
+     * @returns {string} The tooltip content
+     */
+    getPotionTooltip(potion: any) {
+        return `<div class="text-center">${potion.name}<small>`
+            + `<br><span class='text-info'>${potion.description.replace(/\.$/, '')}</span>`
+            + `<br><span class='text-warning'>${potion.potionCharges} Potion Charges</span>`
+            + `</small></div>`;
+    }
+
+    // Functions for dungeon display
+    /**
+     * Changes the simulator to display an individual dungeon
+     * @param {number} dungeonID the index of the dungeon in this.micsr.dungeons
+     */
+    setPlotToDungeon(dungeonID: any) {
+        this.isViewingDungeon = true;
+        this.viewedDungeonID = dungeonID;
+        this.loot.update();
+        this.updatePlotData();
+        // Undo bar selection if needed
+        if (this.barSelected) {
+            this.barSelected = false;
+            this.removeBarhighlight(this.selectedBar);
+        }
+        this.updateZoneInfoCard();
+        this.plotter.displayDungeon(dungeonID);
+    }
+
+    /**
+     * Changes the simulator to display non-dungeon monsters and dungeon summary results
+     */
+    setPlotToGeneral() {
+        this.isViewingDungeon = false;
+        this.loot.update();
+        if (this.barSelected) {
+            this.removeBarhighlight(this.selectedBar);
+        }
+        this.barSelected = true;
+        const barID = this.dungeonBarIDs[this.viewedDungeonID];
+        this.selectedBar = barID;
+        this.setBarHighlight(barID);
+        this.plotter.inspectButton.style.display = '';
+        this.updatePlotData();
+        this.updateZoneInfoCard();
+        this.plotter.displayGeneral();
+    }
+
+    // Data Sanitizing Functions
+    /**
+     * Removes HTML from the dungeon name
+     * @param {number} dungeonID The index of Dungeons
+     * @return {string} The name of a dungeon
+     */
+    getDungeonName(dungeonID: any) {
+        let name = undefined;
+        if (this.micsr.dungeons.getObjectByID(dungeonID)) {
+            name = this.micsr.dungeons.getObjectByID(dungeonID).name;
+        } else if (dungeonID && dungeonID.name) {
+            name = dungeonID.name;
+        }
+        if (name === undefined) {
+            this.micsr.error(`Unknown dungeon in getDungeonName ${dungeonID}`);
+            return 'Unknown Dungeon';
+        }
+        return this.replaceApostrophe(name);
+    }
+
+    /**
+     * Removes HTML from the potion name
+     * @param {number} potionID The index of this.micsr.herblorePotions
+     * @return {string} The name of a potion
+     */
+    getPotionName(potionID: any) {
+        return this.replaceApostrophe(this.micsr.herblorePotions[potionID].name);
+    }
+
+    /**
+     * Removes HTML from a prayer name
+     * @param {number} prayerID The index of this.micsr.prayers
+     * @return {string} the name of a prayer
+     */
+    getPrayerName(prayer: any) {
+        return this.replaceApostrophe(prayer.name);
+    }
+
+    getItemMedia(itemID: number | string) {
+        return this.micsr.items[itemID].media
+    }
+
+    /**
+     * Removes HTML from a monster name
+     * @param {number} monsterID The index of this.micsr.monsters
+     * @return {string} the name of a monster
+     */
+    getMonsterName(monsterID: any) {
+        const monster = this.micsr.monsters.getObjectByID(monsterID);
+        const name = monster.name;
+        if (name === undefined) {
+            this.micsr.error(`Unknown monster in getMonsterName ${monsterID}`);
+            return 'Unknown Monster';
+        }
+        return this.replaceApostrophe(name);
+    }
+
+    /**
+     * Replaces &apos; with an actual ' character
+     * @param {string} stringToFix The string to replace
+     * @return {string} the fixed string
+     */
+    replaceApostrophe(stringToFix: any) {
+        return stringToFix.replace(/&apos;/g, '\'');
+    }
+
+    /** Updates the display post simulation */
+    updateDisplayPostSim() {
+        this.createLootOptionsCard(); // update in case slayer task monsters changed
+        this.updatePlotData();
+        this.updateZoneInfoCard();
+        if (this.isViewingDungeon) {
+            this.setPlotToGeneral();
+            this.setPlotToDungeon(this.barMonsterIDs[this.selectedBar]);
+        }
+        (document.getElementById('MCS Simulate All Button') as any).disabled = false;
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById('MCS Simulate All Button').textContent = 'Simulate All';
+        // @ts-expect-error TS(2531): Object is possibly 'null'.
+        document.getElementById('MCS Simulate Selected Button').style.display = 'block';
+    }
+
+    destroy() {
+        // terminate any workers
+        this.simulator.simulationWorkers.forEach((worker: any) => worker.worker.terminate());
+        // remove all tool tips
+        this.tippySingleton.destroy();
+        this.tippyInstances.forEach((instance: any) => instance.destroy());
+        this.tippyNoSingletonInstances.forEach((instance: any) => instance.destroy());
+        // remove the interface
+        Menu.destroyMenu(this.menuItemId, this.modalID);
+    }
+}

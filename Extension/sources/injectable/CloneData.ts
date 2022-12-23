@@ -22,18 +22,10 @@ interface ICloneDictionary {
     [name: string]: string;
 }
 
-declare global {
-    interface ICloneData {
-        equipmentSlotData: () => ICloneDictionary;
-        modifierData: () => ICloneDictionary;
-        restoreModifierData: () => ICloneDictionary;
-    }
-}
-
 /**
  * CloneData class, to clone some specific objects for transfer to the web workers
  */
-export class CloneData implements ICloneData {
+class CloneData {
     constructor() {
     };
 

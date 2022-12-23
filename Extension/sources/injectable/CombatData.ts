@@ -18,209 +18,157 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-(() => {
+/**
+ * CombatData class, stores all the combat data of a simulation
+ */
+class CombatData {
+    combatStats: any;
+    decreasedAttackSpeed: any;
+    dropSelected: any;
+    equipmentStats: any;
+    luckyHerb: any;
+    manager: SimManager;
+    modifiers: any;
+    player: any;
+    spells: any;
+    micsr: MICSR;
 
-    const reqs = [
-        'util',
-    ];
+    /**
+     *
+     */
+    constructor(manager: SimManager) {
+        this.manager = manager;
+        this.micsr = manager.micsr;
+        this.player = this.manager.player;
+        this.modifiers = this.player.modifiers;
+        // Spell Selection
+        this.spells = {
+            standard: this.micsr.standardSpells,
+            curse: this.micsr.curseSpells,
+            aurora: this.micsr.auroraSpells,
+            ancient: this.micsr.ancientSpells,
+            archaic: this.micsr.archaicSpells,
+        };
+        // Combat Stats
+        this.combatStats = {
+            attackInterval: 4000,
+            minHit: 0,
+            maxHit: 0,
+            summoningMaxHit: 0,
+            maxAttackRoll: 0,
+            maxDefRoll: 0,
+            maxRngDefRoll: 0,
+            maxMagDefRoll: 0,
+            maxHitpoints: 0,
+            damageReduction: 0,
+            autoEatThreshold: 0,
+            lootBonusPercent: 0,
+            gpBonus: 0,
+        };
+        // lucky herb bonus
+        this.luckyHerb = 0;
+        // equipment stats
+        this.equipmentStats = this.player.equipmentStats;
+        // combat stats
+        this.combatStats = {};
+        // selected item drop
+        this.dropSelected = 'micsr:none';
+    }
 
-    const setup = () => {
+    /**
+     * Calculates the combat stats from equipment, combat style, spell selection and player levels and stores them in `this.combatStats`
+     */
+    updateCombatStats() {
+        this.player.computeAllStats();
 
-        const MICSR = (window as any).MICSR;
-
-        /**
-         * CombatData class, stores all the combat data of a simulation
+        /*
+        First, gather all bonuses TODO: extract this
          */
-        MICSR.CombatData = class {
-            combatStats: any;
-            decreasedAttackSpeed: any;
-            dropSelected: any;
-            equipmentStats: any;
-            luckyHerb: any;
-            manager: any;
-            modifiers: any;
-            player: any;
-            spells: any;
+        //
+        this.computePotionBonus();
+        const modifiers = this.player.modifiers;
 
-            /**
-             *
-             */
-            constructor(manager: any) {
-                this.manager = manager;
-                this.player = this.manager.player;
-                this.modifiers = this.player.modifiers;
-                // Spell Selection
-                this.spells = {
-                    standard: MICSR.standardSpells,
-                    curse: MICSR.curseSpells,
-                    aurora: MICSR.auroraSpells,
-                    ancient: MICSR.ancientSpells,
-                    archaic: MICSR.archaicSpells,
-                };
-                // Combat Stats
-                this.combatStats = {
-                    attackInterval: 4000,
-                    minHit: 0,
-                    maxHit: 0,
-                    summoningMaxHit: 0,
-                    maxAttackRoll: 0,
-                    maxDefRoll: 0,
-                    maxRngDefRoll: 0,
-                    maxMagDefRoll: 0,
-                    maxHitpoints: 0,
-                    damageReduction: 0,
-                    autoEatThreshold: 0,
-                    lootBonusPercent: 0,
-                    gpBonus: 0,
-                };
-                // lucky herb bonus
-                this.luckyHerb = 0;
-                // equipment stats
-                this.equipmentStats = this.player.equipmentStats;
-                // combat stats
-                this.combatStats = {};
-                // selected item drop
-                this.dropSelected = 'micsr:none';
-            }
+        /*
+        Second, start computing and configuring TODO: extract this
+         */
 
-            /**
-             * Calculates the combat stats from equipment, combat style, spell selection and player levels and stores them in `this.combatStats`
-             */
-            updateCombatStats() {
-                this.player.computeAllStats();
+        // loot doubling
+        this.combatStats.lootBonusPercent = this.micsr.showModifiersInstance.getModifierValue(modifiers, 'ChanceToDoubleLootCombat')
+            + this.micsr.showModifiersInstance.getModifierValue(modifiers, 'ChanceToDoubleItemsGlobal');
+        // loot doubling is always between 0% and 100% chance
+        this.combatStats.lootBonusPercent = Math.max(0, this.combatStats.lootBonusPercent);
+        this.combatStats.lootBonusPercent = Math.min(100, this.combatStats.lootBonusPercent);
+        // gp bonus
+        this.combatStats.gpBonus = Util.averageDoubleMultiplier(
+            this.micsr.showModifiersInstance.getModifierValue(modifiers, 'GPFromMonsters')
+            + this.micsr.showModifiersInstance.getModifierValue(modifiers, 'GPGlobal')
+            + (this.player.isSlayerTask ? modifiers.summoningSynergy_0_12 : 0)
+        );
 
-                /*
-                First, gather all bonuses TODO: extract this
-                 */
-                //
-                this.computePotionBonus();
-                const modifiers = this.player.modifiers;
+        // attack speed without aurora
+        this.combatStats.attackInterval = this.player.stats.attackInterval;
 
-                /*
-                Second, start computing and configuring TODO: extract this
-                 */
+        // max attack roll
+        this.combatStats.maxAttackRoll = this.player.stats.accuracy;
 
-                // loot doubling
-                this.combatStats.lootBonusPercent = MICSR.getModifierValue(modifiers, 'ChanceToDoubleLootCombat')
-                    + MICSR.getModifierValue(modifiers, 'ChanceToDoubleItemsGlobal');
-                // loot doubling is always between 0% and 100% chance
-                this.combatStats.lootBonusPercent = Math.max(0, this.combatStats.lootBonusPercent);
-                this.combatStats.lootBonusPercent = Math.min(100, this.combatStats.lootBonusPercent);
-                // gp bonus
-                this.combatStats.gpBonus = MICSR.averageDoubleMultiplier(
-                    MICSR.getModifierValue(modifiers, 'GPFromMonsters')
-                    + MICSR.getModifierValue(modifiers, 'GPGlobal')
-                    + (this.player.isSlayerTask ? modifiers.summoningSynergy_0_12 : 0)
-                );
+        // max hit roll
+        this.combatStats.maxHit = this.player.stats.maxHit;
+        this.combatStats.minHit = this.player.stats.minHit;
 
-                // attack speed without aurora
-                this.combatStats.attackInterval = this.player.stats.attackInterval;
+        // max summ roll
+        this.combatStats.summoningMaxHit = this.player.stats.summoningMaxHit;
 
-                // max attack roll
-                this.combatStats.maxAttackRoll = this.player.stats.accuracy;
+        // max defence roll
+        this.combatStats.maxDefRoll = this.player.stats.evasion.melee;
+        this.combatStats.maxRngDefRoll = this.player.stats.evasion.ranged;
+        this.combatStats.maxMagDefRoll = this.player.stats.evasion.magic;
 
-                // max hit roll
-                this.combatStats.maxHit = this.player.stats.maxHit;
-                this.combatStats.minHit = this.player.stats.minHit;
+        // Calculate damage reduction
+        this.combatStats.damageReduction = this.player.stats.damageReduction;
 
-                // max summ roll
-                this.combatStats.summoningMaxHit = this.player.stats.summoningMaxHit;
+        // Max Hitpoints
+        this.combatStats.baseMaxHitpoints = this.player.levels.Hitpoints;
+        this.combatStats.baseMaxHitpoints += this.micsr.showModifiersInstance.getModifierValue(modifiers, 'MaxHitpoints');
+        this.combatStats.maxHitpoints = this.player.stats.maxHitpoints
 
-                // max defence roll
-                this.combatStats.maxDefRoll = this.player.stats.evasion.melee;
-                this.combatStats.maxRngDefRoll = this.player.stats.evasion.ranged;
-                this.combatStats.maxMagDefRoll = this.player.stats.evasion.magic;
+        // Calculate auto eat threshold
+        this.combatStats.autoEatThreshold = this.player.autoEatThreshold;
+    }
 
-                // Calculate damage reduction
-                this.combatStats.damageReduction = this.player.stats.damageReduction;
-
-                // Max Hitpoints
-                this.combatStats.baseMaxHitpoints = this.player.levels.Hitpoints;
-                this.combatStats.baseMaxHitpoints += MICSR.getModifierValue(modifiers, 'MaxHitpoints');
-                this.combatStats.maxHitpoints = this.player.stats.maxHitpoints
-
-                // Calculate auto eat threshold
-                this.combatStats.autoEatThreshold = this.player.autoEatThreshold;
-            }
-
-            /**
-             * Computes the potion bonuses for the selected potion
-             * */
-            computePotionBonus() {
-                this.luckyHerb = 0;
-                if (this.player.potionSelected) {
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    const potion = items[Herblore.potions[this.player.potionID].potionIDs[this.player.potionTier]];
-                    if (potion.potionBonusID === 11) {
-                        this.luckyHerb = potion.potionBonus;
-                    }
-                }
-            }
-
-            playerAttackSpeed() {
-                let attackSpeed = this.combatStats.attackSpeed;
-                attackSpeed -= this.decreasedAttackSpeed();
-                return attackSpeed;
-            }
-
-            getSummoningXP() {
-                const summ1 = this.player.equipmentID(equipmentSlotData.Summon1.id);
-                const summ2 = this.player.equipmentID(equipmentSlotData.Summon2.id);
-                let xp = 0;
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                if (summ1 >= 0 && items[summ1].summoningMaxHit) {
-                    // @ts-expect-error TS(2304): Cannot find name 'getBaseSummoningXP'.
-                    xp += getBaseSummoningXP(items[summ1].summoningID, true, 3000);
-                }
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
-                if (summ2 >= 0 && items[summ2].summoningMaxHit) {
-                    // @ts-expect-error TS(2304): Cannot find name 'getBaseSummoningXP'.
-                    xp += getBaseSummoningXP(items[summ2].summoningID, true, 3000);
-                }
-                return xp;
+    /**
+     * Computes the potion bonuses for the selected potion
+     * */
+    computePotionBonus() {
+        this.luckyHerb = 0;
+        if (this.player.potionSelected) {
+            // @ts-expect-error TS(2304): Cannot find name 'items'.
+            const potion = items[Herblore.potions[this.player.potionID].potionIDs[this.player.potionTier]];
+            if (potion.potionBonusID === 11) {
+                this.luckyHerb = potion.potionBonus;
             }
         }
     }
 
-    let loadCounter = 0;
-    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        if (typeof characterSelected === typeof undefined) {
-            return;
-        }
-        let reqMet = characterSelected && confirmedLoaded;
-        if (reqMet) {
-            loadCounter++;
-        }
-        if (loadCounter > 100) {
-            console.log('Failed to load ' + id);
-            return;
-        }
-        // check requirements
-        if ((window as any).MICSR === undefined) {
-            reqMet = false;
-            console.log(id + ' is waiting for the MICSR object');
-        } else {
-            for (const req of reqs) {
-                if ((window as any).MICSR.loadedFiles[req]) {
-                    continue;
-                }
-                reqMet = false;
-                // not defined yet: try again later
-                if (loadCounter === 1) {
-                    (window as any).MICSR.log(id + ' is waiting for ' + req);
-                }
-            }
-        }
-        if (!reqMet) {
-            setTimeout(() => waitLoadOrder(reqs, setup, id), 50);
-            return;
-        }
-        // requirements met
-        (window as any).MICSR.log('setting up ' + id);
-        setup();
-        // mark as loaded
-        (window as any).MICSR.loadedFiles[id] = true;
+    playerAttackSpeed() {
+        let attackSpeed = this.combatStats.attackSpeed;
+        attackSpeed -= this.decreasedAttackSpeed();
+        return attackSpeed;
     }
-    waitLoadOrder(reqs, setup, 'CombatData');
 
-})();
+    getSummoningXP() {
+        const summ1 = this.player.equipmentID(equipmentSlotData.Summon1.id);
+        const summ2 = this.player.equipmentID(equipmentSlotData.Summon2.id);
+        let xp = 0;
+        // @ts-expect-error TS(2304): Cannot find name 'items'.
+        if (summ1 >= 0 && items[summ1].summoningMaxHit) {
+            // @ts-expect-error TS(2304): Cannot find name 'getBaseSummoningXP'.
+            xp += getBaseSummoningXP(items[summ1].summoningID, true, 3000);
+        }
+        // @ts-expect-error TS(2304): Cannot find name 'items'.
+        if (summ2 >= 0 && items[summ2].summoningMaxHit) {
+            // @ts-expect-error TS(2304): Cannot find name 'getBaseSummoningXP'.
+            xp += getBaseSummoningXP(items[summ2].summoningID, true, 3000);
+        }
+        return xp;
+    }
+}

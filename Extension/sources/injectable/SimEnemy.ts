@@ -18,106 +18,54 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-(() => {
-
-    const reqs: any = [];
-
-    const setup = () => {
-
-        const MICSR = (window as any).MICSR;
-
-        /**
-         * SimEnemy class, allows creation of a functional Enemy object without affecting the game
-         */
-        MICSR.SimEnemy = class extends Enemy {
-            constructor(simManager: any, simGame: any) {
-                super(simManager, simGame);
-                this.detachGlobals();
-            }
-
-            _effectRenderer: any;
-
-            get effectRenderer() {
-                return this._effectRenderer;
-            }
-
-            _splashManager: any;
-
-            get splashManager() {
-                return this._splashManager;
-            }
-
-            // detach globals attached by parent constructor
-            detachGlobals() {
-                this._splashManager = {
-                    add: () => {
-                    },
-                };
-                this._effectRenderer = {
-                    queueRemoval: () => {
-                    },
-                    queueRemoveAll: () => {
-                    },
-                    removeEffects: () => {
-                    },
-                    addStun: () => {
-                    },
-                    addSleep: () => {
-                    },
-                    addCurse: () => {
-                    },
-                    addDOT: () => {
-                    },
-                    addReflexive: () => {
-                    },
-                    addStacking: () => {
-                    },
-                    addModifier: () => {
-                    },
-                };
-            }
-        }
+/**
+ * SimEnemy class, allows creation of a functional Enemy object without affecting the game
+ */
+class SimEnemy extends Enemy {
+    constructor(simManager: any, simGame: any) {
+        super(simManager, simGame);
+        this.detachGlobals();
     }
 
-    let loadCounter = 0;
-    const waitLoadOrder = (reqs: any, setup: any, id: any) => {
-        if (typeof characterSelected === typeof undefined) {
-            return;
-        }
-        let reqMet = characterSelected && confirmedLoaded;
-        if (reqMet) {
-            loadCounter++;
-        }
-        if (loadCounter > 100) {
-            console.log('Failed to load ' + id);
-            return;
-        }
-        // check requirements
-        if ((window as any).MICSR === undefined) {
-            reqMet = false;
-            console.log(id + ' is waiting for the MICSR object');
-        } else {
-            for (const req of reqs) {
-                if ((window as any).MICSR.loadedFiles[req]) {
-                    continue;
-                }
-                reqMet = false;
-                // not defined yet: try again later
-                if (loadCounter === 1) {
-                    (window as any).MICSR.log(id + ' is waiting for ' + req);
-                }
-            }
-        }
-        if (!reqMet) {
-            setTimeout(() => waitLoadOrder(reqs, setup, id), 50);
-            return;
-        }
-        // requirements met
-        (window as any).MICSR.log('setting up ' + id);
-        setup();
-        // mark as loaded
-        (window as any).MICSR.loadedFiles[id] = true;
-    }
-    waitLoadOrder(reqs, setup, 'SimEnemy');
+    _effectRenderer: any;
 
-})();
+    get effectRenderer() {
+        return this._effectRenderer;
+    }
+
+    _splashManager: any;
+
+    get splashManager() {
+        return this._splashManager;
+    }
+
+    // detach globals attached by parent constructor
+    detachGlobals() {
+        this._splashManager = {
+            add: () => {
+            },
+        };
+        this._effectRenderer = {
+            queueRemoval: () => {
+            },
+            queueRemoveAll: () => {
+            },
+            removeEffects: () => {
+            },
+            addStun: () => {
+            },
+            addSleep: () => {
+            },
+            addCurse: () => {
+            },
+            addDOT: () => {
+            },
+            addReflexive: () => {
+            },
+            addStacking: () => {
+            },
+            addModifier: () => {
+            },
+        };
+    }
+}
