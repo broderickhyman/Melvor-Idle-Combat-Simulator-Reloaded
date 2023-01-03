@@ -56,7 +56,7 @@ async function loadScripts(ctx: Modding.ModContext) {
 export function setup(setupContext: Modding.ModContext) {
   loadScripts(setupContext);
 
-  setupContext.onCharacterLoaded(async (characterContext) => {
+  setupContext.onInterfaceReady(async (characterContext) => {
     // debugger;
     const urls = {
       crossedOut: characterContext.getResourceUrl('icons/crossedOut.svg'),
@@ -86,6 +86,12 @@ export function setup(setupContext: Modding.ModContext) {
           localStorage.setItem('MICSR-gameVersion', gameVersion);
         } else {
           micsr.log(`${micsr.name} ${micsr.version} loaded.`);
+        }
+        if(micsr.isDev){
+          // Auto open the combat sim menu
+          $("#mcsButton").children().first().trigger("click");
+          // Import first set
+          $("[id='MCS 1 Button']").trigger("click");
         }
       } catch (error) {
         micsr.warn(`${micsr.name} ${micsr.version} was not loaded due to the following error:`);

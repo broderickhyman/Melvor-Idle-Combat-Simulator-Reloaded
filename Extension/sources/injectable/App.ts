@@ -47,7 +47,7 @@ class App {
     dropListFilters: any;
     dungeonBarIDs: any;
     dungeonToggleState: any;
-    equipmentSelectCard: any;
+    equipmentSelectCard!: Card;
     equipmentSubsets: any;
     failureLabel: any;
     foodCCContainer: any;
@@ -268,6 +268,7 @@ class App {
     }
 
     async initialize(urls: any) {
+        
         // Simulation Object
         this.simulator = new Simulator(this, urls.simulationWorker);
         await this.simulator.createWorkers();
@@ -567,7 +568,7 @@ class App {
             importButtonText.push(`${i + 1}`);
             importButtonFunc.push(() => this.import.importButtonOnClick(i));
         }
-        this.equipmentSelectCard.addMultiButton(importButtonText, importButtonFunc, importSetCCContainer);
+        this.equipmentSelectCard.addMultiButton(importButtonText, importButtonFunc, importSetCCContainer, "MCS_import_set");
         this.equipmentSelectCard.container.appendChild(importSetCCContainer);
         // add button to show all modifiers
         const modifierCCContainer = this.equipmentSelectCard.createCCContainer();

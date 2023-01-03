@@ -35,12 +35,12 @@ class Loot {
     petSkill: any;
     player: any;
     sellBones: any;
-    simulator: App;
+    simulator: Simulator;
     slayerSimData: any;
     slayerTaskMonsters: any;
     micsr: MICSR;
 
-    constructor(app: App, simulator: App) {
+    constructor(app: App, simulator: Simulator) {
         this.app = app;
         this.micsr = app.micsr;
         this.player = this.app.player;

@@ -222,7 +222,7 @@ class CombatSimulator {
   cancelStatus: any;
   micsr: MICSR;
 
-  constructor(micsr: MICSR) {
+    constructor(micsr: MICSR) {
     this.micsr = micsr;
     this.cancelStatus = false;
   }

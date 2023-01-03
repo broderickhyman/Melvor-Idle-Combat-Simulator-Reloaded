@@ -43,11 +43,15 @@ class SimManager extends CombatManager {
     game: Game;
     micsr: MICSR;
 
-    constructor(micsr: MICSR, game: Game, namespace: any) {
+    constructor(micsr: MICSR, game: Game, namespace: DataNamespace) {
         super(game, namespace);
         this.micsr = micsr;
         this.game = game;
         this.simPlayer = new SimPlayer(this, game);
+        this.simPlayer.registerStatProvider(game.petManager);
+        this.simPlayer.registerStatProvider(game.shop);
+        this.simPlayer.registerStatProvider(game.potions);
+        this.simPlayer.initialize();
         this.player = this.simPlayer as any;
         this.enemy = new SimEnemy(this, game);
         this.detachGlobals();

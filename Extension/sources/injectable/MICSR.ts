@@ -44,7 +44,7 @@ class MICSR {
     cloudManager: any;
     actualGame!: Game;
     game!: Game;
-    namespace: DataNamespace | undefined;
+    namespace!: DataNamespace;
     gamemodes!: Gamemode[];
     emptyItem!: EquipmentItem;
     skillIDs: any;
@@ -72,7 +72,8 @@ class MICSR {
     showModifiersInstance: ShowModifiers;
 
     constructor(game: Game) {
-        this.isDev = false;
+        // TODO: Change to a setting
+        this.isDev = true;
         // combat sim name
         this.name = 'Melvor Idle Combat Simulator Reloaded';
         this.shortName = 'Combat Simulator';

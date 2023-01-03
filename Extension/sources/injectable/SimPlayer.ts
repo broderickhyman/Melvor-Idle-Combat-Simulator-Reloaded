@@ -66,7 +66,6 @@ class SimPlayer extends Player {
     isSlayerTask: any;
     lowestHitpoints: any;
     manager: SimManager;
-    modifiers: any;
     petRolls: any;
     petUnlocked: any;
     pillar: any;
@@ -136,8 +135,7 @@ class SimPlayer extends Player {
             strings: [
                 'currentGamemodeID',
             ]
-        }
-        //
+        };
     }
 
     _attackBar: any;
@@ -470,48 +468,48 @@ class SimPlayer extends Player {
         this.skillXP[skill] += this.getSkillXPToAdd(skill, amount);
     }
 
-    addPetModifiers() {
-        this.micsr.pets.allObjects.forEach((pet: any, i: any) => {
-            if (this.petUnlocked[pet.id] && !pet.activeInRaid && pet.modifiers !== undefined) {
-                this.modifiers.addModifiers(pet.modifiers);
-            }
-        });
-    }
+    // addPetModifiers() {
+    //     this.micsr.pets.allObjects.forEach((pet: any, i: any) => {
+    //         if (this.petUnlocked[pet.id] && !pet.activeInRaid && pet.modifiers !== undefined) {
+    //             this.modifiers.addModifiers(pet.modifiers);
+    //         }
+    //     });
+    // }
 
-    addAgilityModifiers() {
-        Util.addAgilityModifiers(this.course, this.courseMastery, this.pillar, this.modifiers);
-    }
+    // addAgilityModifiers() {
+    //     Util.addAgilityModifiers(this.course, this.courseMastery, this.pillar, this.modifiers);
+    // }
 
-    addAstrologyModifiers() {
-        for (let i = 0; i < this.activeAstrologyModifiers.length; i++) {
-            this.modifiers.addModifiers(this.activeAstrologyModifiers[i]);
-        }
-    }
+    // addAstrologyModifiers() {
+    //     for (let i = 0; i < this.activeAstrologyModifiers.length; i++) {
+    //         this.modifiers.addModifiers(this.activeAstrologyModifiers[i]);
+    //     }
+    // }
 
-    addMiscModifiers() {
-        // Knight's Defender
-        if (this.equipment.checkForItemID("melvorF:Knights_Defender" /* ItemIDs.Knights_Defender */) && this.attackType === 'melee') {
-            this.modifiers.addModifiers({
-                decreasedAttackInterval: 100,
-                decreasedDamageReduction: 3,
-            });
-        }
-        if (this.modifiers.increasedNonMagicPoisonChance > 0 && this.attackType !== 'magic') {
-            this.modifiers.addModifiers({
-                increasedChanceToApplyPoison: this.modifiers.increasedNonMagicPoisonChance,
-            });
-        }
-    }
+    // addMiscModifiers() {
+    //     // Knight's Defender
+    //     if (this.equipment.checkForItemID("melvorF:Knights_Defender" /* ItemIDs.Knights_Defender */) && this.attackType === 'melee') {
+    //         this.modifiers.addModifiers({
+    //             decreasedAttackInterval: 100,
+    //             decreasedDamageReduction: 3,
+    //         });
+    //     }
+    //     if (this.modifiers.increasedNonMagicPoisonChance > 0 && this.attackType !== 'magic') {
+    //         this.modifiers.addModifiers({
+    //             increasedChanceToApplyPoison: this.modifiers.increasedNonMagicPoisonChance,
+    //         });
+    //     }
+    // }
 
-    addShopModifiers() {
-        // auto eat modifiers
-        for (let tier = 0; tier <= this.autoEatTier; tier++) {
-            // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
-            this.modifiers.addModifiers(SHOP.General[1 + tier].contains.modifiers);
-        }
+    // addShopModifiers() {
+    //     // auto eat modifiers
+    //     for (let tier = 0; tier <= this.autoEatTier; tier++) {
+    //         // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
+    //         this.modifiers.addModifiers(SHOP.General[1 + tier].contains.modifiers);
+    //     }
 
-        // other shop modifiers are not relevant for combat sim at this point
-    }
+    //     // other shop modifiers are not relevant for combat sim at this point
+    // }
 
     equipmentID(slotID: any) {
         return this.equipment.slotArray[slotID].item.id;
@@ -590,14 +588,14 @@ class SimPlayer extends Player {
     reusePotion() {
     }
 
-    addPotionModifiers() {
-        if (this.potionSelected) {
-            const item = this.getPotion();
-            if (item.modifiers !== undefined) {
-                this.modifiers.addModifiers(item.modifiers);
-            }
-        }
-    }
+    // addPotionModifiers() {
+    //     if (this.potionSelected) {
+    //         const item = this.getPotion();
+    //         if (item.modifiers !== undefined) {
+    //             this.modifiers.addModifiers(item.modifiers);
+    //         }
+    //     }
+    // }
 
     // track prayer point usage instead of consuming
     consumePrayerPoints(amount: any) {
@@ -828,31 +826,31 @@ class SimPlayer extends Player {
     encode(writer: any) {
         super.encode(writer);
         this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
-            console.log('encode boolean array', x)
+            // console.log('encode boolean array', x)
             if (this.hasKey(this, x)) {
                 writer.writeArray(this[x], (object: any, writer: any) => writer.writeBoolean(object));
             }
         });
         this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-            console.log('encode boolean array', x)
+            // console.log('encode boolean array', x)
             if (this.hasKey(this, x)) {
                 writer.writeArray(this[x], (object: any, writer: any) => writer.writeInt32(object));
             }
         });
         this.dataNames.booleans.forEach((x: PropertyKey) => {
-            console.log('encode boolean', x)
+            // console.log('encode boolean', x)
             if (this.hasKey(this, x)) {
                 writer.writeBoolean(this[x]);
             }
         });
         this.dataNames.numbers.forEach((x: PropertyKey) => {
-            console.log('encode number', x)
+            // console.log('encode number', x)
             if (this.hasKey(this, x)) {
                 writer.writeInt32(this[x]);
             }
         });
         this.dataNames.strings.forEach((x: PropertyKey) => {
-            console.log('encode string', x)
+            // console.log('encode string', x)
             if (this.hasKey(this, x)) {
                 writer.writeString(this[x]);
             }
@@ -864,38 +862,38 @@ class SimPlayer extends Player {
     decode(reader: any, version: any = this.micsr.currentSaveVersion) {
         super.decode(reader, version);
         this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
-            console.log('decode boolean array', x)
+            // console.log('decode boolean array', x)
             if (this.hasKey(this, x)) {
                 this[x] = reader.getArray((reader: any) => reader.getBoolean());
-                console.log(this[x]);
+                // console.log(this[x]);
             }
         });
         this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-            console.log('decode number array', x)
+            // console.log('decode number array', x)
             if (this.hasKey(this, x)) {
                 this[x] = reader.getArray((reader: any) => reader.getInt32());
-                console.log(this[x]);
+                // console.log(this[x]);
             }
         });
         this.dataNames.booleans.forEach((x: PropertyKey) => {
-            console.log('decode boolean', x)
+            // console.log('decode boolean', x)
             if (this.hasKey(this, x)) {
                 this[x] = reader.getBoolean();
-                console.log(this[x]);
+                // console.log(this[x]);
             }
         });
         this.dataNames.numbers.forEach((x: PropertyKey) => {
-            console.log('decode number', x)
+            // console.log('decode number', x)
             if (this.hasKey(this, x)) {
                 this[x] = reader.getInt32();
-                console.log(this[x]);
+                // console.log(this[x]);
             }
         });
         this.dataNames.strings.forEach((x: PropertyKey) => {
-            console.log('decode string', x)
+            // console.log('decode string', x)
             if (this.hasKey(this, x)) {
                 this[x] = reader.getString();
-                console.log(this[x]);
+                // console.log(this[x]);
             }
         });
         // after reading the data, recompute stats and reset gains

@@ -434,10 +434,13 @@ class Card {
      * @param {number} width The width of the buttons in pixels
      * @param {Function[]} buttonCallbacks The callback function for when the buttons are clicked
      */
-    addMultiButton(buttonText: any, buttonCallbacks: any, container = this.container) {
+    addMultiButton(buttonText: any, buttonCallbacks: any, container = this.container, id = "") {
         let newButton;
         const newCCContainer = document.createElement('div');
         newCCContainer.className = 'mcsMultiButtonContainer';
+        if (id) {
+            newCCContainer.id = id;
+        }
         for (let i = 0; i < buttonText.length; i++) {
             newButton = document.createElement('button');
             newButton.type = 'button';
