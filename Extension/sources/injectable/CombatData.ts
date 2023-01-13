@@ -38,8 +38,8 @@ class CombatData {
      *
      */
     constructor(manager: SimManager) {
-    // constructor(micsr: MICSR, manager: CombatManager) {
-    // constructor(micsr: MICSR, manager: SimManager) {
+        // constructor(micsr: MICSR, manager: CombatManager) {
+        // constructor(micsr: MICSR, manager: SimManager) {
         this.manager = manager;
         this.micsr = manager.micsr;
         this.player = this.manager.player;
@@ -75,7 +75,7 @@ class CombatData {
         // combat stats
         this.combatStats = {};
         // selected item drop
-        this.dropSelected = 'micsr:none';
+        this.dropSelected = "micsr:none";
     }
 
     /**
@@ -96,16 +96,35 @@ class CombatData {
          */
 
         // loot doubling
-        this.combatStats.lootBonusPercent = this.micsr.showModifiersInstance.getModifierValue(modifiers, 'ChanceToDoubleLootCombat')
-            + this.micsr.showModifiersInstance.getModifierValue(modifiers, 'ChanceToDoubleItemsGlobal');
+        this.combatStats.lootBonusPercent =
+            this.micsr.showModifiersInstance.getModifierValue(
+                modifiers,
+                "ChanceToDoubleLootCombat"
+            ) +
+            this.micsr.showModifiersInstance.getModifierValue(
+                modifiers,
+                "ChanceToDoubleItemsGlobal"
+            );
         // loot doubling is always between 0% and 100% chance
-        this.combatStats.lootBonusPercent = Math.max(0, this.combatStats.lootBonusPercent);
-        this.combatStats.lootBonusPercent = Math.min(100, this.combatStats.lootBonusPercent);
+        this.combatStats.lootBonusPercent = Math.max(
+            0,
+            this.combatStats.lootBonusPercent
+        );
+        this.combatStats.lootBonusPercent = Math.min(
+            100,
+            this.combatStats.lootBonusPercent
+        );
         // gp bonus
         this.combatStats.gpBonus = Util.averageDoubleMultiplier(
-            this.micsr.showModifiersInstance.getModifierValue(modifiers, 'GPFromMonsters')
-            + this.micsr.showModifiersInstance.getModifierValue(modifiers, 'GPGlobal')
-            + (this.player.isSlayerTask ? modifiers.summoningSynergy_0_12 : 0)
+            this.micsr.showModifiersInstance.getModifierValue(
+                modifiers,
+                "GPFromMonsters"
+            ) +
+                this.micsr.showModifiersInstance.getModifierValue(
+                    modifiers,
+                    "GPGlobal"
+                ) +
+                (this.player.isSlayerTask ? modifiers.summoningSynergy_0_12 : 0)
         );
 
         // attack speed without aurora
@@ -131,8 +150,12 @@ class CombatData {
 
         // Max Hitpoints
         this.combatStats.baseMaxHitpoints = this.player.levels.Hitpoints;
-        this.combatStats.baseMaxHitpoints += this.micsr.showModifiersInstance.getModifierValue(modifiers, 'MaxHitpoints');
-        this.combatStats.maxHitpoints = this.player.stats.maxHitpoints
+        this.combatStats.baseMaxHitpoints +=
+            this.micsr.showModifiersInstance.getModifierValue(
+                modifiers,
+                "MaxHitpoints"
+            );
+        this.combatStats.maxHitpoints = this.player.stats.maxHitpoints;
 
         // Calculate auto eat threshold
         this.combatStats.autoEatThreshold = this.player.autoEatThreshold;
@@ -145,7 +168,12 @@ class CombatData {
         this.luckyHerb = 0;
         if (this.player.potionSelected) {
             // @ts-expect-error TS(2304): Cannot find name 'items'.
-            const potion = items[Herblore.potions[this.player.potionID].potionIDs[this.player.potionTier]];
+            const potion =
+                items[
+                    Herblore.potions[this.player.potionID].potionIDs[
+                        this.player.potionTier
+                    ]
+                ];
             if (potion.potionBonusID === 11) {
                 this.luckyHerb = potion.potionBonus;
             }

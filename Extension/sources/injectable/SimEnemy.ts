@@ -42,34 +42,23 @@ class SimEnemy extends Enemy {
     // detach globals attached by parent constructor
     detachGlobals() {
         this._splashManager = {
-            add: () => {
-            },
+            add: () => {},
         };
         this._effectRenderer = {
-            queueRemoval: () => {
-            },
-            queueRemoveAll: () => {
-            },
-            removeEffects: () => {
-            },
-            addStun: () => {
-            },
-            addSleep: () => {
-            },
-            addCurse: () => {
-            },
-            addDOT: () => {
-            },
-            addReflexive: () => {
-            },
-            addStacking: () => {
-            },
-            addModifier: () => {
-            },
+            queueRemoval: () => {},
+            queueRemoveAll: () => {},
+            removeEffects: () => {},
+            addStun: () => {},
+            addSleep: () => {},
+            addCurse: () => {},
+            addDOT: () => {},
+            addReflexive: () => {},
+            addStacking: () => {},
+            addModifier: () => {},
         };
     }
 
     // decode(reader: SaveWriter, version: number): void {
-        
+
     // }
 }

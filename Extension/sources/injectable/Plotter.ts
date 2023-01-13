@@ -71,7 +71,7 @@ class Plotter {
         this.barBottomNames = [];
         this.barBottomLength = [];
         this.barBottomBrackets = [];
-        this.plotType = 'xpPerSecond';
+        this.plotType = "xpPerSecond";
         this.plotID = 0;
         this.maskImageFile = crossedOutURL;
 
@@ -87,10 +87,12 @@ class Plotter {
             });
         });
         totBars += 1;
-        this.barBottomNames.push('');
+        this.barBottomNames.push("");
         this.barBottomLength.push(1);
         this.barNames.push(this.parent.getMonsterName(this.micsr.bardID));
-        this.barImageSrc.push(this.micsr.monsters.getObjectByID(this.micsr.bardID).media);
+        this.barImageSrc.push(
+            this.micsr.monsters.getObjectByID(this.micsr.bardID).media
+        );
         this.micsr.slayerAreas.forEach((area: any) => {
             totBars += area.monsters.length;
             this.barBottomNames.push(area.name);
@@ -101,7 +103,7 @@ class Plotter {
             });
         });
 
-        this.barBottomNames.push('Dungeons');
+        this.barBottomNames.push("Dungeons");
         this.barBottomLength.push(this.micsr.dungeons.allObjects.length);
         totBars += this.micsr.dungeons.allObjects.length;
         for (const area of this.micsr.dungeons.allObjects) {
@@ -109,7 +111,7 @@ class Plotter {
             this.barImageSrc.push(area.media);
         }
 
-        this.barBottomNames.push('Auto Slayer');
+        this.barBottomNames.push("Auto Slayer");
         this.barBottomLength.push(this.micsr.slayerTaskData.length);
         totBars += this.micsr.slayerTaskData.length;
         for (const slayerTask of this.micsr.slayerTaskData) {
@@ -117,79 +119,83 @@ class Plotter {
             this.barImageSrc.push(this.micsr.game.slayer.media);
         }
 
-        this.plotContainer = document.createElement('div');
-        this.plotContainer.className = 'mcsPlotContainer mcsOuter block block-rounded border-top border-combat border-4x bg-combat-inner-dark';
-        this.plotContainer.id = 'MCS Plotter';
+        this.plotContainer = document.createElement("div");
+        this.plotContainer.className =
+            "mcsPlotContainer mcsOuter block block-rounded border-top border-combat border-4x bg-combat-inner-dark";
+        this.plotContainer.id = "MCS Plotter";
 
-        this.plotHeader = document.createElement('div');
-        this.plotHeader.className = 'mcsPlotHeader';
+        this.plotHeader = document.createElement("div");
+        this.plotHeader.className = "mcsPlotHeader";
         this.plotContainer.appendChild(this.plotHeader);
 
-        const plotHeaderSelects = document.createElement('div');
-        plotHeaderSelects.className = 'd-flex mr-auto';
+        const plotHeaderSelects = document.createElement("div");
+        plotHeaderSelects.className = "d-flex mr-auto";
         this.plotHeader.appendChild(plotHeaderSelects);
 
         // Use a dropdown menu for the plot title
-        const skillTypeSelect = document.createElement('select');
-        skillTypeSelect.className = 'form-control';
+        const skillTypeSelect = document.createElement("select");
+        skillTypeSelect.className = "form-control";
         this.parent.skillKeys.forEach((skillName: any, index: any) => {
-            const newOption = document.createElement('option');
+            const newOption = document.createElement("option");
             newOption.textContent = skillName;
             newOption.value = skillName;
             newOption.id = `MCS ${skillName} Option`;
             skillTypeSelect.appendChild(newOption);
         });
-        skillTypeSelect.onchange = (event) => this.parent.petSkillDropdownOnChange(event);
+        skillTypeSelect.onchange = (event) =>
+            this.parent.petSkillDropdownOnChange(event);
         plotHeaderSelects.appendChild(skillTypeSelect);
         this.petSkillDropdown = skillTypeSelect;
 
-        const plotTypeSelect = document.createElement('select');
-        plotTypeSelect.className = 'form-control';
+        const plotTypeSelect = document.createElement("select");
+        plotTypeSelect.className = "form-control";
         this.parent.plotTypes.forEach((plotType: any) => {
-            const newOption = document.createElement('option');
+            const newOption = document.createElement("option");
             newOption.textContent = plotType.option;
             newOption.value = plotType.value;
             plotTypeSelect.appendChild(newOption);
         });
-        plotTypeSelect.onchange = (event) => this.parent.plottypeDropdownOnChange(event);
+        plotTypeSelect.onchange = (event) =>
+            this.parent.plottypeDropdownOnChange(event);
         plotHeaderSelects.appendChild(plotTypeSelect);
 
-        this.timeDropdown = document.createElement('select');
-        this.timeDropdown.className = 'form-control';
+        this.timeDropdown = document.createElement("select");
+        this.timeDropdown.className = "form-control";
         this.parent.timeOptions.forEach((value: any, index: any) => {
-            const newOption = document.createElement('option');
+            const newOption = document.createElement("option");
             newOption.textContent = value;
             newOption.value = this.parent.timeMultipliers[index];
             this.timeDropdown.appendChild(newOption);
         });
-        this.timeDropdown.onchange = (event: any) => this.parent.timeUnitDropdownOnChange(event);
+        this.timeDropdown.onchange = (event: any) =>
+            this.parent.timeUnitDropdownOnChange(event);
         plotHeaderSelects.appendChild(this.timeDropdown);
 
-        this.plotTopContainer = document.createElement('div');
-        this.plotTopContainer.className = 'mcsPlotTopContainer';
-        this.plotTopContainer.id = 'MCS Plotter Top Container';
+        this.plotTopContainer = document.createElement("div");
+        this.plotTopContainer.className = "mcsPlotTopContainer";
+        this.plotTopContainer.id = "MCS Plotter Top Container";
         this.plotContainer.appendChild(this.plotTopContainer);
 
-        this.yAxis = document.createElement('div');
-        this.yAxis.id = 'MCS Plotter Y-Axis';
-        this.yAxis.className = 'mcsYAxis';
+        this.yAxis = document.createElement("div");
+        this.yAxis.id = "MCS Plotter Y-Axis";
+        this.yAxis.className = "mcsYAxis";
         this.plotTopContainer.appendChild(this.yAxis);
 
-        this.plotBox = document.createElement('div');
-        this.plotBox.className = 'mcsPlotBox';
+        this.plotBox = document.createElement("div");
+        this.plotBox.className = "mcsPlotBox";
         this.plotTopContainer.appendChild(this.plotBox);
 
-        this.xAxis = document.createElement('div');
-        this.xAxis.className = 'mcsXAxis';
-        this.xAxis.id = 'MCS Plotter X-Axis';
+        this.xAxis = document.createElement("div");
+        this.xAxis.className = "mcsXAxis";
+        this.xAxis.id = "MCS Plotter X-Axis";
         this.plotContainer.appendChild(this.xAxis);
 
         // Do Gridlines
         this.gridLine = [];
         for (let i = 0; i < 20; i++) {
-            this.gridLine.push(document.createElement('div'));
-            this.gridLine[i].className = 'mcsGridline';
-            this.gridLine[i].setAttribute('style', `bottom: ${(i + 1) * 5}%;`);
+            this.gridLine.push(document.createElement("div"));
+            this.gridLine[i].className = "mcsGridline";
+            this.gridLine[i].setAttribute("style", `bottom: ${(i + 1) * 5}%;`);
             this.plotBox.appendChild(this.gridLine[i]);
         }
 
@@ -199,30 +205,30 @@ class Plotter {
         this.xAxisContainers = [];
         this.bars = [];
         for (let i = 0; i < totBars; i++) {
-            const bar = document.createElement('div');
-            bar.className = 'mcsBar';
-            bar.style.height = '0';
-            const barContainer = document.createElement('div');
-            barContainer.className = 'mcs-bar-container';
+            const bar = document.createElement("div");
+            bar.className = "mcsBar";
+            bar.style.height = "0";
+            const barContainer = document.createElement("div");
+            barContainer.className = "mcs-bar-container";
             barContainer.appendChild(bar);
             this.bars.push(bar);
             this.plotBox.appendChild(barContainer);
 
-            const imageContainer = document.createElement('div');
-            imageContainer.className = 'mcsXAxisImageContainer';
+            const imageContainer = document.createElement("div");
+            imageContainer.className = "mcsXAxisImageContainer";
             imageContainer.onclick = () => this.parent.barImageOnClick(i);
             this.xAxisContainers.push(imageContainer);
 
-            this.xAxisImages.push(document.createElement('img'));
-            this.xAxisImages[i].className = 'mcsXAxisImage';
+            this.xAxisImages.push(document.createElement("img"));
+            this.xAxisImages[i].className = "mcsXAxisImage";
             this.xAxisImages[i].src = this.barImageSrc[i];
 
-            const newCross = document.createElement('img');
+            const newCross = document.createElement("img");
             newCross.src = this.maskImageFile;
-            newCross.className = 'mcsCross';
-            if (this.micsr.isDev) {
-                newCross.style.display = 'none';
-            }
+            newCross.className = "mcsCross";
+            // if (this.micsr.isDev) {
+            //     newCross.style.display = 'none';
+            // }
             this.xAxisCrosses.push(newCross);
 
             imageContainer.appendChild(this.xAxisImages[i]);
@@ -235,17 +241,24 @@ class Plotter {
         this.barBottomDivs = [];
         let divi = 0;
         for (let i = this.barBottomNames.length - 1; i > -1; i--) {
-            this.barBottomDivs.push(document.createElement('div'));
-            this.barBottomDivs[divi].appendChild(document.createTextNode(this.barBottomNames[i]));
-            this.barBottomDivs[divi].className = 'mcsPlotLabel';
-            this.barBottomDivs[divi].style.right = `${100 * botLength / totBars + 50 * this.barBottomLength[i] / totBars}%`;
+            this.barBottomDivs.push(document.createElement("div"));
+            this.barBottomDivs[divi].appendChild(
+                document.createTextNode(this.barBottomNames[i])
+            );
+            this.barBottomDivs[divi].className = "mcsPlotLabel";
+            this.barBottomDivs[divi].style.right = `${
+                (100 * botLength) / totBars +
+                (50 * this.barBottomLength[i]) / totBars
+            }%`;
             this.xAxis.appendChild(this.barBottomDivs[divi]);
-            const newSect = document.createElement('div');
-            newSect.className = 'mcsXAxisSection';
-            newSect.style.width = `${100 * this.barBottomLength[i] / totBars}%`;
-            newSect.style.right = `${100 * botLength / totBars}%`;
+            const newSect = document.createElement("div");
+            newSect.className = "mcsXAxisSection";
+            newSect.style.width = `${
+                (100 * this.barBottomLength[i]) / totBars
+            }%`;
+            newSect.style.right = `${(100 * botLength) / totBars}%`;
             if (i === 0) {
-                newSect.style.borderLeftStyle = 'solid';
+                newSect.style.borderLeftStyle = "solid";
             }
             this.barBottomBrackets.push(newSect);
             this.xAxis.appendChild(newSect);
@@ -256,10 +269,15 @@ class Plotter {
         // Do ticktext
         this.tickText = [];
         for (let i = 0; i < 21; i++) {
-            this.tickText.push(document.createElement('div'));
-            this.tickText[i].className = 'mcsTicktext';
-            this.tickText[i].setAttribute('style', `height: 5%; bottom: ${i * 5 - 2.5}%;`);
-            this.tickText[i].appendChild(document.createTextNode(Util.mcsFormatNum(i * 0.05, 4)));
+            this.tickText.push(document.createElement("div"));
+            this.tickText[i].className = "mcsTicktext";
+            this.tickText[i].setAttribute(
+                "style",
+                `height: 5%; bottom: ${i * 5 - 2.5}%;`
+            );
+            this.tickText[i].appendChild(
+                document.createTextNode(Util.mcsFormatNum(i * 0.05, 4))
+            );
             this.yAxis.appendChild(this.tickText[i]);
         }
 
@@ -269,22 +287,25 @@ class Plotter {
     // Add plot buttons
     addToggles(card: any) {
         // Add inspection buttons
-        this.inspectButton = card.addButton('Inspect Dungeon', () => {
+        this.inspectButton = card.addButton("Inspect Dungeon", () => {
             this.parent.inspectDungeonOnClick();
         });
-        this.inspectButton.style.display = 'none';
-        this.stopInspectButton = card.addButton('Stop Inspecting', () => {
+        this.inspectButton.style.display = "none";
+        this.stopInspectButton = card.addButton("Stop Inspecting", () => {
             this.parent.stopInspectOnClick();
         });
-        this.stopInspectButton.style.display = 'none';
+        this.stopInspectButton.style.display = "none";
         // Add toggle buttons
-        this.toggleMonsterButton = card.addButton('Toggle Monsters', () => {
+        this.toggleMonsterButton = card.addButton("Toggle Monsters", () => {
             this.parent.toggleMonsterSims();
         });
-        this.toggleDungeonButton = card.addButton('Toggle Dungeons', () => {
-            this.parent.toggleDungeonSims(!this.parent.dungeonToggleState, false);
+        this.toggleDungeonButton = card.addButton("Toggle Dungeons", () => {
+            this.parent.toggleDungeonSims(
+                !this.parent.dungeonToggleState,
+                false
+            );
         });
-        this.toggleSlayerButton = card.addButton('Toggle Auto Slayer', () => {
+        this.toggleSlayerButton = card.addButton("Toggle Auto Slayer", () => {
             this.parent.toggleSlayerSims(!this.parent.slayerToggleState, false);
         });
     }
@@ -294,7 +315,7 @@ class Plotter {
      * @param {number} id The ID of the bar
      */
     barOnMouseOver(id: any) {
-        this.barTooltips[id].style.display = 'block';
+        this.barTooltips[id].style.display = "block";
     }
 
     /**
@@ -302,7 +323,7 @@ class Plotter {
      * @param {number} id The ID of the bar
      */
     barOnMouseOut(id: any) {
-        this.barTooltips[id].style.display = 'none';
+        this.barTooltips[id].style.display = "none";
     }
 
     colourGradient(x: any, base = [70, 130, 180], death = [220, 20, 60]) {
@@ -314,11 +335,10 @@ class Plotter {
      * @param {number[]} barData The new data to diplay
      */
     updateBarData(barData: any, rawData: any) {
-        // debugger;
         const enterSet = this.parent.simulator.getEnterSet();
         let barMax = 0;
         for (let i = 0; i < this.bars.length; i++) {
-            this.bars[i].className = 'mcsBar';
+            this.bars[i].className = "mcsBar";
             if (isNaN(barData[i]) || !isFinite(barData[i])) {
                 continue;
             }
@@ -341,7 +361,8 @@ class Plotter {
         let closestRatio = 0.1;
         let divDecimals = 1;
         if (barMax !== 0) {
-            const divRatio = barMax / Math.pow(10, Math.floor(Math.log10(barMax)) + 1);
+            const divRatio =
+                barMax / Math.pow(10, Math.floor(Math.log10(barMax)) + 1);
             if (divRatio >= 0.5) {
                 closestRatio = 0.5;
             } else if (divRatio >= 0.25) {
@@ -366,58 +387,74 @@ class Plotter {
             let tooltipText;
             if (isNaN(barData[dataIndex]) || !isFinite(barData[dataIndex])) {
                 this.bars[barIndex].style.height = `0%`;
-                tooltipText = 'N/A';
+                tooltipText = "N/A";
             } else {
-                this.bars[barIndex].style.height = `${barData[dataIndex] / divMax * 100}%`;
+                this.bars[barIndex].style.height = `${
+                    (barData[dataIndex] / divMax) * 100
+                }%`;
                 tooltipText = Util.mcsFormatNum(barData[dataIndex], 4);
             }
 
-            let barName = '';
+            let barName = "";
             if (this.parent.isViewingDungeon) {
-                const selection = this.parent.getMonsterList(this.parent.viewedDungeonID);
-                const monster = selection[barIndex + selection.length - this.bars.length];
+                const selection = this.parent.getMonsterList(
+                    this.parent.viewedDungeonID
+                );
+                const monster =
+                    selection[barIndex + selection.length - this.bars.length];
                 barName = monster.name;
             } else {
                 if (this.parent.barIsDungeon(barIndex)) {
-                    barName = this.micsr.dungeons.getObjectByID(this.parent.barMonsterIDs[barIndex]).name;
+                    barName = this.micsr.dungeons.getObjectByID(
+                        this.parent.barMonsterIDs[barIndex]
+                    ).name;
                 } else if (this.parent.barIsTask(barIndex)) {
                     barName = `${this.parent.barMonsterIDs[barIndex]} Tasks`;
                 } else {
-                    barName = this.micsr.monsters.getObjectByID(this.parent.barMonsterIDs[barIndex]).name;
+                    barName = this.micsr.monsters.getObjectByID(
+                        this.parent.barMonsterIDs[barIndex]
+                    ).name;
                 }
             }
             // open tooltip and set tooltip title
             let tooltip = `<div class="text-center">${barName}`;
             // set value if available
-            if (tooltipText !== 'N/A') {
+            if (tooltipText !== "N/A") {
                 tooltip += `<br><span class="text-info">${tooltipText}</span>`;
             }
             // set failure text, if any
-            const failureText = this.parent.getSimFailureText(rawData[dataIndex]);
+            const failureText = this.parent.getSimFailureText(
+                rawData[dataIndex]
+            );
             if (failureText) {
                 tooltip += `<br><span style="color:red;">${failureText}</span>`;
             }
             // close tooltip
-            tooltip += '</div>';
+            tooltip += "</div>";
             // set tooltip content
             this.bars[barIndex]._tippy.setContent(tooltip);
             // color the bar based on death rate
-            const base = maxBars.includes(barIndex) ? [215, 180, 0] : [70, 130, 180];
-            const gradient = this.colourGradient(rawData[dataIndex].deathRate, base).join(',');
+            const base = maxBars.includes(barIndex)
+                ? [215, 180, 0]
+                : [70, 130, 180];
+            const gradient = this.colourGradient(
+                rawData[dataIndex].deathRate,
+                base
+            ).join(",");
             this.bars[barIndex].style.backgroundColor = `rgb(${gradient})`;
         }
         for (let i = 0; i < 20; i++) {
-            if (i < (Ndivs - 1)) {
-                this.gridLine[i].style.display = 'block';
-                this.gridLine[i].style.bottom = `${(i + 1) * 100 / Ndivs}%`;
+            if (i < Ndivs - 1) {
+                this.gridLine[i].style.display = "block";
+                this.gridLine[i].style.bottom = `${((i + 1) * 100) / Ndivs}%`;
             } else {
-                this.gridLine[i].style.display = 'none';
+                this.gridLine[i].style.display = "none";
             }
         }
-        let formatEnd = '';
+        let formatEnd = "";
         // Use toFixed for tick marks
         if (divPower > 2) {
-            formatEnd = ['k', 'M', 'B', 'T'][Math.floor(divPower / 3) - 1];
+            formatEnd = ["k", "M", "B", "T"][Math.floor(divPower / 3) - 1];
         }
         if (divPower >= 0) {
             const powerLeft = divPower % 3;
@@ -428,15 +465,17 @@ class Plotter {
         }
 
         for (let i = 0; i < 21; i++) {
-            if (i < (Ndivs + 1)) {
-                this.tickText[i].style.display = 'block';
-                this.tickText[i].style.bottom = `${i * 100 / Ndivs - 2.5}%`;
-                this.tickText[i].textContent = `${(i * closestRatio).toLocaleString(undefined, {
+            if (i < Ndivs + 1) {
+                this.tickText[i].style.display = "block";
+                this.tickText[i].style.bottom = `${(i * 100) / Ndivs - 2.5}%`;
+                this.tickText[i].textContent = `${(
+                    i * closestRatio
+                ).toLocaleString(undefined, {
                     maximumFractionDigits: divDecimals,
-                    minimumFractionDigits: divDecimals
+                    minimumFractionDigits: divDecimals,
                 })}${formatEnd}`;
             } else {
-                this.tickText[i].style.display = 'none';
+                this.tickText[i].style.display = "none";
             }
         }
     }
@@ -447,16 +486,16 @@ class Plotter {
     displayGeneral() {
         for (let i = 0, numBars = this.bars.length; i < numBars; i++) {
             // Change image source
-            this.xAxisContainers[i].style.display = '';
-            this.xAxisImages[i].setAttribute('src', this.barImageSrc[i]);
-            this.bars[i].style.display = '';
+            this.xAxisContainers[i].style.display = "";
+            this.xAxisImages[i].setAttribute("src", this.barImageSrc[i]);
+            this.bars[i].style.display = "";
         }
         this.showZoneLabels();
         this.crossImagesPerSetting();
-        this.stopInspectButton.style.display = 'none';
-        this.toggleMonsterButton.style.display = '';
-        this.toggleDungeonButton.style.display = '';
-        this.toggleSlayerButton.style.display = '';
+        this.stopInspectButton.style.display = "none";
+        this.toggleMonsterButton.style.display = "";
+        this.toggleDungeonButton.style.display = "";
+        this.toggleSlayerButton.style.display = "";
     }
 
     /**
@@ -473,22 +512,22 @@ class Plotter {
         for (let i = 0; i < this.bars.length; i++) {
             if (i < monsters.length) {
                 // Change image source
-                this.xAxisContainers[i].style.display = '';
-                this.xAxisImages[i].setAttribute('src', monsters[i].media);
-                this.bars[this.bars.length - i - 1].style.display = '';
+                this.xAxisContainers[i].style.display = "";
+                this.xAxisImages[i].setAttribute("src", monsters[i].media);
+                this.bars[this.bars.length - i - 1].style.display = "";
             } else {
                 // Disable Bar and images
-                this.xAxisContainers[i].style.display = 'none';
-                this.bars[this.bars.length - i - 1].style.display = 'none';
+                this.xAxisContainers[i].style.display = "none";
+                this.bars[this.bars.length - i - 1].style.display = "none";
             }
         }
         this.hideZoneLabels();
         this.unCrossAllImages();
-        this.inspectButton.style.display = 'none';
-        this.stopInspectButton.style.display = '';
-        this.toggleMonsterButton.style.display = 'none';
-        this.toggleDungeonButton.style.display = 'none';
-        this.toggleSlayerButton.style.display = 'none';
+        this.inspectButton.style.display = "none";
+        this.stopInspectButton.style.display = "";
+        this.toggleMonsterButton.style.display = "none";
+        this.toggleDungeonButton.style.display = "none";
+        this.toggleSlayerButton.style.display = "none";
     }
 
     /**
@@ -496,7 +535,7 @@ class Plotter {
      * @param {number} imageID the index of the cross
      */
     crossOutBarImage(imageID: any) {
-        this.xAxisCrosses[imageID].style.display = '';
+        this.xAxisCrosses[imageID].style.display = "";
     }
 
     /**
@@ -504,7 +543,7 @@ class Plotter {
      * @param {number} imageID The index of the cross
      */
     unCrossOutBarImage(imageID: any) {
-        this.xAxisCrosses[imageID].style.display = 'none';
+        this.xAxisCrosses[imageID].style.display = "none";
     }
 
     /**
@@ -512,10 +551,10 @@ class Plotter {
      */
     hideZoneLabels() {
         this.barBottomDivs.forEach((bottomDiv: any) => {
-            bottomDiv.style.display = 'none';
+            bottomDiv.style.display = "none";
         });
         this.barBottomBrackets.forEach((bracket: any) => {
-            bracket.style.display = 'none';
+            bracket.style.display = "none";
         });
     }
 
@@ -524,10 +563,10 @@ class Plotter {
      */
     showZoneLabels() {
         this.barBottomDivs.forEach((bottomDiv: any) => {
-            bottomDiv.style.display = '';
+            bottomDiv.style.display = "";
         });
         this.barBottomBrackets.forEach((bracket: any) => {
-            bracket.style.display = '';
+            bracket.style.display = "";
         });
     }
 
@@ -536,7 +575,7 @@ class Plotter {
      */
     unCrossAllImages() {
         this.xAxisCrosses.forEach((cross: any) => {
-            cross.style.display = 'none';
+            cross.style.display = "none";
         });
     }
 
@@ -545,14 +584,29 @@ class Plotter {
      */
     crossImagesPerSetting() {
         for (let i = 0; i < this.parent.barType.length; i++) {
-            if (this.parent.barIsMonster(i) && !this.parent.simulator.monsterSimFilter[this.parent.barMonsterIDs[i]]) {
-                this.xAxisCrosses[i].style.display = '';
-            } else if (this.parent.barIsDungeon(i) && !this.parent.simulator.dungeonSimFilter[this.parent.barMonsterIDs[i]]) {
-                this.xAxisCrosses[i].style.display = '';
-            } else if (this.parent.barIsTask(i) && !this.parent.simulator.slayerSimFilter[this.parent.barMonsterIDs[i]]) {
-                this.xAxisCrosses[i].style.display = '';
+            if (
+                this.parent.barIsMonster(i) &&
+                !this.parent.simulator.monsterSimFilter[
+                    this.parent.barMonsterIDs[i]
+                ]
+            ) {
+                this.xAxisCrosses[i].style.display = "";
+            } else if (
+                this.parent.barIsDungeon(i) &&
+                !this.parent.simulator.dungeonSimFilter[
+                    this.parent.barMonsterIDs[i]
+                ]
+            ) {
+                this.xAxisCrosses[i].style.display = "";
+            } else if (
+                this.parent.barIsTask(i) &&
+                !this.parent.simulator.slayerSimFilter[
+                    this.parent.barMonsterIDs[i]
+                ]
+            ) {
+                this.xAxisCrosses[i].style.display = "";
             } else {
-                this.xAxisCrosses[i].style.display = 'none';
+                this.xAxisCrosses[i].style.display = "none";
             }
         }
     }

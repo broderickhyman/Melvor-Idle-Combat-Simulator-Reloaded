@@ -99,7 +99,9 @@ class SimPlayer extends Player {
         // this.manager = simManager;
         this.usedFood = 0;
         this.gp = 0;
-        this.skillXP = new Map(this.game.skills.allObjects.map(skill => [skill.id, skill.xp]));
+        this.skillXP = new Map(
+            this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
+        );
         this.petRolls = {};
         this._slayercoins = 0;
         this.usedAmmo = 0;
@@ -117,37 +119,30 @@ class SimPlayer extends Player {
         // overwrite food consumption
         this.food.consume = (quantity = 1) => {
             this.usedFood += quantity;
-        }
+        };
         // data names for serialization
         this.dataNames = {
-            booleanArrays: [
-                'courseMastery',
-            ],
-            numberArrays: [
-                'skillLevel',
-                'course',
-            ],
+            booleanArrays: ["courseMastery"],
+            numberArrays: ["skillLevel", "course"],
             booleans: [
-                'potionSelected',
-                'summoningSynergy',
-                'cookingPool',
-                'cookingMastery',
-                'useCombinationRunesFlag',
-                'healAfterDeath',
-                'isManualEating',
-                'isSlayerTask',
-                'hasRunes',
+                "potionSelected",
+                "summoningSynergy",
+                "cookingPool",
+                "cookingMastery",
+                "useCombinationRunesFlag",
+                "healAfterDeath",
+                "isManualEating",
+                "isSlayerTask",
+                "hasRunes",
             ],
             numbers: [
-                'pillar',
-                'potionTier',
-                'potionID',
-                'autoEatTier',
-                'activeAstrologyModifiers', // this is an array of dictionaries, but it (de)serializes fine
+                "pillar",
+                "potionTier",
+                "potionID",
+                "autoEatTier",
+                "activeAstrologyModifiers", // this is an array of dictionaries, but it (de)serializes fine
             ],
-            strings: [
-                'currentGamemodeID',
-            ]
+            strings: ["currentGamemodeID"],
         };
     }
 
@@ -195,7 +190,9 @@ class SimPlayer extends Player {
     }
 
     get gamemode() {
-        return this.manager.game.gamemodes.getObjectByID(this.currentGamemodeID);
+        return this.manager.game.gamemodes.getObjectByID(
+            this.currentGamemodeID
+        );
     }
 
     get allowRegen() {
@@ -209,15 +206,18 @@ class SimPlayer extends Player {
             if (this.isSynergyActive(synergy)) {
                 return synergy.langDescription;
             } else {
-                return getLangString('MENU_TEXT', 'LOCKED');
+                return getLangString("MENU_TEXT", "LOCKED");
             }
         } else {
-            return '';
+            return "";
         }
     }
 
     get equippedSummoningSynergy() {
-        return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
+        return this.getSynergyData(
+            this.equipment.slots.Summon1.item.id,
+            this.equipment.slots.Summon2.item.id
+        );
     }
 
     initialize(): void {
@@ -225,7 +225,7 @@ class SimPlayer extends Player {
     }
 
     static newFromPlayerString(manager: SimManager, playerString: string) {
-        const reader = new SaveWriter('Read', 1);
+        const reader = new SaveWriter("Read", 1);
         reader.setDataFromSaveString(playerString);
         // reader.setRawData(playerString)
         const newSimPlayer = new SimPlayer(manager, manager.micsr.game);
@@ -244,47 +244,32 @@ class SimPlayer extends Player {
     // detach globals attached by parent constructor
     detachGlobals() {
         this._splashManager = {
-            add: () => {
-            },
+            add: () => {},
         };
         this._effectRenderer = {
-            queueRemoval: () => {
-            },
-            queueRemoveAll: () => {
-            },
-            removeEffects: () => {
-            },
-            addStun: () => {
-            },
-            addSleep: () => {
-            },
-            addCurse: () => {
-            },
-            addDOT: () => {
-            },
-            addReflexive: () => {
-            },
-            addStacking: () => {
-            },
-            addModifier: () => {
-            },
+            queueRemoval: () => {},
+            queueRemoveAll: () => {},
+            removeEffects: () => {},
+            addStun: () => {},
+            addSleep: () => {},
+            addCurse: () => {},
+            addDOT: () => {},
+            addReflexive: () => {},
+            addStacking: () => {},
+            addModifier: () => {},
         };
         this._statElements = undefined;
         this._attackBar = undefined;
         this._summonBar = undefined;
     }
 
-    addItemStat() {
-    }
+    addItemStat() {}
 
-    trackPrayerStats() {
-    }
+    trackPrayerStats() {}
 
-    trackWeaponStat() {
-    }
+    trackWeaponStat() {}
 
-    setCallbacks() {
-    }
+    setCallbacks() {}
 
     processDeath() {
         // @ts-ignore
@@ -292,7 +277,11 @@ class SimPlayer extends Player {
         // @ts-ignore
         this.setHitpoints(Math.floor(this.stats.maxHitpoints * 0.2));
         // heal after death if required
-        while (this.healAfterDeath && this.hitpoints < this.stats.maxHitpoints && this.food.currentSlot.quantity > 0) {
+        while (
+            this.healAfterDeath &&
+            this.hitpoints < this.stats.maxHitpoints &&
+            this.food.currentSlot.quantity > 0
+        ) {
             this.eatFood();
         }
     }
@@ -306,7 +295,9 @@ class SimPlayer extends Player {
         this.currentGamemodeID = this.micsr.game.currentGamemode.id;
         // petUnlocked
         this.petUnlocked = {};
-        this.micsr.pets.allObjects.forEach((pet: any) => this.petUnlocked[pet.id] = false);
+        this.micsr.pets.allObjects.forEach(
+            (pet: any) => (this.petUnlocked[pet.id] = false)
+        );
         // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
         this.course = Array(10).fill(-1);
         this.courseMastery = Array(10).fill(false);
@@ -324,12 +315,13 @@ class SimPlayer extends Player {
         this.cookingMastery = false;
         // useCombinationRunes
         this.useCombinationRunesFlag = false;
-        this.combinations = this.micsr.items.filter((x: any) => x.type === 'Rune' && x.providesRune).map((x: any) => x.id);
+        this.combinations = this.micsr.items
+            .filter((x: any) => x.type === "Rune" && x.providesRune)
+            .map((x: any) => x.id);
         // other
         this.healAfterDeath = true;
         this.isSlayerTask = false;
         this.isManualEating = false;
-        // gp, skillXP, pets, slayercoins
         this.resetGains();
         // activeAstrologyModifiers
         this.activeAstrologyModifiers = [];
@@ -337,12 +329,13 @@ class SimPlayer extends Player {
         this.hasRunes = true;
     }
 
-    rollForSummoningMarks() {
-    }
+    rollForSummoningMarks() {}
 
     resetGains() {
         this.gp = 0;
-        this.skillXP = new Map(this.game.skills.allObjects.map(skill => [skill.id, skill.xp]));
+        this.skillXP = new Map(
+            this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
+        );
         this.petRolls = {};
         this._slayercoins = 0;
         this.usedAmmo = 0;
@@ -357,12 +350,16 @@ class SimPlayer extends Player {
         this.highestDamageTaken = 0;
         this.lowestHitpoints = this.stats.maxHitpoints;
         // hack to avoid auto eating infinite birthday cakes
-        const autoHealAmt = Math.floor(this.getFoodHealing(this.food.currentSlot.item) * this.autoEatEfficiency / 100);
+        const autoHealAmt = Math.floor(
+            (this.getFoodHealing(this.food.currentSlot.item) *
+                this.autoEatEfficiency) /
+                100
+        );
         this.emptyAutoHeal = this.autoEatThreshold > 0 && autoHealAmt === 0;
         this.hitpoints = this.stats.maxHitpoints;
     }
 
-    getGainsPerSecond(ticks: any) {
+    getGainsPerSecond(ticks: any): ISimGains {
         const seconds = ticks / 20;
         const usedRunesBreakdown = {};
         let usedRunes = 0;
@@ -382,11 +379,13 @@ class SimPlayer extends Player {
             // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             petRolls[interval] = this.petRolls[interval] / seconds;
         }
-        let usedSummoningCharges = (this.chargesUsed.Summon1 + this.chargesUsed.Summon2);
+        let usedSummoningCharges =
+            this.chargesUsed.Summon1 + this.chargesUsed.Summon2;
         if (this.chargesUsed.Summon1 > 0 && this.chargesUsed.Summon2 > 0) {
             usedSummoningCharges /= 2;
         }
-        const skillGain = this.game.skills.allObjects.map(skill => {
+        // debugger;
+        const skillGain = this.game.skills.allObjects.map((skill) => {
             const start = this.skillXP.get(skill.id) || 0;
             return (skill.xp - start) / seconds;
         });
@@ -446,7 +445,7 @@ class SimPlayer extends Player {
         // check enemy damage
         const enemy = this.manager.enemy;
         // if enemy doesn't attack next turn, don't eat
-        if (enemy.nextAction !== 'Attack') {
+        if (enemy.nextAction !== "Attack") {
             return;
         }
         // number of ticks until the enemy attacks
@@ -456,7 +455,8 @@ class SimPlayer extends Player {
         }
         // max hit of the enemy attack + max dotDamage
         // TODO: this could be handled more efficiently, consider when the different attacks will hit
-        const maxDamage = enemy.getAttackMaxDamage(enemy.nextAttack) + dotDamage;
+        const maxDamage =
+            enemy.getAttackMaxDamage(enemy.nextAttack) + dotDamage;
         // number of ticks required to heal to safety
         const healsReq = Math.ceil((maxDamage + 1 - this.hitpoints) / healAmt);
         // don't eat until we have to
@@ -469,7 +469,7 @@ class SimPlayer extends Player {
     getMaxDotDamage() {
         let dotDamage = 0;
         this.activeDOTs.forEach((dot: any) => {
-            if (dot.type === 'Regen') {
+            if (dot.type === "Regen") {
                 return;
             }
             dotDamage += dot.damage;
@@ -478,7 +478,12 @@ class SimPlayer extends Player {
     }
 
     addSlayerCoins(amount: any) {
-        amount = applyModifier(amount, this.modifiers.increasedSlayerCoins - this.modifiers.decreasedSlayerCoins, 0);
+        amount = applyModifier(
+            amount,
+            this.modifiers.increasedSlayerCoins -
+                this.modifiers.decreasedSlayerCoins,
+            0
+        );
         this._slayercoins += amount;
     }
 
@@ -553,6 +558,16 @@ class SimPlayer extends Player {
     //     return xp * xpMultiplier;
     // }
 
+    getExperienceGainSkills(): AnySkill[] {
+        // debugger;
+        return super.getExperienceGainSkills();
+    }
+
+    protected rewardXPAndPetsForDamage(damage: number): void {
+        // debugger;
+        super.rewardXPAndPetsForDamage(damage);
+    }
+
     // rewardXPAndPetsForDamage(damage: number) {
     //     damage = damage / numberMultiplier;
     //     const attackInterval = this.timers.act.maxTicks * TICK_INTERVAL;
@@ -584,14 +599,14 @@ class SimPlayer extends Player {
     }
 
     // don't render anything
-    setRenderAll() {
-    }
+    setRenderAll() {}
 
-    render() {
-    }
+    render() {}
 
     getPotion() {
-        return this.micsr.items.getObjectByID(this.micsr.herblorePotions[this.potionID].potionIDs[this.potionTier]);
+        return this.micsr.items.getObjectByID(
+            this.micsr.herblorePotions[this.potionID].potionIDs[this.potionTier]
+        );
     }
 
     // track potion usage instead of consuming
@@ -599,16 +614,19 @@ class SimPlayer extends Player {
         if (this.potionSelected) {
             const item = this.getPotion();
             // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-            if (type === Herblore.potions[item.masteryID[1]].consumesOn
-                && !rollPercentage(this.modifiers.increasedChanceToPreservePotionCharge - this.modifiers.decreasedChanceToPreservePotionCharge)
+            if (
+                type === Herblore.potions[item.masteryID[1]].consumesOn &&
+                !rollPercentage(
+                    this.modifiers.increasedChanceToPreservePotionCharge -
+                        this.modifiers.decreasedChanceToPreservePotionCharge
+                )
             ) {
                 this.usedPotionCharges++;
             }
         }
     }
 
-    reusePotion() {
-    }
+    reusePotion() {}
 
     // addPotionModifiers() {
     //     if (this.potionSelected) {
@@ -652,7 +670,8 @@ class SimPlayer extends Player {
             runeCost = spell.runesRequiredAlt;
         }
         runeCost.forEach((cost: any) => {
-            const reducedCost = cost.qty - (this.runesProvided.get(cost.id) | 0);
+            const reducedCost =
+                cost.qty - (this.runesProvided.get(cost.id) | 0);
             if (reducedCost > 0) {
                 spellCost.push({
                     itemID: cost.id,
@@ -675,8 +694,7 @@ class SimPlayer extends Player {
         }
     }
 
-    onMagicAttackFailure() {
-    }
+    onMagicAttackFailure() {}
 
     updateForEquipmentChange() {
         // @ts-ignore
@@ -687,8 +705,14 @@ class SimPlayer extends Player {
         }
     }
 
-    equipItem(item: EquipmentItem, set: number, slot?: SlotTypes | 'Default', quantity?: number): boolean {
-        const itemToEquip = item === undefined ? this.micsr.emptyItems[slot] : item;
+    equipItem(
+        item: EquipmentItem,
+        set: number,
+        slot?: SlotTypes | "Default",
+        quantity?: number
+    ): boolean {
+        const itemToEquip =
+            item === undefined ? this.micsr.emptyItems[slot] : item;
         if (slot === "Default") {
             slot = itemToEquip.validSlots[0];
         }
@@ -709,7 +733,7 @@ class SimPlayer extends Player {
     }
 
     equipFood(item: FoodItem, quantity: number): boolean | undefined {
-        if (item.id === 'melvorD:Empty_Equipment') {
+        if (item.id === "melvorD:Empty_Equipment") {
             this.unequipFood();
             return;
         }
@@ -724,7 +748,9 @@ class SimPlayer extends Player {
     }
 
     getFoodHealingBonus(item: any) {
-        let bonus = this.modifiers.increasedFoodHealingValue - this.modifiers.decreasedFoodHealingValue;
+        let bonus =
+            this.modifiers.increasedFoodHealingValue -
+            this.modifiers.decreasedFoodHealingValue;
         if (item.cookingID !== undefined && this.cookingMastery) {
             bonus += 20;
         }
@@ -735,12 +761,18 @@ class SimPlayer extends Player {
     }
 
     computeSummoningSynergy() {
-        this.activeSummoningSynergy = this.getUnlockedSynergyData(this.equipment.slots.Summon1.item, this.equipment.slots.Summon2.item);
+        this.activeSummoningSynergy = this.getUnlockedSynergyData(
+            this.equipment.slots.Summon1.item,
+            this.equipment.slots.Summon2.item
+        );
     }
 
     getSynergyData(summon1: any, summon2: any) {
         let _a;
-        return (_a = this.micsr.game.summoning.synergiesByItem.get(summon1)) === null || _a === void 0 ? void 0 : _a.get(summon2);
+        return (_a = this.micsr.game.summoning.synergiesByItem.get(summon1)) ===
+            null || _a === void 0
+            ? void 0
+            : _a.get(summon2);
     }
 
     getUnlockedSynergyData(summon1: any, summon2: any) {
@@ -755,9 +787,13 @@ class SimPlayer extends Player {
     }
 
     isCombatSynergyEquipped() {
-        if (this.activeSummonSlots.length < 2)
-            return false;
-        return (this.getUnlockedSynergyData(this.equipment.slots[this.activeSummonSlots[0]].item.id, this.equipment.slots[this.activeSummonSlots[1]].item.id) !== undefined);
+        if (this.activeSummonSlots.length < 2) return false;
+        return (
+            this.getUnlockedSynergyData(
+                this.equipment.slots[this.activeSummonSlots[0]].item.id,
+                this.equipment.slots[this.activeSummonSlots[1]].item.id
+            ) !== undefined
+        );
     }
 
     isSynergyActive(summonID1: any, summonID2: any) {
@@ -768,26 +804,38 @@ class SimPlayer extends Player {
         const itemID1 = Summoning.marks[summonID1].itemID;
         // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
         const itemID2 = Summoning.marks[summonID2].itemID;
-        return (this.getUnlockedSynergyData(itemID1, itemID2) !== undefined &&
+        return (
+            this.getUnlockedSynergyData(itemID1, itemID2) !== undefined &&
             this.equipment.checkForItemID(itemID1) &&
-            this.equipment.checkForItemID(itemID2));
+            this.equipment.checkForItemID(itemID2)
+        );
     }
 
     removeSummonCharge(slot: any, charges = 1) {
-        if (!rollPercentage(this.modifiers.increasedSummoningChargePreservation - this.modifiers.decreasedSummoningChargePreservation)) {
+        if (
+            !rollPercentage(
+                this.modifiers.increasedSummoningChargePreservation -
+                    this.modifiers.decreasedSummoningChargePreservation
+            )
+        ) {
             this.chargesUsed[slot] += charges;
         }
     }
 
     // don't disable selected spells
     checkMagicUsage() {
-        const allowMagic = this.attackType === "magic" || this.modifiers.allowAttackAugmentingMagic > 0;
+        const allowMagic =
+            this.attackType === "magic" ||
+            this.modifiers.allowAttackAugmentingMagic > 0;
         this.canAurora = allowMagic;
         this.canCurse = allowMagic && !this.usingAncient;
     }
 
     rollToHit(target: any, attack: any) {
-        return this.checkRequirements(this.manager.areaRequirements) && super.rollToHit(target, attack);
+        return (
+            this.checkRequirements(this.manager.areaRequirements) &&
+            super.rollToHit(target, attack)
+        );
     }
 
     damage(amount: any, source: any, thieving = false) {
@@ -795,13 +843,31 @@ class SimPlayer extends Player {
         this.highestDamageTaken = Math.max(this.highestDamageTaken, amount);
         if (this.hitpoints > 0) {
             this.autoEat();
-            if (this.hitpoints < (this.stats.maxHitpoints * this.modifiers.increasedRedemptionThreshold) / 100) {
-                this.heal(applyModifier(this.stats.maxHitpoints, this.modifiers.increasedRedemptionPercent));
+            if (
+                this.hitpoints <
+                (this.stats.maxHitpoints *
+                    this.modifiers.increasedRedemptionThreshold) /
+                    100
+            ) {
+                this.heal(
+                    applyModifier(
+                        this.stats.maxHitpoints,
+                        this.modifiers.increasedRedemptionPercent
+                    )
+                );
             }
-            if (this.hitpoints < (this.stats.maxHitpoints * this.modifiers.increasedCombatStoppingThreshold) / 100) {
+            if (
+                this.hitpoints <
+                (this.stats.maxHitpoints *
+                    this.modifiers.increasedCombatStoppingThreshold) /
+                    100
+            ) {
                 this.manager.stopCombat();
             }
-            this.lowestHitpoints = Math.min(this.lowestHitpoints, this.hitpoints);
+            this.lowestHitpoints = Math.min(
+                this.lowestHitpoints,
+                this.hitpoints
+            );
         }
     }
 
@@ -811,6 +877,47 @@ class SimPlayer extends Player {
         } else {
             super.autoEat();
         }
+    }
+
+    checkRequirements(
+        reqs: any,
+        notifyOnFailure = false,
+        failureMessage = "do that."
+    ) {
+        return reqs.every((req: any) =>
+            this.checkRequirement(req, notifyOnFailure, failureMessage)
+        );
+    }
+
+    checkRequirement(
+        requirement: any,
+        notifyOnFailure = false,
+        failureMessage = "do that."
+    ) {
+        let met = false;
+        switch (requirement.type) {
+            case "Level":
+                met = requirement.levels.every(
+                    (levelReq: any) =>
+                        this.skillLevel[levelReq.skill] >= levelReq.level
+                );
+                break;
+            case "Dungeon":
+                met = true;
+                break;
+            case "Completion":
+                met = true;
+                break;
+            case "SlayerItem":
+                met =
+                    this.modifiers.bypassSlayerItems > 0 ||
+                    this.equipment.checkForItemID(requirement.itemID);
+                break;
+            case "ShopPurchase":
+                met = true;
+                break;
+        }
+        return met;
     }
 
     hasKey<O extends object>(obj: O, key: PropertyKey): key is keyof O {
@@ -934,11 +1041,11 @@ class SimPlayer extends Player {
     //             return saveString;*/
     // }
 
-    static generatePlayerString(game: Game, player: Player) {
+    static generatePlayerString(game: SimGame, player: SimPlayer) {
         // const gameString = game.generateSaveString();
         // const header = await game.getHeaderFromSaveString(gameString);
-        const header = game.getSaveHeader()
-        const writer = new SaveWriter('Write', 512);
+        const header = game.getSaveHeader();
+        const writer = new SaveWriter("Write", 512);
         // writer.writeHeaderInfo()
         player.encode(writer);
         return writer.getSaveString(header);

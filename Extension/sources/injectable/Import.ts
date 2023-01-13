@@ -70,9 +70,15 @@ class Import {
         this.player = app.player;
         this.document = document;
         this.autoEatTiers = [
-            this.micsr.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_I'),
-            this.micsr.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_II'),
-            this.micsr.game.shop.purchases.getObjectByID('melvorD:Auto_Eat_Tier_III'),
+            this.micsr.game.shop.purchases.getObjectByID(
+                "melvorD:Auto_Eat_Tier_I"
+            ),
+            this.micsr.game.shop.purchases.getObjectByID(
+                "melvorD:Auto_Eat_Tier_II"
+            ),
+            this.micsr.game.shop.purchases.getObjectByID(
+                "melvorD:Auto_Eat_Tier_III"
+            ),
         ];
     }
 
@@ -106,16 +112,24 @@ class Import {
         }
          */
         // get foodSelected
-        const foodSelected = this.micsr.actualGame.combat.player.food.currentSlot.item;
+        const foodSelected =
+            this.micsr.actualGame.combat.player.food.currentSlot.item;
         // get cooking mastery for foodSelected
         const foodMastery = foodSelected.masteryID;
         // @ts-expect-error TS(2304): Cannot find name 'Skills'.
-        const cookingMastery = foodSelected !== 'melvorD:Empty_Food' && foodMastery && foodMastery[0] === Skills.Cooking
+        const cookingMastery =
+            foodSelected !== "melvorD:Empty_Food" &&
+            foodMastery &&
+            foodMastery[0] === Skills.Cooking &&
             // @ts-expect-error TS(2304): Cannot find name 'exp'.
-            && exp.xp_to_level(MASTERY[Skills.Cooking].xp[foodMastery[1]]) > 99;
+            exp.xp_to_level(MASTERY[Skills.Cooking].xp[foodMastery[1]]) > 99;
 
         // get the player's auto eat tier
-        const autoEatTier = -1 + this.autoEatTiers.filter((x: any) => this.micsr.actualGame.shop.upgradesPurchased.get(x)).length;
+        const autoEatTier =
+            -1 +
+            this.autoEatTiers.filter((x: any) =>
+                this.micsr.actualGame.shop.upgradesPurchased.get(x)
+            ).length;
         /* TODO
         // get the active astrology modifiers
         const astrologyModifiers = [];
@@ -168,7 +182,8 @@ class Import {
             }
         }
          */
-        const equipment = this.micsr.actualGame.combat.player.equipmentSets[setID].equipment;
+        const equipment =
+            this.micsr.actualGame.combat.player.equipmentSets[setID].equipment;
 
         // create settings object
         const settings = {
@@ -176,15 +191,23 @@ class Import {
             // lists
             //TODO astrologyModifiers: astrologyModifiers,
             //TODO course: chosenAgilityObstacles,
-            courseMastery: this.micsr.actualGame.agility.actions.allObjects.map((action: any) => this.micsr.actualGame.agility.getMasteryLevel(action) >= 99),
+            courseMastery: this.micsr.actualGame.agility.actions.allObjects.map(
+                (action: any) =>
+                    this.micsr.actualGame.agility.getMasteryLevel(action) >= 99
+            ),
             equipment: equipment.slotArray.map((x: any) => x.item.id),
-            levels: this.micsr.actualGame.skills.allObjects.map((x: any) => x.level),
+            levels: this.micsr.actualGame.skills.allObjects.map(
+                (x: any) => x.level
+            ),
             // TODO petUnlocked: petUnlocked,
             // objects
             styles: {
-                magic: this.micsr.actualGame.combat.player.attackStyles.melee.id,
-                melee: this.micsr.actualGame.combat.player.attackStyles.melee.id,
-                ranged: this.micsr.actualGame.combat.player.attackStyles.melee.id,
+                magic: this.micsr.actualGame.combat.player.attackStyles.melee
+                    .id,
+                melee: this.micsr.actualGame.combat.player.attackStyles.melee
+                    .id,
+                ranged: this.micsr.actualGame.combat.player.attackStyles.melee
+                    .id,
             },
             // simple values
             ancient: this.micsr.actualGame.combat.player.spellSelection.ancient,
@@ -197,16 +220,25 @@ class Import {
             curse: this.micsr.actualGame.combat.player.spellSelection.curse,
             foodSelected: foodSelected,
             healAfterDeath: this.player.healAfterDeath,
-            isAncient: this.micsr.actualGame.combat.player.spellSelection.ancient !== undefined,
+            isAncient:
+                this.micsr.actualGame.combat.player.spellSelection.ancient !==
+                undefined,
             isManualEating: this.player.isManualEating,
             isSlayerTask: this.player.isSlayerTask,
-            pillar: this.micsr.game.agility.builtPassivePillar === undefined ? -1 : this.micsr.game.agility.builtPassivePillar.id,
+            pillar:
+                this.micsr.game.agility.builtPassivePillar === undefined
+                    ? -1
+                    : this.micsr.game.agility.builtPassivePillar.id,
             // TODO potionID: potionID,
             // TODO potionTier: potionTier,
-            prayerSelected: [...this.micsr.actualGame.combat.player.activePrayers],
-            standard: this.micsr.actualGame.combat.player.spellSelection.standard,
+            prayerSelected: [
+                ...this.micsr.actualGame.combat.player.activePrayers,
+            ],
+            standard:
+                this.micsr.actualGame.combat.player.spellSelection.standard,
             summoningSynergy: this.player.summoningSynergy, // TODO: import mark levels
-            useCombinationRunes: this.micsr.actualGame.combat.player.useCombinationRunes,
+            useCombinationRunes:
+                this.micsr.actualGame.combat.player.useCombinationRunes,
         };
 
         // import settings
@@ -218,14 +250,19 @@ class Import {
     exportSettings() {
         const courseMastery = {};
         // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        this.player.course.forEach((o: any, i: any) => courseMastery[o] = this.player.courseMastery[i]);
+        this.player.course.forEach(
+            (o: any, i: any) =>
+                (courseMastery[o] = this.player.courseMastery[i])
+        );
         return {
             version: this.micsr.version,
             // lists
             astrologyModifiers: this.player.activeAstrologyModifiers,
             course: [...this.player.course],
             courseMastery: courseMastery,
-            equipment: this.player.equipment.slotArray.map((x: any) => x.item.id),
+            equipment: this.player.equipment.slotArray.map(
+                (x: any) => x.item.id
+            ),
             levels: [...this.player.skillLevel],
             petUnlocked: [...this.player.petUnlocked],
             // objects
@@ -256,12 +293,16 @@ class Import {
 
     importSettings(settings: any) {
         if (settings.version !== this.micsr.version) {
-            this.micsr.warn(`Importing MICSR ${settings.version} settings in MICSR ${this.micsr.version}.`)
+            this.micsr.warn(
+                `Importing MICSR ${settings.version} settings in MICSR ${this.micsr.version}.`
+            );
         }
         // validate
         for (const prop in this.micsr.defaultSettings) {
             if (settings[prop] === undefined) {
-                this.micsr.log(`No valid ${prop} data imported, using default ${this.micsr.defaultSettings[prop]}.`)
+                this.micsr.log(
+                    `No valid ${prop} data imported, using default ${this.micsr.defaultSettings[prop]}.`
+                );
                 settings[prop] = this.micsr.defaultSettings[prop];
             }
         }
@@ -279,7 +320,12 @@ class Import {
         this.importPrayers(settings.prayerSelected);
         // TODO this.importPotion(settings.potionID, settings.potionTier);
         // TODO this.importPets(settings.petUnlocked);
-        this.importAutoEat(settings.autoEatTier, settings.foodSelected, settings.cookingPool, settings.cookingMastery);
+        this.importAutoEat(
+            settings.autoEatTier,
+            settings.foodSelected,
+            settings.cookingPool,
+            settings.cookingMastery
+        );
         this.importManualEating(settings.isManualEating);
         this.importHealAfterDeath(settings.healAfterDeath);
         this.importSlayerTask(settings.isSlayerTask);
@@ -289,7 +335,7 @@ class Import {
         this.importSummoningSynergy(settings.summoningSynergy);
         // TODO this.importAstrology(settings.astrologyModifiers);
         // notify completion
-        this.app.notify('Import completed.');
+        this.app.notify("Import completed.");
     }
 
     update() {
@@ -310,7 +356,7 @@ class Import {
         for (const slot in this.micsr.equipmentSlotData) {
             const slotID = this.micsr.equipmentSlotData[slot].id;
             const itemID = equipment[slotID];
-            if (itemID === 'melvorD:Empty_Equipment') {
+            if (itemID === "melvorD:Empty_Equipment") {
                 continue;
             }
             this.app.equipItem(slotID, this.micsr.items.getObjectByID(itemID));
@@ -321,21 +367,23 @@ class Import {
 
     importLevels(levels: any) {
         this.app.skillKeys.forEach((key: any) => {
-            this.document.getElementById(`MCS ${key} Input`).value = levels[this.micsr.skillIDs[key]];
+            this.document.getElementById(`MCS ${key} Input`).value =
+                levels[this.micsr.skillIDs[key]];
         });
         this.player.skillLevel = [...levels];
     }
 
     importStyle(styles: any) {
-        [
-            'melee',
-            'ranged',
-            'magic',
-        ].forEach(cbStyle => {
-            const attackStyle = this.micsr.actualGame.attackStyles.getObjectByID(styles[cbStyle]);
+        ["melee", "ranged", "magic"].forEach((cbStyle) => {
+            const attackStyle =
+                this.micsr.actualGame.attackStyles.getObjectByID(
+                    styles[cbStyle]
+                );
             const index = this.micsr.attackStylesIdx[cbStyle];
             this.player.setAttackStyle(cbStyle, attackStyle);
-            this.document.getElementById(`MCS ${cbStyle} Style Dropdown`).selectedIndex = index % 3;
+            this.document.getElementById(
+                `MCS ${cbStyle} Style Dropdown`
+            ).selectedIndex = index % 3;
         });
     }
 
@@ -354,7 +402,9 @@ class Import {
         this.player.activePrayers.clear();
         // Update prayers
         this.micsr.prayers.forEach((prayer: any) => {
-            const prayButton = this.document.getElementById(`MCS ${this.app.getPrayerName(prayer)} Button`);
+            const prayButton = this.document.getElementById(
+                `MCS ${this.app.getPrayerName(prayer)} Button`
+            );
             if (prayerSelected.includes(prayer.id)) {
                 this.app.selectButton(prayButton);
                 this.player.activePrayers.add(prayer.id);
@@ -367,7 +417,11 @@ class Import {
     importPotion(potionID: any, potionTier: any) {
         // Deselect potion if selected
         if (this.player.potionSelected) {
-            this.app.unselectButton(this.document.getElementById(`MCS ${this.app.getPotionName(this.player.potionID)} Button`));
+            this.app.unselectButton(
+                this.document.getElementById(
+                    `MCS ${this.app.getPotionName(this.player.potionID)} Button`
+                )
+            );
             this.player.potionSelected = false;
             this.player.potionID = -1;
         }
@@ -375,14 +429,20 @@ class Import {
         if (potionID !== -1) {
             this.player.potionSelected = true;
             this.player.potionID = potionID;
-            this.app.selectButton(this.document.getElementById(`MCS ${this.app.getPotionName(this.player.potionID)} Button`));
+            this.app.selectButton(
+                this.document.getElementById(
+                    `MCS ${this.app.getPotionName(this.player.potionID)} Button`
+                )
+            );
         }
         // Set potion tier if applicable
         if (potionTier !== -1) {
             this.player.potionTier = potionTier;
             this.app.updatePotionTier(potionTier);
             // Set dropdown to correct option
-            this.document.getElementById('MCS Potion Tier Dropdown').selectedIndex = potionTier;
+            this.document.getElementById(
+                "MCS Potion Tier Dropdown"
+            ).selectedIndex = potionTier;
         }
     }
 
@@ -392,19 +452,35 @@ class Import {
             this.player.petUnlocked[petID] = owned;
             if (this.app.petIDs.includes(petID)) {
                 if (owned) {
-                    this.app.selectButton(this.document.getElementById(`MCS ${this.micsr.pets[petID].name} Button`));
+                    this.app.selectButton(
+                        this.document.getElementById(
+                            `MCS ${this.micsr.pets[petID].name} Button`
+                        )
+                    );
                 } else {
-                    this.app.unselectButton(this.document.getElementById(`MCS ${this.micsr.pets[petID].name} Button`));
+                    this.app.unselectButton(
+                        this.document.getElementById(
+                            `MCS ${this.micsr.pets[petID].name} Button`
+                        )
+                    );
                 }
             }
-            if (petID === 4 && owned) this.document.getElementById('MCS Rock').style.display = '';
+            if (petID === 4 && owned)
+                this.document.getElementById("MCS Rock").style.display = "";
         });
     }
 
-    importAutoEat(autoEatTier: any, foodSelected: any, cookingPool: any, cookingMastery: any) {
+    importAutoEat(
+        autoEatTier: any,
+        foodSelected: any,
+        cookingPool: any,
+        cookingMastery: any
+    ) {
         // Import Food Settings
         this.player.autoEatTier = autoEatTier;
-        this.document.getElementById('MCS Auto Eat Tier Dropdown').selectedIndex = autoEatTier + 1;
+        this.document.getElementById(
+            "MCS Auto Eat Tier Dropdown"
+        ).selectedIndex = autoEatTier + 1;
         this.app.equipFood(foodSelected);
         /* TODO
         this.checkRadio('MCS 95% Cooking Pool', cookingPool);
@@ -415,26 +491,29 @@ class Import {
     }
 
     importManualEating(isManualEating: any) {
-        this.checkRadio('MCS Manual Eating', isManualEating);
+        this.checkRadio("MCS Manual Eating", isManualEating);
         this.player.isManualEating = isManualEating;
     }
 
     importHealAfterDeath(healAfterDeath: any) {
-        this.checkRadio('MCS Heal After Death', healAfterDeath);
+        this.checkRadio("MCS Heal After Death", healAfterDeath);
         this.player.healAfterDeath = healAfterDeath;
     }
 
     importSlayerTask(isSlayerTask: any) {
         // Update slayer task mode
-        this.checkRadio('MCS Slayer Task', isSlayerTask);
+        this.checkRadio("MCS Slayer Task", isSlayerTask);
         this.player.isSlayerTask = isSlayerTask;
         this.app.slayerTaskSimsToggle();
     }
 
     importGameMode(gamemode: any) {
         this.player.currentGamemode = gamemode;
-        const index = this.micsr.gamemodes.findIndex((x: any) => x.id === gamemode.id);
-        this.document.getElementById('MCS Game Mode Dropdown').selectedIndex = index;
+        const index = this.micsr.gamemodes.findIndex(
+            (x: any) => x.id === gamemode.id
+        );
+        this.document.getElementById("MCS Game Mode Dropdown").selectedIndex =
+            index;
     }
 
     importSummoningSynergy(summoningSynergy: any) {
@@ -444,7 +523,7 @@ class Import {
 
     importUseCombinationRunes(useCombinationRunes: any) {
         // Update hardcore mode
-        this.checkRadio('MCS Use Combination Runes', useCombinationRunes);
+        this.checkRadio("MCS Use Combination Runes", useCombinationRunes);
         this.player.useCombinationRunes = useCombinationRunes;
     }
 
@@ -453,39 +532,59 @@ class Import {
     }
 
     importAstrology(astrologyModifiers: any) {
-        this.player.activeAstrologyModifiers.forEach((constellation: any, idx: any) => {
-            for (const modifier in constellation) {
-                // import values and set rest to 0
-                if (astrologyModifiers[idx] !== undefined && astrologyModifiers[idx][modifier] !== undefined) {
-                    constellation[modifier] = astrologyModifiers[idx][modifier];
-                    if (constellation[modifier].push) {
-                        // filter non combat skill modifiers
-                        constellation[modifier] = constellation[modifier].filter((x: any) => this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(x[0])
+        this.player.activeAstrologyModifiers.forEach(
+            (constellation: any, idx: any) => {
+                for (const modifier in constellation) {
+                    // import values and set rest to 0
+                    if (
+                        astrologyModifiers[idx] !== undefined &&
+                        astrologyModifiers[idx][modifier] !== undefined
+                    ) {
+                        constellation[modifier] =
+                            astrologyModifiers[idx][modifier];
+                        if (constellation[modifier].push) {
+                            // filter non combat skill modifiers
+                            constellation[modifier] = constellation[
+                                modifier
+                            ].filter((x: any) =>
+                                this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(
+                                    x[0]
+                                )
+                            );
+                        }
+                    } else if (constellation[modifier].push) {
+                        // keep entries per skill, but set value to 0
+                        constellation[modifier] = constellation[modifier].map(
+                            (x: any) => [x[0], 0]
                         );
+                    } else {
+                        constellation[modifier] = 0;
                     }
-                } else if (constellation[modifier].push) {
-                    // keep entries per skill, but set value to 0
-                    constellation[modifier] = constellation[modifier].map((x: any) => [x[0], 0]);
-                } else {
-                    constellation[modifier] = 0;
-                }
-                // update input fields
-                if (constellation[modifier].push) {
-                    constellation[modifier].forEach((x: any) => {
+                    // update input fields
+                    if (constellation[modifier].push) {
+                        constellation[modifier].forEach((x: any) => {
+                            // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
+                            this.document.getElementById(
+                                `MCS ${Astrology.constellations[idx].name}-${
+                                    Skills[x[0]]
+                                }-${modifier} Input`
+                            ).value = x[1];
+                        });
+                    } else {
                         // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-                        this.document.getElementById(`MCS ${Astrology.constellations[idx].name}-${Skills[x[0]]}-${modifier} Input`).value = x[1]
-                    });
-                } else {
-                    // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-                    this.document.getElementById(`MCS ${Astrology.constellations[idx].name}-${modifier} Input`).value = constellation[modifier];
+                        this.document.getElementById(
+                            `MCS ${Astrology.constellations[idx].name}-${modifier} Input`
+                        ).value = constellation[modifier];
+                    }
                 }
             }
-        });
+        );
         this.app.updateAstrologySummary();
     }
 
     checkRadio(baseID: any, check: any) {
-        const yesOrNo = check ? 'Yes' : 'No';
-        this.document.getElementById(`${baseID} Radio ${yesOrNo}`).checked = true;
+        const yesOrNo = check ? "Yes" : "No";
+        this.document.getElementById(`${baseID} Radio ${yesOrNo}`).checked =
+            true;
     }
 }

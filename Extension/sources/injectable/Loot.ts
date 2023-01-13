@@ -51,10 +51,12 @@ class Loot {
         this.slayerSimData = this.simulator.slayerSimData;
         this.slayerTaskMonsters = this.simulator.slayerTaskMonsters;
 
-        this.lootBonus = Util.averageDoubleMultiplier(this.app.combatData.combatStats.lootBonusPercent);
+        this.lootBonus = Util.averageDoubleMultiplier(
+            this.app.combatData.combatStats.lootBonusPercent
+        );
 
         // Pet Settings
-        this.petSkill = 'Attack';
+        this.petSkill = "Attack";
         // Options for GP/s calculations
         this.sellBones = false; // True or false
         this.convertShards = false;
@@ -74,32 +76,45 @@ class Loot {
      * @return {number}
      */
     computeLootChance(monsterID: any) {
-        const lootChance = this.micsr.monsters.getObjectByID(monsterID).lootChance
-        return ((lootChance !== undefined) ? lootChance / 100 : 1);
+        const lootChance =
+            this.micsr.monsters.getObjectByID(monsterID).lootChance;
+        return lootChance !== undefined ? lootChance / 100 : 1;
     }
 
     /**
      * Computes the value of a monsters drop table respecting the loot sell settings
      */
     computeMonsterLootTableValue(monsterID: any) {
-        const lootTable = this.micsr.monsters.getObjectByID(monsterID).lootTable;
+        const lootTable =
+            this.micsr.monsters.getObjectByID(monsterID).lootTable;
         let gpWeight = 0;
         lootTable.drops.forEach((drop: any) => {
             let avgQty = this.avgQuantity(drop);
             if (drop.item.dropTable) {
-                gpWeight += this.computeDropTableValue(drop.item.dropTable) * avgQty;
+                gpWeight +=
+                    this.computeDropTableValue(drop.item.dropTable) * avgQty;
             } else {
-                const herbConvertChance = this.micsr.showModifiersInstance.getModifierValue(this.modifiers, 'ChanceToConvertSeedDrops');
-                let value = this.getItemValue(drop.item)
-                if (herbConvertChance > 0 && (drop.item.tier === 'Herb' && drop.item.type === 'Seeds')) {
+                const herbConvertChance =
+                    this.micsr.showModifiersInstance.getModifierValue(
+                        this.modifiers,
+                        "ChanceToConvertSeedDrops"
+                    );
+                let value = this.getItemValue(drop.item);
+                if (
+                    herbConvertChance > 0 &&
+                    drop.item.tier === "Herb" &&
+                    drop.item.type === "Seeds"
+                ) {
                     avgQty += 3;
-                    value = this.getItemValue(drop.item) * (1 - herbConvertChance)
-                        + this.getItemValue(drop.item.grownItemID) * herbConvertChance;
+                    value =
+                        this.getItemValue(drop.item) * (1 - herbConvertChance) +
+                        this.getItemValue(drop.item.grownItemID) *
+                            herbConvertChance;
                 }
                 gpWeight += value * drop.weight * avgQty;
             }
         });
-        return gpWeight / lootTable.totalWeight * this.lootBonus;
+        return (gpWeight / lootTable.totalWeight) * this.lootBonus;
     }
 
     computeDropTableValue(dropTable: any) {
@@ -108,7 +123,10 @@ class Loot {
         }
         let gpWeight = 0;
         dropTable.drops.forEach((drop: any) => {
-            gpWeight += this.avgQuantity(drop) * this.getItemValue(drop.item) * drop.weight;
+            gpWeight +=
+                this.avgQuantity(drop) *
+                this.getItemValue(drop.item) *
+                drop.weight;
         });
         return gpWeight / dropTable.totalWeight;
     }
@@ -125,15 +143,26 @@ class Loot {
         // loot and signet are affected by loot chance
         monsterValue += this.computeMonsterLootTableValue(monsterID);
         if (this.modifiers.allowSignetDrops) {
-            monsterValue += this.getItemValue(this.micsr.items.getObjectByID('melvorD:Signet_Ring_Half_B')) * monster.combatLevel / 500000;
+            monsterValue +=
+                (this.getItemValue(
+                    this.micsr.items.getObjectByID("melvorD:Signet_Ring_Half_B")
+                ) *
+                    monster.combatLevel) /
+                500000;
         } else {
-            monsterValue += this.getItemValue(this.micsr.items.getObjectByID('melvorD:Gold_Topaz_Ring')) * monster.combatLevel / 500000;
+            monsterValue +=
+                (this.getItemValue(
+                    this.micsr.items.getObjectByID("melvorD:Gold_Topaz_Ring")
+                ) *
+                    monster.combatLevel) /
+                500000;
         }
         monsterValue *= this.computeLootChance(monsterID);
         // bones drops are not affected by loot chance
         const bones = this.micsr.monsters.getObjectByID(monsterID).bones;
         if (this.sellBones && !this.modifiers.autoBurying && bones) {
-            monsterValue += this.getItemValue(bones.item) * this.lootBonus * bones.quantity;
+            monsterValue +=
+                this.getItemValue(bones.item) * this.lootBonus * bones.quantity;
         }
         return monsterValue;
     }
@@ -146,15 +175,20 @@ class Loot {
     computeDungeonMonsterValue(monsterID: any) {
         let gpPerKill = 0;
         if (this.godDungeonIDs.includes(this.app.viewedDungeonID)) {
-            const boneQty = this.micsr.monsters.getObjectByID(monsterID).boneQty ?? 1;
+            const boneQty =
+                this.micsr.monsters.getObjectByID(monsterID).boneQty ?? 1;
             const shardID = this.micsr.monsters.getObjectByID(monsterID).bones;
             if (this.convertShards) {
                 // @ts-expect-error TS(2304): Cannot find name 'items'.
                 const chestID = items[shardID].trimmedItemID;
                 // @ts-expect-error TS(2304): Cannot find name 'items'.
-                gpPerKill += boneQty * this.lootBonus / items[chestID].itemsRequired[0][1] * this.computeChestOpenValue(chestID);
+                gpPerKill +=
+                    ((boneQty * this.lootBonus) /
+                        items[chestID].itemsRequired[0][1]) *
+                    this.computeChestOpenValue(chestID);
             } else {
-                gpPerKill += boneQty * this.lootBonus * this.getItemValue(shardID);
+                gpPerKill +=
+                    boneQty * this.lootBonus * this.getItemValue(shardID);
             }
         }
         return gpPerKill;
@@ -170,7 +204,9 @@ class Loot {
         let dungeonValue = 0;
         dungeon.rewards.forEach((reward: any) => {
             if (reward.canOpen) {
-                dungeonValue += this.computeDropTableValue(reward.dropTable) * this.lootBonus;
+                dungeonValue +=
+                    this.computeDropTableValue(reward.dropTable) *
+                    this.lootBonus;
             } else {
                 dungeonValue += this.getItemValue(reward) * this.lootBonus;
             }
@@ -185,14 +221,20 @@ class Loot {
             shardCount *= this.lootBonus;
             if (this.convertShards) {
                 const chest = shard.trimmedItemID;
-                dungeonValue += shardCount / chest.itemsRequired[0][1] * this.computeDropTableValue(chest.dropTable);
+                dungeonValue +=
+                    (shardCount / chest.itemsRequired[0][1]) *
+                    this.computeDropTableValue(chest.dropTable);
             } else {
                 dungeonValue += shardCount * this.getItemValue(shard);
             }
         }
         if (this.modifiers.allowSignetDrops) {
-            dungeonValue += this.getItemValue(this.micsr.items.getObjectByID('melvorD:Signet_Ring_Half_B'))
-                * dungeon.monsters[dungeon.monsters.length - 1].combatLevel / 500000;
+            dungeonValue +=
+                (this.getItemValue(
+                    this.micsr.items.getObjectByID("melvorD:Signet_Ring_Half_B")
+                ) *
+                    dungeon.monsters[dungeon.monsters.length - 1].combatLevel) /
+                500000;
         }
         return dungeonValue;
     }
@@ -203,12 +245,14 @@ class Loot {
             return 0;
         }
         const value = item.sellsFor;
-        const willAlch = this.alchHighValueItems && value >= this.alchemyCutoff
+        const willAlch = this.alchHighValueItems && value >= this.alchemyCutoff;
         if (this.computingAlchCount) {
             return willAlch ? 1 : 0;
         }
         if (willAlch) {
-            return this.micsr.actualGame.altMagic.actions.getObjectByID('melvorF:ItemAlchemyIII').productionRatio;
+            return this.micsr.actualGame.altMagic.actions.getObjectByID(
+                "melvorF:ItemAlchemyIII"
+            ).productionRatio;
             // TODO this.micsr.actualGame.altMagic.actions.getObjectByID('melvorTotH:ItemAlchemyIV').productionRatio;
         }
         return value;
@@ -218,7 +262,9 @@ class Loot {
      * Update all loot related statistics
      */
     update() {
-        this.lootBonus = Util.averageDoubleMultiplier(this.app.combatData.combatStats.lootBonusPercent);
+        this.lootBonus = Util.averageDoubleMultiplier(
+            this.app.combatData.combatStats.lootBonusPercent
+        );
         this.updateGPData();
         this.updateSignetChance();
         this.updateDropChance();
@@ -230,7 +276,7 @@ class Loot {
         const value = this[f](...args);
         this.computingAlchCount = true;
         // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        const alchTime = this[f](...args) * game.altMagic.baseInterval / 1000;
+        const alchTime = (this[f](...args) * game.altMagic.baseInterval) / 1000;
         this.computingAlchCount = false;
         return { value: value, alchTime: alchTime };
     }
@@ -240,26 +286,33 @@ class Loot {
         const value = monsterValue.value;
         data.alchTimeS = monsterValue.alchTime;
         const excludeAlchTime = data.baseGpPerSecond + value / data.killTimeS;
-        data.gpPerSecond = (excludeAlchTime * data.killTimeS) / (data.killTimeS + data.alchTimeS);
+        data.gpPerSecond =
+            (excludeAlchTime * data.killTimeS) /
+            (data.killTimeS + data.alchTimeS);
     }
 
     /**
      * Computes the gp/kill and gp/s data for monsters and dungeons and sets those values.
      */
     updateGPData() {
-        if (this.app.isViewingDungeon && this.micsr.isDungeonID(this.app.viewedDungeonID)) {
-            const dungeonID = this.app.viewedDungeonID
-            this.micsr.dungeons.getObjectByID(dungeonID).monsters.forEach((monsterID: any) => {
-                const simID = this.simulator.simID(dungeonID, monsterID);
-                if (!this.monsterSimData[simID]) {
-                    return;
-                }
-                this.computeGP(
-                    this.monsterSimData[simID],
-                    'computeDungeonMonsterValue',
-                    monsterID,
-                );
-            });
+        if (
+            this.app.isViewingDungeon &&
+            this.micsr.isDungeonID(this.app.viewedDungeonID)
+        ) {
+            const dungeonID = this.app.viewedDungeonID;
+            this.micsr.dungeons
+                .getObjectByID(dungeonID)
+                .monsters.forEach((monsterID: any) => {
+                    const simID = this.simulator.simID(dungeonID, monsterID);
+                    if (!this.monsterSimData[simID]) {
+                        return;
+                    }
+                    this.computeGP(
+                        this.monsterSimData[simID],
+                        "computeDungeonMonsterValue",
+                        monsterID
+                    );
+                });
         } else {
             const updateMonsterGP = (monsterID: any) => {
                 if (!this.monsterSimData[monsterID]) {
@@ -268,13 +321,15 @@ class Loot {
                 if (this.monsterSimData[monsterID].simSuccess) {
                     this.computeGP(
                         this.monsterSimData[monsterID],
-                        'computeMonsterValue',
-                        monsterID,
+                        "computeMonsterValue",
+                        monsterID
                     );
                 }
             };
             // Regular monsters
-            this.micsr.monsterIDs.forEach((monsterID: any) => updateMonsterGP(monsterID));
+            this.micsr.monsterIDs.forEach((monsterID: any) =>
+                updateMonsterGP(monsterID)
+            );
             // Dungeons
             this.micsr.dungeonIDs.forEach((dungeonID: string) => {
                 if (!this.dungeonSimData[dungeonID]) {
@@ -283,14 +338,18 @@ class Loot {
                 if (this.dungeonSimData[dungeonID].simSuccess) {
                     this.computeGP(
                         this.dungeonSimData[dungeonID],
-                        'computeDungeonValue',
-                        dungeonID,
+                        "computeDungeonValue",
+                        dungeonID
                     );
                 }
             });
             // slayer tasks
             this.micsr.taskIDs.forEach((taskID: string) => {
-                this.setMonsterListAverageDropRate('gpPerSecond', this.slayerSimData[taskID], this.slayerTaskMonsters[taskID]);
+                this.setMonsterListAverageDropRate(
+                    "gpPerSecond",
+                    this.slayerSimData[taskID],
+                    this.slayerTaskMonsters[taskID]
+                );
             });
         }
     }
@@ -309,28 +368,50 @@ class Loot {
         };
 
         // Set data for monsters in combat zones
-        this.micsr.monsterIDs.forEach((monsterID: any) => updateMonsterDropChance(monsterID, this.monsterSimData[monsterID]));
+        this.micsr.monsterIDs.forEach((monsterID: any) =>
+            updateMonsterDropChance(monsterID, this.monsterSimData[monsterID])
+        );
         // compute dungeon drop rates
         this.micsr.dungeons.forEach((dungeon: any) => {
             const monsterList = dungeon.monsters;
             if (this.godDungeonIDs.includes(dungeon.id)) {
                 dungeon.monsters.forEach((monster: any) => {
                     const simID = this.simulator.simID(monster.id, dungeon.id);
-                    updateMonsterDropChance(monster.id, this.monsterSimData[simID]);
+                    updateMonsterDropChance(
+                        monster.id,
+                        this.monsterSimData[simID]
+                    );
                 });
-                this.setMonsterListAverageDropRate('dropChance', this.dungeonSimData[dungeon.id], monsterList, dungeon.id);
+                this.setMonsterListAverageDropRate(
+                    "dropChance",
+                    this.dungeonSimData[dungeon.id],
+                    monsterList,
+                    dungeon.id
+                );
             } else {
                 const monster = monsterList[monsterList.length - 1];
-                updateMonsterDropChance(monster.id, this.dungeonSimData[dungeon.id]);
+                updateMonsterDropChance(
+                    monster.id,
+                    this.dungeonSimData[dungeon.id]
+                );
             }
         });
         // compute auto slayer drop rates
         this.micsr.taskIDs.forEach((taskID: string) => {
-            this.setMonsterListAverageDropRate('dropChance', this.slayerSimData[taskID], this.slayerTaskMonsters[taskID]);
+            this.setMonsterListAverageDropRate(
+                "dropChance",
+                this.slayerSimData[taskID],
+                this.slayerTaskMonsters[taskID]
+            );
         });
     }
 
-    setMonsterListAverageDropRate(property: any, simData: any, monsterList: any, dungeonID: any = undefined) {
+    setMonsterListAverageDropRate(
+        property: any,
+        simData: any,
+        monsterList: any,
+        dungeonID: any = undefined
+    ) {
         if (!simData) {
             return;
         }
@@ -341,7 +422,9 @@ class Loot {
             if (!this.monsterSimData[simID]) {
                 return;
             }
-            drops += this.monsterSimData[simID][property] * this.monsterSimData[simID].killTimeS;
+            drops +=
+                this.monsterSimData[simID][property] *
+                this.monsterSimData[simID].killTimeS;
             killTime += this.monsterSimData[simID].killTimeS;
         }
         simData[property] = drops / killTime;
@@ -352,7 +435,11 @@ class Loot {
             return drop.maxQuantity;
         }
         // avg qty = min + (max - min + 1) / (max - min)
-        return drop.minQuantity + (drop.maxQuantity - drop.minQuantity + 1) / (drop.maxQuantity - drop.minQuantity);
+        return (
+            drop.minQuantity +
+            (drop.maxQuantity - drop.minQuantity + 1) /
+                (drop.maxQuantity - drop.minQuantity)
+        );
     }
 
     addLoot(lootTable: any) {
@@ -367,7 +454,7 @@ class Loot {
                 expected += chance * this.avgQuantity(drop);
             }
             expected += this.addLoot(drop.lootTable) * chance;
-        })
+        });
         return expected;
     }
 
@@ -407,13 +494,18 @@ class Loot {
      * Updates the chance to receive signet when killing monsters
      */
     updateSignetChance() {
-        if (this.app.isViewingDungeon && this.micsr.isDungeonID(this.app.viewedDungeonID)) {
-            this.micsr.dungeons.getObjectByID(this.app.viewedDungeonID).monsters.forEach((monster: any) => {
-                if (!this.monsterSimData[monster.id]) {
-                    return;
-                }
-                this.monsterSimData[monster.id].signetChance = 0;
-            });
+        if (
+            this.app.isViewingDungeon &&
+            this.micsr.isDungeonID(this.app.viewedDungeonID)
+        ) {
+            this.micsr.dungeons
+                .getObjectByID(this.app.viewedDungeonID)
+                .monsters.forEach((monster: any) => {
+                    if (!this.monsterSimData[monster.id]) {
+                        return;
+                    }
+                    this.monsterSimData[monster.id].signetChance = 0;
+                });
         } else {
             const updateMonsterSignetChance = (monsterID: any, data: any) => {
                 if (!data) {
@@ -421,20 +513,35 @@ class Loot {
                 }
                 if (this.modifiers.allowSignetDrops && data.simSuccess) {
                     if (this.app.timeMultiplier === -1) {
-                        data.signetChance = 100 * this.getSignetDropRate(monsterID);
+                        data.signetChance =
+                            100 * this.getSignetDropRate(monsterID);
                     } else {
-                        data.signetChance = 100 * (1 - Math.pow(1 - this.getSignetDropRate(monsterID), this.app.timeMultiplier / data.killTimeS));
+                        data.signetChance =
+                            100 *
+                            (1 -
+                                Math.pow(
+                                    1 - this.getSignetDropRate(monsterID),
+                                    this.app.timeMultiplier / data.killTimeS
+                                ));
                     }
                 } else {
                     data.signetChance = 0;
                 }
             };
             // Set data for monsters in combat zones
-            this.micsr.monsterIDs.forEach((monsterID: any) => updateMonsterSignetChance(monsterID, this.monsterSimData[monsterID]));
+            this.micsr.monsterIDs.forEach((monsterID: any) =>
+                updateMonsterSignetChance(
+                    monsterID,
+                    this.monsterSimData[monsterID]
+                )
+            );
             // Set data for dungeons
             this.micsr.dungeons.forEach((dungeon: any) => {
                 const monster = dungeon.monsters[dungeon.monsters.length - 1];
-                updateMonsterSignetChance(monster.id, this.dungeonSimData[dungeon.id]);
+                updateMonsterSignetChance(
+                    monster.id,
+                    this.dungeonSimData[dungeon.id]
+                );
             });
             // Set data for auto slayer
             this.micsr.taskIDs.forEach((taskID: string) => {
@@ -451,49 +558,64 @@ class Loot {
      */
     getSignetDropRate(monsterID: any) {
         // @ts-expect-error TS(2304): Cannot find name 'getMonsterCombatLevel'.
-        return getMonsterCombatLevel(monsterID) * this.computeLootChance(monsterID) / 500000;
+        return (
+            (getMonsterCombatLevel(monsterID) *
+                this.computeLootChance(monsterID)) /
+            500000
+        );
     }
 
     /** Updates the chance to get a pet for the given skill*/
     updatePetChance() {
-        const petSkills = ['Hitpoints', 'Prayer'];
+        const petSkills = ["Hitpoints", "Prayer"];
         if (this.player.isSlayerTask) {
-            petSkills.push('Slayer');
+            petSkills.push("Slayer");
         }
         const attackType = this.player.attackType;
         switch (attackType) {
-            case 'melee':
+            case "melee":
                 switch (this.player.attackStyles.melee) {
-                    case 'Stab':
-                        petSkills.push('Attack');
+                    case "Stab":
+                        petSkills.push("Attack");
                         break;
-                    case 'Slash':
-                        petSkills.push('Strength');
+                    case "Slash":
+                        petSkills.push("Strength");
                         break;
-                    case 'Block':
-                        petSkills.push('Defence');
+                    case "Block":
+                        petSkills.push("Defence");
                         break;
                 }
                 break;
-            case 'ranged':
-                petSkills.push('Ranged');
-                if (this.player.attackStyles.ranged === 'Longrange') {
-                    petSkills.push('Defence');
+            case "ranged":
+                petSkills.push("Ranged");
+                if (this.player.attackStyles.ranged === "Longrange") {
+                    petSkills.push("Defence");
                 }
                 break;
-            case 'magic':
-                petSkills.push('Magic');
-                if (this.player.attackStyles.magic === 'Defensive') {
-                    petSkills.push('Defence');
+            case "magic":
+                petSkills.push("Magic");
+                if (this.player.attackStyles.magic === "Defensive") {
+                    petSkills.push("Defence");
                 }
                 break;
         }
         if (petSkills.includes(this.petSkill)) {
-            const petSkillLevel = this.player.skillLevel[this.micsr.skillIDs[this.petSkill]] + 1;
+            const petSkillLevel =
+                this.player.skillLevel[this.micsr.skillIDs[this.petSkill]] + 1;
             for (const simID in this.monsterSimData) {
                 const simResult = this.monsterSimData[simID];
-                const timeMultiplier = (this.app.timeMultiplier === -1) ? simResult.killTimeS : this.app.timeMultiplier;
-                simResult.petChance = 100 * (1 - this.chanceForNoPet(simResult, timeMultiplier, petSkillLevel));
+                const timeMultiplier =
+                    this.app.timeMultiplier === -1
+                        ? simResult.killTimeS
+                        : this.app.timeMultiplier;
+                simResult.petChance =
+                    100 *
+                    (1 -
+                        this.chanceForNoPet(
+                            simResult,
+                            timeMultiplier,
+                            petSkillLevel
+                        ));
             }
             this.micsr.dungeons.forEach((dungeon: any, dungeonID: string) => {
                 const dungeonResult = this.dungeonSimData[dungeonID];
@@ -501,9 +623,17 @@ class Loot {
                 dungeon.monsters.forEach((monsterID: any) => {
                     const simID = this.simulator.simID(monsterID, dungeonID);
                     const simResult = this.monsterSimData[simID];
-                    const timeMultiplier = (this.app.timeMultiplier === -1) ? simResult.killTimeS : this.app.timeMultiplier;
-                    const timeRatio = simResult.killTimeS / dungeonResult.killTimeS;
-                    const chanceToNotGetFromMonster = this.chanceForNoPet(simResult, timeMultiplier * timeRatio, petSkillLevel);
+                    const timeMultiplier =
+                        this.app.timeMultiplier === -1
+                            ? simResult.killTimeS
+                            : this.app.timeMultiplier;
+                    const timeRatio =
+                        simResult.killTimeS / dungeonResult.killTimeS;
+                    const chanceToNotGetFromMonster = this.chanceForNoPet(
+                        simResult,
+                        timeMultiplier * timeRatio,
+                        petSkillLevel
+                    );
                     simResult.petChance = 100 * (1 - chanceToNotGetFromMonster);
                     chanceToNotGet *= chanceToNotGetFromMonster;
                 });
@@ -511,14 +641,25 @@ class Loot {
             });
             this.micsr.slayerTaskData.forEach((_: any, taskID: any) => {
                 const taskResult = this.slayerSimData[taskID];
-                const sumTime = taskResult.killTimeS * this.simulator.slayerTaskMonsters[taskID].length;
+                const sumTime =
+                    taskResult.killTimeS *
+                    this.simulator.slayerTaskMonsters[taskID].length;
                 let chanceToNotGet = 1;
-                this.simulator.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
-                    const simResult = this.monsterSimData[monsterID];
-                    const timeMultiplier = (this.app.timeMultiplier === -1) ? simResult.killTimeS : this.app.timeMultiplier;
-                    const timeRatio = simResult.killTimeS / sumTime;
-                    chanceToNotGet *= this.chanceForNoPet(simResult, timeMultiplier * timeRatio, petSkillLevel);
-                });
+                this.simulator.slayerTaskMonsters[taskID].forEach(
+                    (monsterID: any) => {
+                        const simResult = this.monsterSimData[monsterID];
+                        const timeMultiplier =
+                            this.app.timeMultiplier === -1
+                                ? simResult.killTimeS
+                                : this.app.timeMultiplier;
+                        const timeRatio = simResult.killTimeS / sumTime;
+                        chanceToNotGet *= this.chanceForNoPet(
+                            simResult,
+                            timeMultiplier * timeRatio,
+                            petSkillLevel
+                        );
+                    }
+                );
                 taskResult.petChance = 100 * (1 - chanceToNotGet);
             });
         } else {
@@ -543,7 +684,7 @@ class Loot {
             const rollsPerSecond = simResult.petRolls[interval];
             const rolls = timeMultiplier * rollsPerSecond;
             // @ts-expect-error TS(2362): The left-hand side of an arithmetic operation must... Remove this comment to see the full error message
-            const chancePerRoll = interval * petSkillLevel / 25e9;
+            const chancePerRoll = (interval * petSkillLevel) / 25e9;
             chanceToNotGet *= Math.pow(1 - chancePerRoll, rolls);
         }
         return chanceToNotGet;

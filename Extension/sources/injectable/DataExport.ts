@@ -36,7 +36,7 @@ class DataExport {
         this.exportOptions = {
             dungeonMonsters: true,
             nonSimmed: false,
-        }
+        };
         // this.header = Object.getOwnPropertyNames(this.app.manager.convertSlowSimToResult(this.app.manager.getSimStats())).filter(prop =>
         //     ![
         //         'simSuccess',
@@ -53,24 +53,32 @@ class DataExport {
         return !filter || !data.simSuccess;
     }
 
-    exportEntity(exportData: any, exportIdx: any, filter: any, info: any, data: any) {
+    exportEntity(
+        exportData: any,
+        exportIdx: any,
+        filter: any,
+        info: any,
+        data: any
+    ) {
         if (this.skip(filter, data)) {
             return;
         }
         exportData[exportIdx] = {
             ...info,
             data: this.header.map((prop: any) => this.round(data[prop])),
-        }
+        };
     }
 
     round(x: any) {
         if (x === undefined || x === null) {
             return x;
         }
-        if ((x).toString() === '[object Object]') {
+        if (x.toString() === "[object Object]") {
             const result = {};
             // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-            Object.getOwnPropertyNames(x).forEach(prop => result[prop] = this.round(x[prop]));
+            Object.getOwnPropertyNames(x).forEach(
+                (prop) => (result[prop] = this.round(x[prop]))
+            );
             return result;
         } else if (!isNaN) {
             return x;
@@ -89,26 +97,30 @@ class DataExport {
             dungeonMonsters: {},
             // auto slayer
             autoSlayer: {},
-        }
+        };
 
         // export Combat Areas, Wandering Bard, and Slayer Areas
-        this.micsr.monsterIDs.forEach((monsterID: any) => this.exportEntity(
-            exportData.monsters,
-            monsterID,
-            this.simulator.monsterSimFilter[monsterID],
-            {
-                name: this.app.getMonsterName(monsterID),
-                monsterID: monsterID
-            },
-            this.simulator.monsterSimData[monsterID],
-        ));
+        this.micsr.monsterIDs.forEach((monsterID: any) =>
+            this.exportEntity(
+                exportData.monsters,
+                monsterID,
+                this.simulator.monsterSimFilter[monsterID],
+                {
+                    name: this.app.getMonsterName(monsterID),
+                    monsterID: monsterID,
+                },
+                this.simulator.monsterSimData[monsterID]
+            )
+        );
 
         // export dungeons
         this.micsr.dungeons.forEach((dungeon: any, dungeonID: any) => {
-            if (this.skip(
-                this.simulator.dungeonSimFilter[dungeonID],
-                this.simulator.dungeonSimData[dungeonID],
-            )) {
+            if (
+                this.skip(
+                    this.simulator.dungeonSimFilter[dungeonID],
+                    this.simulator.dungeonSimData[dungeonID]
+                )
+            ) {
                 return;
             }
             // dungeon
@@ -120,33 +132,39 @@ class DataExport {
                     name: this.app.getDungeonName(dungeonID),
                     dungeonID: dungeonID,
                 },
-                this.simulator.dungeonSimData[dungeonID],
+                this.simulator.dungeonSimData[dungeonID]
             );
             // dungeon monsters
             if (this.exportOptions.dungeonMonsters) {
                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                exportData.dungeonMonsters[dungeonID] = {},
-                    dungeon.monsters.forEach((monsterID: any) => this.exportEntity(
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        exportData.dungeonMonsters[dungeonID],
-                        monsterID,
-                        this.simulator.dungeonSimFilter[dungeonID],
-                        {
-                            name: this.app.getMonsterName(monsterID),
-                            dungeonID: dungeonID,
-                            monsterID: monsterID,
-                        },
-                        this.simulator.monsterSimData[this.simulator.simID(monsterID, dungeonID)],
-                    ));
+                (exportData.dungeonMonsters[dungeonID] = {}),
+                    dungeon.monsters.forEach((monsterID: any) =>
+                        this.exportEntity(
+                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+                            exportData.dungeonMonsters[dungeonID],
+                            monsterID,
+                            this.simulator.dungeonSimFilter[dungeonID],
+                            {
+                                name: this.app.getMonsterName(monsterID),
+                                dungeonID: dungeonID,
+                                monsterID: monsterID,
+                            },
+                            this.simulator.monsterSimData[
+                                this.simulator.simID(monsterID, dungeonID)
+                            ]
+                        )
+                    );
             }
         });
 
         // export slayer tasks
         SlayerTask.data.forEach((task: any, taskID: any) => {
-            if (this.skip(
-                this.simulator.slayerSimFilter[taskID],
-                this.simulator.slayerSimData[taskID],
-            )) {
+            if (
+                this.skip(
+                    this.simulator.slayerSimFilter[taskID],
+                    this.simulator.slayerSimData[taskID]
+                )
+            ) {
                 return;
             }
             // task list
@@ -159,21 +177,23 @@ class DataExport {
                     taskID: taskID,
                     monsterList: this.simulator.slayerTaskMonsters[taskID],
                 },
-                this.simulator.slayerSimData[taskID],
+                this.simulator.slayerSimData[taskID]
             );
             // task monsters
-            this.simulator.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
-                this.exportEntity(
-                    exportData.monsters,
-                    monsterID,
-                    true,
-                    {
-                        name: this.app.getMonsterName(monsterID),
-                        monsterID: monsterID,
-                    },
-                    this.simulator.monsterSimData[monsterID],
-                );
-            });
+            this.simulator.slayerTaskMonsters[taskID].forEach(
+                (monsterID: any) => {
+                    this.exportEntity(
+                        exportData.monsters,
+                        monsterID,
+                        true,
+                        {
+                            name: this.app.getMonsterName(monsterID),
+                            monsterID: monsterID,
+                        },
+                        this.simulator.monsterSimData[monsterID]
+                    );
+                }
+            );
         });
         return JSON.stringify(exportData);
     }

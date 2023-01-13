@@ -59,7 +59,7 @@ class Simulator {
         this.dungeonSimFilter = {};
         this.slayerSimFilter = {};
         // not simulated reason
-        this.notSimulatedReason = 'entity not simulated';
+        this.notSimulatedReason = "entity not simulated";
         // Simulation data;
         this.newSimData = (isMonster: any) => {
             const data = {
@@ -70,8 +70,8 @@ class Simulator {
                 (data as any).inQueue = false;
                 (data as any).petRolls = { other: [] };
             }
-            return data
-        }
+            return data;
+        };
         this.monsterSimIDs = [];
         this.monsterSimData = {};
         this.micsr.monsters.forEach((monster: any) => {
@@ -166,54 +166,82 @@ class Simulator {
             name: string;
             data: any;
         }[] = [
-                // modified objects
-                { name: 'CDNDIR', data: '' },
-                { name: 'currentSaveVersion', data: currentSaveVersion },
-                { name: 'gameVersion', data: gameVersion },
-                { name: 'enemyNoun', data: enemyNoun },
-                // We need loadedLangJson for skill names (used with XP tracking)
-                { name: 'loadedLangJson', data: loadedLangJson },
-                { name: 'MAX_QUICK_EQUIP_ITEMS', data: MAX_QUICK_EQUIP_ITEMS },
-                { name: 'TICK_INTERVAL', data: TICK_INTERVAL },
-                { name: 'youNoun', data: youNoun },
-                { name: 'TODO_REPLACE_MEDIA', data: TODO_REPLACE_MEDIA },
-                { name: 'DEBUGENABLED', data: false },
-                // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
-                { name: 'cloudManager', data: { ...cloudManager, formElements: undefined, formInnerHTML: undefined } },
-                { name: 'COMBAT_TRIANGLE_IDS', data: COMBAT_TRIANGLE_IDS },
-                { name: 'combatTriangle', data: combatTriangle },
-                { name: 'numberMultiplier', data: numberMultiplier },
-                { name: 'burnEffect', data: burnEffect },
-                { name: 'poisonEffect', data: poisonEffect },
-                { name: 'rageEffect', data: rageEffect },
-                { name: 'shockEffect', data: shockEffect },
-                { name: 'dualityEffect', data: dualityEffect },
-                { name: 'deadlyPoisonEffect', data: deadlyPoisonEffect },
-                { name: 'afflictionEffect', data: afflictionEffect },
-                { name: 'frostBurnEffect', data: frostBurnEffect },
-                { name: 'effectMedia', data: {} },
-                { name: 'combatMenus', data: {} },
-                { name: 'loadingOfflineProgress', data: undefined },
-                { name: 'DATA_VERSION', data: DATA_VERSION },
-                { name: 'equipmentSlotData', data: this.cloner.equipmentSlotData() },
-                { name: 'modifierData', data: this.cloner.modifierData() },
-                { name: 'SlayerTierID', data: SlayerTierID },
-                { name: 'AttackTypeID', data: AttackTypeID },
-            ];
+            // modified objects
+            { name: "CDNDIR", data: "" },
+            { name: "currentSaveVersion", data: currentSaveVersion },
+            { name: "gameVersion", data: gameVersion },
+            { name: "enemyNoun", data: enemyNoun },
+            // We need loadedLangJson for skill names (used with XP tracking)
+            { name: "loadedLangJson", data: loadedLangJson },
+            { name: "MAX_QUICK_EQUIP_ITEMS", data: MAX_QUICK_EQUIP_ITEMS },
+            { name: "TICK_INTERVAL", data: TICK_INTERVAL },
+            { name: "youNoun", data: youNoun },
+            { name: "TODO_REPLACE_MEDIA", data: TODO_REPLACE_MEDIA },
+            { name: "DEBUGENABLED", data: false },
+            {
+                name: "cloudManager",
+                data: {
+                    // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
+                    ...cloudManager,
+                    formElements: undefined,
+                    formInnerHTML: undefined,
+                },
+            },
+            { name: "COMBAT_TRIANGLE_IDS", data: COMBAT_TRIANGLE_IDS },
+            { name: "combatTriangle", data: combatTriangle },
+            { name: "numberMultiplier", data: numberMultiplier },
+            { name: "burnEffect", data: burnEffect },
+            { name: "poisonEffect", data: poisonEffect },
+            { name: "rageEffect", data: rageEffect },
+            { name: "shockEffect", data: shockEffect },
+            { name: "dualityEffect", data: dualityEffect },
+            { name: "deadlyPoisonEffect", data: deadlyPoisonEffect },
+            { name: "afflictionEffect", data: afflictionEffect },
+            { name: "frostBurnEffect", data: frostBurnEffect },
+            { name: "effectMedia", data: {} },
+            { name: "combatMenus", data: {} },
+            { name: "loadingOfflineProgress", data: undefined },
+            { name: "DATA_VERSION", data: DATA_VERSION },
+            {
+                name: "equipmentSlotData",
+                data: this.cloner.equipmentSlotData(),
+            },
+            { name: "modifierData", data: this.cloner.modifierData() },
+            { name: "SlayerTierID", data: SlayerTierID },
+            { name: "AttackTypeID", data: AttackTypeID },
+            { name: "RaidStats", data: RaidStats },
+        ];
         [
             // these objects are copied from the game
-            'CombatAreaType', 'EnemyState', 'EquipmentSlots', 'RaidDifficulty', 'AmmoTypeID', 'RaidState',
-            'SpellTypes', 'SpellTiers',
-            'CombatStats', 'MonsterStats', 'ItemStats', 'GeneralStats', 'PrayerStats',
-            'SlayerStats', 'StatCategories',
+            "CombatAreaType",
+            "EnemyState",
+            "EquipmentSlots",
+            "RaidDifficulty",
+            "AmmoTypeID",
+            "RaidState",
+            "SpellTypes",
+            "SpellTiers",
+            "CombatStats",
+            "MonsterStats",
+            "ItemStats",
+            "GeneralStats",
+            "PrayerStats",
+            "SlayerStats",
+            "StatCategories",
             // these objects are implicitly set to undefined
-            'smithingSelectionTabs', 'fletchingSelectionTabs', 'craftingSelectionTabs',
-            'runecraftingSelectionTabs', 'herbloreSelectionTabs', 'summoningSelectionTabs',
-        ].forEach((constant: any) => constantNames.push({ name: constant, data: window[constant] }));
+            "smithingSelectionTabs",
+            "fletchingSelectionTabs",
+            "craftingSelectionTabs",
+            "runecraftingSelectionTabs",
+            "herbloreSelectionTabs",
+            "summoningSelectionTabs",
+        ].forEach((constant: any) =>
+            constantNames.push({ name: constant, data: window[constant] })
+        );
         // process constants
-        const constants: { [name: string]: string; } = {};
-        constantNames.forEach(constant =>
-            constants[constant.name] = constant.data
+        const constants: { [name: string]: string } = {};
+        constantNames.forEach(
+            (constant) => (constants[constant.name] = constant.data)
         );
         // functions
         const functionNames: {
@@ -222,31 +250,45 @@ class Simulator {
         }[] = [];
         // these functions are spoofed
         [
-            ['createElement', () => {
-            }],
-            ['tippy', () => undefined],
-        ].forEach((func: any) => functionNames.push({ name: func[0], data: func[1] }));
+            ["createElement", () => {}],
+            ["tippy", () => undefined],
+        ].forEach((func: any) =>
+            functionNames.push({ name: func[0], data: func[1] })
+        );
         // these functions are copied from the game
         [
-            'constructDamageFromData', 'getLangString', 'imageNotify', 'applyModifier', 'readNamespacedReject',
-            'multiplyByNumberMultiplier', 'milliToSeconds', 'divideByNumberMultiplier', 'isSkillEntry',
-            'clampValue', 'roundToTickInterval', 'loadGameData', 'constructEffectFromData', 'damageReducer',
-            'rollPercentage', 'getDamageRoll', 'rollInteger',
+            "constructDamageFromData",
+            "getLangString",
+            "imageNotify",
+            "applyModifier",
+            "readNamespacedReject",
+            "multiplyByNumberMultiplier",
+            "milliToSeconds",
+            "divideByNumberMultiplier",
+            "isSkillEntry",
+            "clampValue",
+            "roundToTickInterval",
+            "loadGameData",
+            "constructEffectFromData",
+            "damageReducer",
+            "rollPercentage",
+            "getDamageRoll",
+            "rollInteger",
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
             }
-            functionNames.push({ name: func, data: window[func] })
+            functionNames.push({ name: func, data: window[func] });
         });
         // these functions are copied from the simulator
         // process functions
-        const functions: { [name: string]: string; } = {};
-        functionNames.forEach(func => {
+        const functions: { [name: string]: string } = {};
+        functionNames.forEach((func) => {
             let fstring = func.data.toString();
-            if (!fstring.startsWith('function ') && !fstring.includes('=>')) {
-                fstring = 'function ' + fstring;
+            if (!fstring.startsWith("function ") && !fstring.includes("=>")) {
+                fstring = "function " + fstring;
             }
-            fstring = fstring.replace(`function ${func.name}`, 'function');
+            fstring = fstring.replace(`function ${func.name}`, "function");
             functions[func.name] = `self['${func.name}'] = ${fstring}`;
         });
         // classes
@@ -263,53 +305,197 @@ class Simulator {
                 this.rootItems = [];
             }
 
-            addDummyItemOnLoad() {
-            };
+            addDummyItemOnLoad() {}
 
-            registerSortOrder() {
-            };
+            registerSortOrder() {}
 
-            registerItemUpgrades() {
-            };
+            registerItemUpgrades() {}
 
             getQty() {
-                return 0
-            };
+                return 0;
+            }
         };
         [
-            CombatQuickEquipMenu, Completion, Minibar, Settings, SkillRenderQueue,
-            CompletionMap, AltMagicRenderQueue, PrayerRenderQueue, ArtisanSkillRenderQueue,
-            WoodcuttingRenderQueue, FishingRenderQueue, FiremakingRenderQueue, CookingRenderQueue,
-            MiningRenderQueue, ThievingRenderQueue, FarmingRenderQueue, TownshipTasks, TownshipData,
-            AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue,
-            MasteryLevelUnlock, CustomSkillMilestone, BankRenderQueue, ItemUpgrade
-        ].forEach((clas: any) => classNames.push({ name: clas.name, data: emptyClass }));
+            CombatQuickEquipMenu,
+            Completion,
+            Minibar,
+            Settings,
+            SkillRenderQueue,
+            CompletionMap,
+            AltMagicRenderQueue,
+            PrayerRenderQueue,
+            ArtisanSkillRenderQueue,
+            WoodcuttingRenderQueue,
+            FishingRenderQueue,
+            FiremakingRenderQueue,
+            CookingRenderQueue,
+            MiningRenderQueue,
+            ThievingRenderQueue,
+            FarmingRenderQueue,
+            TownshipTasks,
+            TownshipData,
+            AgilityRenderQueue,
+            SummoningRenderQueue,
+            AstrologyRenderQueue,
+            TownshipRenderQueue,
+            MasteryLevelUnlock,
+            CustomSkillMilestone,
+            BankRenderQueue,
+            ItemUpgrade,
+        ].forEach((clas: any) =>
+            classNames.push({ name: clas.name, data: emptyClass })
+        );
         // these classes are copied from the game
         [
-            Bank, BankItem,
+            Bank,
+            BankItem,
 
-            NamespaceMap, NamespaceRegistry, NamespacedObject, NamespacedArray, ItemRegistry, CharacterStats,
-            NormalDamage, Gamemode, Page, Skill, SkillWithMastery, CombatSkill, SkillMasteryMilestone, GatheringSkill, CraftingSkill, ArtisanSkill,
+            NamespaceMap,
+            NamespaceRegistry,
+            NamespacedObject,
+            NamespacedArray,
+            ItemRegistry,
+            CharacterStats,
+            NormalDamage,
+            Gamemode,
+            Page,
+            Skill,
+            SkillWithMastery,
+            CombatSkill,
+            SkillMasteryMilestone,
+            GatheringSkill,
+            CraftingSkill,
+            ArtisanSkill,
             // skills
-            Attack, Strength, Defence, Hitpoints, Ranged, AltMagic, Prayer, Slayer, Woodcutting, Fishing, Firemaking, Cooking, Mining, Smithing, Thieving, Farming, Fletching, Crafting, Runecrafting, Herblore, Agility, Summoning, Astrology, Township,
+            Attack,
+            Strength,
+            Defence,
+            Hitpoints,
+            Ranged,
+            AltMagic,
+            Prayer,
+            Slayer,
+            Woodcutting,
+            Fishing,
+            Firemaking,
+            Cooking,
+            Mining,
+            Smithing,
+            Thieving,
+            Farming,
+            Fletching,
+            Crafting,
+            Runecrafting,
+            Herblore,
+            Agility,
+            Summoning,
+            Astrology,
+            Township,
             // items
-            Item, EquipmentItem, WeaponItem, FoodItem, BoneItem, OpenableItem, PotionItem, ReadableItem, CompostItem, TokenItem,
-            CombatLoot, DropTable, Lore, EventManager, CombatArea, Dungeon, StackingEffect, TownshipMap,
-            SparseNumericMap, SpecialAttack, ItemEffectAttack, Currency, DataReader, Equipment, EquipmentSet,
-            EquipmentStats, EquippedFood, EquipSlot, GP, ItemCharges, MappedModifiers, ExperienceCalculator,
-            NotificationQueue, PlayerStats, PetManager, PotionManager, SlayerCoins, RaidCoins, SpellSelection,
-            TargetModifiers, Timer, Tutorial, TutorialRenderQueue, BinaryWriter, SaveWriter, Shop,
-            ShopRenderQueue, SlayerTask, SlowEffect, SplashManager, CombatModifiers, PlayerModifiers,
+            Item,
+            EquipItemMilestone,
+            EquipmentItem,
+            WeaponItem,
+            FoodItem,
+            BoneItem,
+            OpenableItem,
+            PotionItem,
+            ReadableItem,
+            CompostItem,
+            TokenItem,
+            CombatLoot,
+            DropTable,
+            Lore,
+            EventManager,
+            CombatArea,
+            Dungeon,
+            StackingEffect,
+            TownshipMap,
+            SparseNumericMap,
+            SpecialAttack,
+            ItemEffectAttack,
+            Currency,
+            DataReader,
+            Equipment,
+            EquipmentSet,
+            EquipmentStats,
+            EquippedFood,
+            EquipSlot,
+            GP,
+            ItemCharges,
+            MappedModifiers,
+            ExperienceCalculator,
+            NotificationQueue,
+            PlayerStats,
+            PetManager,
+            PotionManager,
+            SlayerCoins,
+            RaidCoins,
+            SpellSelection,
+            TargetModifiers,
+            Timer,
+            Tutorial,
+            TutorialRenderQueue,
+            BinaryWriter,
+            SaveWriter,
+            Shop,
+            ShopRenderQueue,
+            SlayerTask,
+            SlowEffect,
+            SplashManager,
+            CombatModifiers,
+            PlayerModifiers,
+            BaseManager,
+            CombatManager,
+            Character,
+            Player,
+            RaidPlayer,
+            Enemy,
+            Game,
+            Golbin,
             // @ts-expect-error TS(2304): Cannot find name 'GolbinRaidBank'.
-            BaseManager, CombatManager, Character, Player, RaidPlayer, Enemy, Game, Golbin, GolbinRaidBank, RaidManager,
-            TownshipWorship, TownshipJob, CombatPassive, Pet, AttackStyle, ConditionalModifier, BaseSpell,
-            CombatSpell, StandardSpell, CurseSpell, AncientSpell, ArchaicSpell, AuroraSpell, Monster,
-            ShopCategory, ShopPurchase, ShopUpgradeChain, BurnEffect, PoisonEffect, SlayerArea, GameEvent,
-            PlayerAttackEvent, EnemyAttackEvent, PlayerHitpointRegenerationEvent, StatTracker,
-            MappedStatTracker, Statistics, DummyItem, DummyMonster,
-            ControlledAffliction, ActivePrayer, ItemSynergy, ItemEffect, CombatEvent,
+            GolbinRaidBank,
+            RaidManager,
+            TownshipWorship,
+            TownshipJob,
+            CombatPassive,
+            Pet,
+            AttackStyle,
+            ConditionalModifier,
+            BaseSpell,
+            CombatSpell,
+            StandardSpell,
+            CurseSpell,
+            AncientSpell,
+            ArchaicSpell,
+            AuroraSpell,
+            AltMagicSpell,
+            Monster,
+            ShopCategory,
+            ShopPurchase,
+            ShopUpgradeChain,
+            BurnEffect,
+            PoisonEffect,
+            SlayerArea,
+            StatTracker,
+            MappedStatTracker,
+            Statistics,
+            DummyItem,
+            DummyMonster,
+            ControlledAffliction,
+            ActivePrayer,
+            ItemSynergy,
+            ItemEffect,
+            GameEvent,
+            PlayerAttackEvent,
+            EnemyAttackEvent,
+            PlayerHitpointRegenerationEvent,
+            CombatEvent,
             PlayerSummonAttackEvent,
-            // GameEventMatcher, SkillActionEventMatcher,
+            GameEventMatcher,
+            MonsterKilledEvent,
+            MonsterDropEvent,
+            // , SkillActionEventMatcher,
 
             // WoodcuttingActionEventMatcher, FishingActionEventMatcher, FiremakingActionEventMatcher, BonfireLitEventMatcher,
             // CookingActionEventMatcher, MiningActionEventMatcher, SmithingActionEventMatcher, ThievingActionEventMatcher,
@@ -328,37 +514,48 @@ class Simulator {
             // CookingRecipe, SkillCategory, CookingCategory
 
             // Combat sim classes
-            MICSR, ShowModifiers, SimManager, SimPlayer, SimEnemy, SimGame, Simulator, CloneData
-        ].forEach((clas: any) => classNames.push({ name: clas.name, data: clas }));
-        const classes: { [name: string]: string; } = {};
-        classNames.forEach(clas => {
-            const s = clas.data.toString()
+            MICSR,
+            ShowModifiers,
+            SimManager,
+            SimPlayer,
+            SimEnemy,
+            SimGame,
+            Simulator,
+            CloneData,
+            CustomEventMatcher,
+        ].forEach((clas: any) =>
+            classNames.push({ name: clas.name, data: clas })
+        );
+        const classes: { [name: string]: string } = {};
+        classNames.forEach((clas) => {
+            const s = clas.data
+                .toString()
                 // remove class name
-                .replace(`class ${clas.name}`, 'class')
+                .replace(`class ${clas.name}`, "class")
                 // remove logging from CombatManager constructor
-                .replace(`console.log('Combat Manager Built...');`, '')
+                .replace(`console.log('Combat Manager Built...');`, "")
                 // fix Character bug
                 //TODO: remove this when Character.applyDOT no longer refers to the global combatManager object
-                .replace('combatManager', 'this.manager');
+                .replace("combatManager", "this.manager");
             classes[clas.name] = `self['${clas.name}'] = ${s}`;
         });
         // worker
         worker.onmessage = (event: any) => this.processWorkerMessage(event, i);
         worker.onerror = (event: any) => {
-            this.micsr.log('An error occurred in a simulation worker');
+            this.micsr.log("An error occurred in a simulation worker");
             this.micsr.log(event);
         };
         // debugger;
         worker.postMessage({
-            action: 'RECEIVE_GAMEDATA',
+            action: "RECEIVE_GAMEDATA",
             // constants
-            constantNames: constantNames.map(x => x.name),
+            constantNames: constantNames.map((x) => x.name),
             constants: constants,
             // functions
-            functionNames: functionNames.map(x => x.name),
+            functionNames: functionNames.map((x) => x.name),
             functions: functions,
             // classes
-            classNames: classNames.map(x => x.name),
+            classNames: classNames.map((x) => x.name),
             classes: classes,
             // TODO: This might also be sent with the MICSR object
             slayerTaskData: SlayerTask.data,
@@ -375,7 +572,9 @@ class Simulator {
         this.setupCurrentSim(single);
         // Start simulation workers
         // @ts-expect-error TS(2531): Object is possibly 'null'.
-        document.getElementById('MCS Simulate All Button').textContent = `Cancel (0/${this.simulationQueue.length})`;
+        document.getElementById(
+            "MCS Simulate All Button"
+        ).textContent = `Cancel (0/${this.simulationQueue.length})`;
         await this.initializeSimulationJobs();
     }
 
@@ -384,21 +583,24 @@ class Simulator {
             options: {
                 trials: this.micsr.trials,
             },
-        }
+        };
     }
 
     simID(monsterID: any, dungeonID: any) {
         if (dungeonID === undefined) {
             return monsterID;
         }
-        return `${dungeonID}-${monsterID}`
+        return `${dungeonID}-${monsterID}`;
     }
 
     pushMonsterToQueue(monsterID: any, dungeonID: any) {
         const simID = this.simID(monsterID, dungeonID);
         if (!this.monsterSimData[simID].inQueue) {
             this.monsterSimData[simID].inQueue = true;
-            this.simulationQueue.push({ monsterID: monsterID, dungeonID: dungeonID });
+            this.simulationQueue.push({
+                monsterID: monsterID,
+                dungeonID: dungeonID,
+            });
         }
     }
 
@@ -408,46 +610,70 @@ class Simulator {
         this.resetSimDone();
         // check selection
         if (!this.parent.barSelected && !this.parent.isViewingDungeon) {
-            this.parent.notify('There is nothing selected!', 'danger');
+            this.parent.notify("There is nothing selected!", "danger");
             return {};
         }
         // area monster
-        if (!this.parent.isViewingDungeon && this.parent.barIsMonster(this.parent.selectedBar)) {
-            const monsterID = this.parent.barMonsterIDs[this.parent.selectedBar];
+        if (
+            !this.parent.isViewingDungeon &&
+            this.parent.barIsMonster(this.parent.selectedBar)
+        ) {
+            const monsterID =
+                this.parent.barMonsterIDs[this.parent.selectedBar];
             if (this.monsterSimFilter[monsterID]) {
                 // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
                 this.pushMonsterToQueue(monsterID);
             } else {
-                this.parent.notify('The selected monster is filtered!', 'danger');
+                this.parent.notify(
+                    "The selected monster is filtered!",
+                    "danger"
+                );
             }
             return {};
         }
         // dungeon
         let dungeonID: string | undefined = undefined;
-        if (!this.parent.isViewingDungeon && this.parent.barIsDungeon(this.parent.selectedBar)) {
+        if (
+            !this.parent.isViewingDungeon &&
+            this.parent.barIsDungeon(this.parent.selectedBar)
+        ) {
             dungeonID = this.parent.barMonsterIDs[this.parent.selectedBar];
-        } else if (this.parent.isViewingDungeon && this.micsr.isDungeonID(this.parent.viewedDungeonID)) {
+        } else if (
+            this.parent.isViewingDungeon &&
+            this.micsr.isDungeonID(this.parent.viewedDungeonID)
+        ) {
             dungeonID = this.parent.viewedDungeonID;
         }
         if (dungeonID !== undefined) {
             if (this.dungeonSimFilter[dungeonID]) {
                 if (this.parent.isViewingDungeon && this.parent.barSelected) {
-                    this.pushMonsterToQueue(this.parent.getSelectedDungeonMonsterID(), dungeonID);
+                    this.pushMonsterToQueue(
+                        this.parent.getSelectedDungeonMonsterID(),
+                        dungeonID
+                    );
                     return { dungeonID: dungeonID };
                 }
-                this.micsr.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
-                    this.pushMonsterToQueue(monster.id, dungeonID);
-                });
+                this.micsr.dungeons
+                    .getObjectByID(dungeonID)
+                    .monsters.forEach((monster: any) => {
+                        this.pushMonsterToQueue(monster.id, dungeonID);
+                    });
                 return { dungeonID: dungeonID };
             }
-            this.parent.notify('The selected dungeon is filtered!', 'danger');
+            this.parent.notify("The selected dungeon is filtered!", "danger");
             return {};
         }
         // slayer area
         let taskID = undefined;
-        if (!this.parent.isViewingDungeon && this.parent.barIsTask(this.parent.selectedBar)) {
+        if (
+            !this.parent.isViewingDungeon &&
+            this.parent.barIsTask(this.parent.selectedBar)
+        ) {
             taskID = this.parent.barMonsterIDs[this.parent.selectedBar];
-        } else if (this.parent.isViewingDungeon && this.micsr.isDungeonID(this.parent.viewedDungeonID)) {
+        } else if (
+            this.parent.isViewingDungeon &&
+            this.micsr.isDungeonID(this.parent.viewedDungeonID)
+        ) {
             taskID = this.parent.viewedDungeonID;
         }
         if (taskID !== undefined) {
@@ -455,7 +681,7 @@ class Simulator {
                 this.queueSlayerTask(taskID);
                 return { taskID: taskID };
             }
-            this.parent.notify('The selected task list is filtered!', 'danger');
+            this.parent.notify("The selected task list is filtered!", "danger");
             return {};
         }
         // can't be reached
@@ -516,11 +742,18 @@ class Simulator {
         // Queue simulation of monsters in slayer areas
         this.micsr.slayerAreas.forEach((area: any) => {
             if (!this.micsr.game.checkRequirements(area.entryRequirements)) {
-                const tryToSim = area.monsters.reduce((sim: any, monster: any) => (this.monsterSimFilter[monster.id] && !this.monsterSimData[monster.id].inQueue) || sim, false);
+                const tryToSim = area.monsters.reduce(
+                    (sim: any, monster: any) =>
+                        (this.monsterSimFilter[monster.id] &&
+                            !this.monsterSimData[monster.id].inQueue) ||
+                        sim,
+                    false
+                );
                 if (tryToSim) {
-                    this.parent.notify(`Can't access ${area.name}`, 'danger');
+                    this.parent.notify(`Can't access ${area.name}`, "danger");
                     area.monsters.forEach((monster: any) => {
-                        this.monsterSimData[monster.id].reason = 'cannot access area';
+                        this.monsterSimData[monster.id].reason =
+                            "cannot access area";
                     });
                 }
                 return;
@@ -570,18 +803,23 @@ class Simulator {
             }
         });
         if (reasons.length) {
-            data.reason = reasons.join(', ');
+            data.reason = reasons.join(", ");
             return true;
         }
         data.reason = undefined;
         return false;
     }
 
-    computeAverageSimData(filter: any, data: any, monsters: any, dungeonID: any) {
+    computeAverageSimData(
+        filter: any,
+        data: any,
+        monsters: any,
+        dungeonID: any
+    ) {
         // check filter
         if (!filter) {
             data.simSuccess = false;
-            data.reason = 'entity filtered';
+            data.reason = "entity filtered";
             return;
         }
         // combine failure reasons, if any
@@ -600,8 +838,14 @@ class Simulator {
             const mData = this.monsterSimData[simID];
             data.simSuccess &&= mData.simSuccess;
             data.deathRate = 1 - (1 - data.deathRate) * (1 - mData.deathRate);
-            data.highestDamageTaken = Math.max(data.highestDamageTaken, mData.highestDamageTaken);
-            data.lowestHitpoints = Math.min(data.lowestHitpoints, mData.lowestHitpoints);
+            data.highestDamageTaken = Math.max(
+                data.highestDamageTaken,
+                mData.highestDamageTaken
+            );
+            data.lowestHitpoints = Math.min(
+                data.lowestHitpoints,
+                mData.lowestHitpoints
+            );
             data.killTimeS += mData.killTimeS;
             data.simulationTime += mData.simulationTime;
             data.tickCount = Math.max(data.tickCount, mData.tickCount);
@@ -610,24 +854,35 @@ class Simulator {
 
         // time-weighted averages
         const computeAvg = (tag: any) => {
-            data[tag] = monsters.map((monster: any) => this.monsterSimData[this.simID(monster.id, dungeonID)])
-                .reduce((avgData: any, mData: any) => avgData + mData[tag] * mData.killTimeS, 0) / data.killTimeS;
-        }
+            data[tag] =
+                monsters
+                    .map(
+                        (monster: any) =>
+                            this.monsterSimData[
+                                this.simID(monster.id, dungeonID)
+                            ]
+                    )
+                    .reduce(
+                        (avgData: any, mData: any) =>
+                            avgData + mData[tag] * mData.killTimeS,
+                        0
+                    ) / data.killTimeS;
+        };
         [
             // xp rates
-            'xpPerSecond',
-            'hpXpPerSecond',
-            'slayerXpPerSecond',
-            'prayerXpPerSecond',
-            'summoningXpPerSecond',
+            "xpPerSecond",
+            "hpXpPerSecond",
+            "slayerXpPerSecond",
+            "prayerXpPerSecond",
+            "summoningXpPerSecond",
             // consumables
-            'ppConsumedPerSecond',
-            'ammoUsedPerSecond',
-            'runesUsedPerSecond',
-            'combinationRunesUsedPerSecond',
-            'potionsUsedPerSecond',
-            'tabletsUsedPerSecond',
-            'atePerSecond',
+            "ppConsumedPerSecond",
+            "ammoUsedPerSecond",
+            "runesUsedPerSecond",
+            "combinationRunesUsedPerSecond",
+            "potionsUsedPerSecond",
+            "tabletsUsedPerSecond",
+            "atePerSecond",
             // survivability
             // 'deathRate',
             // 'highestDamageTaken',
@@ -636,45 +891,67 @@ class Simulator {
             // 'killTimeS',
             // 'killsPerSecond',
             // loot gains
-            'baseGpPerSecond',
-            'dropChance',
-            'signetChance',
-            'petChance',
-            'slayerCoinsPerSecond',
+            "baseGpPerSecond",
+            "dropChance",
+            "signetChance",
+            "petChance",
+            "slayerCoinsPerSecond",
             // unsorted
-            'dmgPerSecond',
-            'attacksMadePerSecond',
-            'attacksTakenPerSecond',
+            "dmgPerSecond",
+            "attacksMadePerSecond",
+            "attacksTakenPerSecond",
             // 'simulationTime',
-        ].forEach(tag => computeAvg(tag));
+        ].forEach((tag) => computeAvg(tag));
 
         // average rune breakdown
         data.usedRunesBreakdown = {};
-        monsters.map((monster: any) => this.monsterSimData[this.simID(monster.id, dungeonID)]
-        ).forEach((mData: any) => {
-            for (const runeID in mData.usedRunesBreakdown) {
-                if (data.usedRunesBreakdown[runeID] === undefined) {
-                    data.usedRunesBreakdown[runeID] = 0;
+        monsters
+            .map(
+                (monster: any) =>
+                    this.monsterSimData[this.simID(monster.id, dungeonID)]
+            )
+            .forEach((mData: any) => {
+                for (const runeID in mData.usedRunesBreakdown) {
+                    if (data.usedRunesBreakdown[runeID] === undefined) {
+                        data.usedRunesBreakdown[runeID] = 0;
+                    }
+                    data.usedRunesBreakdown[runeID] +=
+                        (mData.usedRunesBreakdown[runeID] * mData.killTimeS) /
+                        data.killTimeS;
                 }
-                data.usedRunesBreakdown[runeID] += mData.usedRunesBreakdown[runeID] * mData.killTimeS / data.killTimeS;
-            }
-        });
+            });
     }
 
     /** Performs all data analysis post queue completion */
     performPostSimAnalysis(isNewRun = false) {
         // Perform calculation of dungeon stats
         this.micsr.dungeons.forEach((dungeon: any) => {
-            this.computeAverageSimData(this.dungeonSimFilter[dungeon.id], this.dungeonSimData[dungeon.id], dungeon.monsters, dungeon.id);
+            this.computeAverageSimData(
+                this.dungeonSimFilter[dungeon.id],
+                this.dungeonSimData[dungeon.id],
+                dungeon.monsters,
+                dungeon.id
+            );
         });
         this.micsr.slayerTaskData.forEach((task: any) => {
-            this.computeAverageSimData(this.slayerSimFilter[task.display], this.slayerSimData[task.display], this.slayerTaskMonsters[task.display], undefined);
+            this.computeAverageSimData(
+                this.slayerSimFilter[task.display],
+                this.slayerSimData[task.display],
+                this.slayerTaskMonsters[task.display],
+                undefined
+            );
             // correct average kps for auto slayer
-            this.slayerSimData[task.display].killsPerSecond *= this.slayerTaskMonsters[task.display].length;
+            this.slayerSimData[task.display].killsPerSecond *=
+                this.slayerTaskMonsters[task.display].length;
         });
         // correct average kill time for auto slayer
-        for (let slayerTaskID = 0; slayerTaskID < this.slayerTaskMonsters.length; slayerTaskID++) {
-            this.slayerSimData[slayerTaskID].killTimeS /= this.slayerTaskMonsters[slayerTaskID].length;
+        for (
+            let slayerTaskID = 0;
+            slayerTaskID < this.slayerTaskMonsters.length;
+            slayerTaskID++
+        ) {
+            this.slayerSimData[slayerTaskID].killTimeS /=
+                this.slayerTaskMonsters[slayerTaskID].length;
         }
         // Update other data
         this.parent.loot.update();
@@ -682,7 +959,11 @@ class Simulator {
         this.parent.consumables.update();
         // log time and save result
         if (isNewRun) {
-            this.micsr.log(`Elapsed Simulation Time: ${performance.now() - this.simStartTime}ms`);
+            this.micsr.log(
+                `Elapsed Simulation Time: ${
+                    performance.now() - this.simStartTime
+                }ms`
+            );
             if (this.parent.trackHistory) {
                 this.saveResult();
             }
@@ -698,7 +979,7 @@ class Simulator {
         }
         const save = {
             settings: this.parent.import.exportSettings(),
-            export: '',
+            export: "",
             monsterSimData: monsterSimData,
             dungeonSimData: this.dungeonSimData.map((x: any) => {
                 return { ...x };
@@ -706,7 +987,7 @@ class Simulator {
             slayerSimData: this.slayerSimData.map((x: any) => {
                 return { ...x };
             }),
-        }
+        };
         save.export = JSON.stringify(save.settings, null, 1);
         this.parent.savedSimulations.push(save);
         this.parent.createCompareCard();
@@ -737,20 +1018,26 @@ class Simulator {
      * @param {number} workerID
      */
     async startJob(workerID: any) {
-        if (this.currentJob < this.simulationQueue.length && !this.simCancelled) {
+        if (
+            this.currentJob < this.simulationQueue.length &&
+            !this.simCancelled
+        ) {
             const monsterID = this.simulationQueue[this.currentJob].monsterID;
             const dungeonID = this.simulationQueue[this.currentJob].dungeonID;
-            const saveString = this.micsr.game.generateSaveString();
-            const reader = new SaveWriter('Read', 1);
-            const saveVersion = reader.setDataFromSaveString(saveString);
+            const saveString = this.micsr.game.generateSaveStringSimple();
+            // const reader = new SaveWriter('Read', 1);
+            // const saveVersion = reader.setDataFromSaveString(saveString);
             // debugger;
             this.simulationWorkers[workerID].worker.postMessage({
-                action: 'START_SIMULATION',
+                action: "START_SIMULATION",
                 monsterID: monsterID,
                 dungeonID: dungeonID,
-                // playerString: SimPlayer.generatePlayerString(this.micsr.game, this.parent.player as any as Player),
+                playerString: SimPlayer.generatePlayerString(
+                    this.micsr.game,
+                    this.parent.player
+                ),
                 saveString: saveString,
-                saveVersion: saveVersion,
+                // saveVersion: saveVersion,
                 trials: this.micsr.trials,
                 maxTicks: this.micsr.maxTicks,
             });
@@ -788,7 +1075,7 @@ class Simulator {
         this.simCancelled = true;
         this.simulationWorkers.forEach((simWorker: any) => {
             if (simWorker.inUse) {
-                simWorker.worker.postMessage({ action: 'CANCEL_SIMULATION' });
+                simWorker.worker.postMessage({ action: "CANCEL_SIMULATION" });
             }
         });
     }
@@ -804,10 +1091,11 @@ class Simulator {
             this.micsr.log({ ...event.data.simResult });
         }
         switch (event.data.action) {
-            case 'FINISHED_SIM':
+            case "FINISHED_SIM":
                 // Send next job in queue to worker
                 this.simulationWorkers[workerID].inUse = false;
-                this.simulationWorkers[workerID].selfTime += event.data.selfTime;
+                this.simulationWorkers[workerID].selfTime +=
+                    event.data.selfTime;
                 // Transfer data into monsterSimData
                 const monsterID = event.data.monsterID;
                 const dungeonID = event.data.dungeonID;
@@ -815,12 +1103,16 @@ class Simulator {
                 Object.assign(this.monsterSimData[simID], event.data.simResult);
                 this.monsterSimData[simID].simulationTime = event.data.selfTime;
                 // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById('MCS Simulate All Button').textContent = `Cancel (${this.currentJob - 1}/${this.simulationQueue.length})`;
+                document.getElementById(
+                    "MCS Simulate All Button"
+                ).textContent = `Cancel (${this.currentJob - 1}/${
+                    this.simulationQueue.length
+                })`;
                 // this.micsr.log(event.data.simResult);
                 // Attempt to add another job to the worker
                 this.startJob(workerID);
                 break;
-            case 'ERR_SIM':
+            case "ERR_SIM":
                 this.micsr.error(event.data.error);
                 break;
         }
@@ -847,45 +1139,81 @@ class Simulator {
      * @return {number[]}
      */
     getDataSet(keyValue: any) {
-        // debugger;
         const dataSet = [];
-        const isSignet = keyValue === 'signetChance';
+        const isSignet = keyValue === "signetChance";
         if (!this.parent.isViewingDungeon) {
             // Compile data from monsters in combat zones
             this.micsr.monsterIDs.forEach((monsterID: any) => {
-                dataSet.push(this.getBarValue(this.monsterSimFilter[monsterID], this.monsterSimData[monsterID], keyValue));
+                dataSet.push(
+                    this.getBarValue(
+                        this.monsterSimFilter[monsterID],
+                        this.monsterSimData[monsterID],
+                        keyValue
+                    )
+                );
             });
             // Perform simulation of monsters in dungeons
             this.micsr.dungeonIDs.forEach((dungeonID: any) => {
-                dataSet.push(this.getBarValue(this.dungeonSimFilter[dungeonID], this.dungeonSimData[dungeonID], keyValue));
+                dataSet.push(
+                    this.getBarValue(
+                        this.dungeonSimFilter[dungeonID],
+                        this.dungeonSimData[dungeonID],
+                        keyValue
+                    )
+                );
             });
             // Perform simulation of monsters in slayer tasks
             this.micsr.taskIDs.forEach((taskID: any) => {
-                dataSet.push(this.getBarValue(this.slayerSimFilter[taskID], this.slayerSimData[taskID], keyValue));
+                dataSet.push(
+                    this.getBarValue(
+                        this.slayerSimFilter[taskID],
+                        this.slayerSimData[taskID],
+                        keyValue
+                    )
+                );
             });
         } else if (this.micsr.isDungeonID(this.parent.viewedDungeonID)) {
             // dungeons
             const dungeonID = this.parent.viewedDungeonID;
-            this.micsr.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
-                const simID = this.simID(monster.id, dungeonID);
-                if (!isSignet) {
-                    dataSet.push(this.getBarValue(true, this.monsterSimData[simID], keyValue));
-                } else {
-                    dataSet.push(0);
-                }
-            });
+            this.micsr.dungeons
+                .getObjectByID(dungeonID)
+                .monsters.forEach((monster: any) => {
+                    const simID = this.simID(monster.id, dungeonID);
+                    if (!isSignet) {
+                        dataSet.push(
+                            this.getBarValue(
+                                true,
+                                this.monsterSimData[simID],
+                                keyValue
+                            )
+                        );
+                    } else {
+                        dataSet.push(0);
+                    }
+                });
             if (isSignet) {
-                const monsters = this.micsr.dungeons.getObjectByID(dungeonID).monsters;
+                const monsters =
+                    this.micsr.dungeons.getObjectByID(dungeonID).monsters;
                 const bossId = monsters[monsters.length - 1];
                 const simID = this.simID(bossId, dungeonID);
-                dataSet[dataSet.length - 1] = this.getBarValue(true, this.monsterSimData[simID], keyValue);
+                dataSet[dataSet.length - 1] = this.getBarValue(
+                    true,
+                    this.monsterSimData[simID],
+                    keyValue
+                );
             }
         } else {
             // slayer tasks
             const taskID = this.parent.viewedDungeonID;
             this.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
                 if (!isSignet) {
-                    dataSet.push(this.getBarValue(true, this.monsterSimData[monsterID], keyValue));
+                    dataSet.push(
+                        this.getBarValue(
+                            true,
+                            this.monsterSimData[monsterID],
+                            keyValue
+                        )
+                    );
                 } else {
                     dataSet.push(0);
                 }
@@ -896,7 +1224,10 @@ class Simulator {
 
     getValue(filter: any, data: any, keyValue: any, scale: any) {
         if (filter && data.simSuccess) {
-            return this.getAdjustedData(data, keyValue) * this.getTimeMultiplier(data, keyValue, scale);
+            return (
+                this.getAdjustedData(data, keyValue) *
+                this.getTimeMultiplier(data, keyValue, scale)
+            );
         }
         return NaN;
     }
@@ -911,9 +1242,9 @@ class Simulator {
             dataMultiplier = this.parent.timeMultiplier;
         }
         if (this.parent.timeMultiplier === -1 && scale) {
-            dataMultiplier = this.getAdjustedData(data, 'killTimeS');
+            dataMultiplier = this.getAdjustedData(data, "killTimeS");
         }
-        if (keyValue === 'petChance') {
+        if (keyValue === "petChance") {
             dataMultiplier = 1;
         }
         return dataMultiplier;
@@ -946,9 +1277,13 @@ class Simulator {
         } else if (this.micsr.isDungeonID(this.parent.viewedDungeonID)) {
             // dungeons
             const dungeonID = this.parent.viewedDungeonID;
-            this.micsr.dungeons.getObjectByID(dungeonID).monsters.forEach((monster: any) => {
-                dataSet.push(this.monsterSimData[this.simID(monster.id, dungeonID)]);
-            });
+            this.micsr.dungeons
+                .getObjectByID(dungeonID)
+                .monsters.forEach((monster: any) => {
+                    dataSet.push(
+                        this.monsterSimData[this.simID(monster.id, dungeonID)]
+                    );
+                });
         } else {
             // slayer tasks
             const taskID = this.parent.viewedDungeonID;
@@ -977,42 +1312,20 @@ class Simulator {
         for (const area of this.micsr.slayerAreas.allObjects) {
             // push `canEnter` for every monster in this zone
             for (const monster of area.monsters) {
-                enterSet.push(this.checkRequirements(area.entryRequirements));
+                enterSet.push(
+                    this.parent.player.checkRequirements(area.entryRequirements)
+                );
             }
         }
         // Perform simulation of monsters in dungeons and auto slayer
         this.micsr.dungeonIDs.forEach((_: string) => {
             enterSet.push(true);
         });
-        this.micsr.taskIDs.forEach((taskID: string) => this.slayerTaskMonsters[taskID].forEach((_: string) => {
-            enterSet.push(true);
-        }));
+        this.micsr.taskIDs.forEach((taskID: string) =>
+            this.slayerTaskMonsters[taskID].forEach((_: string) => {
+                enterSet.push(true);
+            })
+        );
         return enterSet;
-    }
-
-    checkRequirements(reqs: any, notifyOnFailure = false, failureMessage = 'do that.') {
-        return reqs.every((req: any) => this.checkRequirement(req, notifyOnFailure, failureMessage));
-    }
-
-    checkRequirement(requirement: any, notifyOnFailure = false, failureMessage = 'do that.') {
-        let met = false;
-        switch (requirement.type) {
-            case 'Level':
-                met = requirement.levels.every((levelReq: any) => this.micsr.game.skills.getObjectByID(levelReq.skill)?.level || 0 >= levelReq.level);
-                break;
-            case 'Dungeon':
-                met = true;
-                break;
-            case 'Completion':
-                met = true;
-                break;
-            case 'SlayerItem':
-                met = this.parent.player.modifiers.bypassSlayerItems > 0 || this.parent.player.equipment.checkForItemID(requirement.itemID);
-                break;
-            case 'ShopPurchase':
-                met = true;
-                break;
-        }
-        return met;
     }
 }

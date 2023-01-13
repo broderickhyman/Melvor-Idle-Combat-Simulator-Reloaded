@@ -40,15 +40,19 @@ class MICSR {
     equipmentSlotData: EquipmentObject<SlotData>;
     slayerTaskData: SlayerTaskData[];
     taskIDs: any[];
-    imageNotify: (media: string, message: string, messageTheme?: StandardTheme | undefined) => void;
+    imageNotify: (
+        media: string,
+        message: string,
+        messageTheme?: StandardTheme | undefined
+    ) => void;
     cloudManager: any;
     actualGame!: Game;
     game!: SimGame;
     namespace!: DataNamespace;
     gamemodes!: Gamemode[];
     emptyItem!: EquipmentItem;
-    skillIDs: string[];
-    skillNames: string[];
+    skillIDs!: { [index: string]: number };
+    skillNames!: string[];
     pets!: NamespaceRegistry<Pet>;
     dungeons!: NamespaceRegistry<Dungeon>;
     dungeonIDs!: any[];
@@ -69,17 +73,17 @@ class MICSR {
     prayers!: NamespaceRegistry<ActivePrayer>;
     attackStylesIdx: any;
     skillNamesLC: any;
-    showModifiersInstance: ShowModifiers;
+    showModifiersInstance!: ShowModifiers;
 
     constructor(isDev = false) {
         // TODO: Change to a setting
         this.isDev = isDev;
         // combat sim name
-        this.name = 'Melvor Idle Combat Simulator Reloaded';
-        this.shortName = 'Combat Simulator';
+        this.name = "Melvor Idle Combat Simulator Reloaded";
+        this.shortName = "Combat Simulator";
 
         // compatible game version
-        this.gameVersion = 'v1.1.1';
+        this.gameVersion = "v1.1.1";
 
         // combat sim version
         this.majorVersion = 1;
@@ -110,16 +114,25 @@ class MICSR {
         };
     }
 
-    async fetchData(){
-        await this.fetchDataPackage('Demo', `/assets/data/melvorDemo.json?${this.DATA_VERSION}`);
+    async fetchData() {
+        await this.fetchDataPackage(
+            "Demo",
+            `/assets/data/melvorDemo.json?${this.DATA_VERSION}`
+        );
         if (this.cloudManager.hasFullVersionEntitlement) {
-            await this.fetchDataPackage('Full', `/assets/data/melvorFull.json?${this.DATA_VERSION}`);
+            await this.fetchDataPackage(
+                "Full",
+                `/assets/data/melvorFull.json?${this.DATA_VERSION}`
+            );
         }
         if (this.cloudManager.hasTotHEntitlement) {
-            await this.fetchDataPackage('TotH', `/assets/data/melvorTotH.json?${this.DATA_VERSION}`);
+            await this.fetchDataPackage(
+                "TotH",
+                `/assets/data/melvorTotH.json?${this.DATA_VERSION}`
+            );
         }
     }
-    
+
     async initialize(game: SimGame, actualGame: Game) {
         game.registerDataPackage(this.dataPackage["Demo"]);
         if (this.cloudManager.hasFullVersionEntitlement) {
@@ -130,15 +143,28 @@ class MICSR {
         }
         this.setupGame(game, actualGame);
         game.initialize();
-        this.showModifiersInstance = new ShowModifiers(this, '', 'MICSR', false /* TODO */);
+        this.showModifiersInstance = new ShowModifiers(
+            this,
+            "",
+            "MICSR",
+            false /* TODO */
+        );
     }
 
-    versionCheck(exact: any, major: any, minor: any, patch: any, prerelease: any) {
+    versionCheck(
+        exact: any,
+        major: any,
+        minor: any,
+        patch: any,
+        prerelease: any
+    ) {
         // check exact version match
-        if (major === this.majorVersion
-            && minor === this.minorVersion
-            && patch === this.patchVersion
-            && prerelease === this.preReleaseVersion) {
+        if (
+            major === this.majorVersion &&
+            minor === this.minorVersion &&
+            patch === this.patchVersion &&
+            prerelease === this.preReleaseVersion
+        ) {
             return true;
         }
         if (exact) {
@@ -151,7 +177,6 @@ class MICSR {
         }
         if (minor !== this.minorVersion) {
             return minor < this.minorVersion;
-
         }
         if (patch !== this.patchVersion) {
             return patch < this.patchVersion;
@@ -169,18 +194,18 @@ class MICSR {
 
     async fetchDataPackage(id: PackageTypes, url: string) {
         const headers = new Headers();
-        headers.append('Content-Type', 'application/json');
+        headers.append("Content-Type", "application/json");
         const response = await fetch(url, {
-            method: 'GET',
+            method: "GET",
             headers,
         });
         if (!response.ok)
             throw new Error(`Could not fetch data package with URL: ${url}`);
-        this.dataPackage[id] = (await response.json());
+        this.dataPackage[id] = await response.json();
         // this.cleanupDataPackage(id);
     }
 
-    cleanupDataPackage (id: PackageTypes) {
+    cleanupDataPackage(id: PackageTypes) {
         this.dataPackage[id].data.lore = undefined;
         this.dataPackage[id].data.tutorialStages = undefined;
         this.dataPackage[id].data.tutorialStageOrder = undefined;
@@ -189,20 +214,59 @@ class MICSR {
         this.dataPackage[id].data.shopUpgradeChains = undefined;
         this.dataPackage[id].modifications = undefined;
 
-        const includedCategories = ['Slayer'];
+        const includedCategories = ["Slayer"];
 
-        this.dataPackage[id].data.shopPurchases = this.dataPackage[id].data.shopPurchases
-            .filter((x: any) => includedCategories.map((includedCategory: string) => `melvorF:${includedCategory}`).includes(x.category))
+        this.dataPackage[id].data.shopPurchases = this.dataPackage[
+            id
+        ].data.shopPurchases.filter((x: any) =>
+            includedCategories
+                .map(
+                    (includedCategory: string) => `melvorF:${includedCategory}`
+                )
+                .includes(x.category)
+        );
 
         const bannedSkills = [
-            'Woodcutting', 'Firemaking', 'Fishing', 'Mining', 'Cooking', 'Smithing', 'Farming', 'Summoning',
-            'Thieving', 'Fletching', 'Crafting', 'Runecrafting', 'Herblore', 'Agility', 'Astrology', 'Township',
-            'Magic', 'Ranged'
+            "Woodcutting",
+            "Firemaking",
+            "Fishing",
+            "Mining",
+            "Cooking",
+            "Smithing",
+            "Farming",
+            "Summoning",
+            "Thieving",
+            "Fletching",
+            "Crafting",
+            "Runecrafting",
+            "Herblore",
+            "Agility",
+            "Astrology",
+            "Township",
+            // "Magic",
+            // "Ranged",
         ];
-        this.dataPackage[id].data.skillData = this.dataPackage[id].data.skillData
-            .filter((x: any) => !bannedSkills.map((bannedSkill: string) => `melvorD:${bannedSkill}`).includes(x.skillID))
+        let skillData: {
+            skillID: string;
+            data: {
+                altSpells?: any[];
+            };
+        }[] = this.dataPackage[id].data.skillData;
+        skillData = skillData.filter(
+            (skill) =>
+                !bannedSkills
+                    .map((bannedSkill: string) => `melvorD:${bannedSkill}`)
+                    .includes(skill.skillID)
+        );
+        const magicSkillData = skillData.find(
+            (skill) => skill.skillID === "melvorD:Magic"
+        );
+        if (magicSkillData) {
+            magicSkillData.data.altSpells = [];
+        }
+        this.dataPackage[id].data.skillData = skillData;
+        // debugger;
     }
-
 
     // fetching() {
     //     if (!this.cloudManager.hasFullVersionEntitlement && this.dataPackage.Demo === undefined) {
@@ -219,16 +283,21 @@ class MICSR {
 
     // any setup that requires a game object
     setupGame(game: SimGame, actualGame: Game) {
-        // debugger;
         this.actualGame = actualGame;
         this.game = game;
-        let namespace = this.game.registeredNamespaces.getNamespace('micsr');
+        let namespace = this.game.registeredNamespaces.getNamespace("micsr");
         if (namespace === undefined) {
-            namespace = this.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
+            namespace = this.game.registeredNamespaces.registerNamespace(
+                "micsr",
+                "Combat Simulator",
+                true
+            );
         }
         this.namespace = namespace;
         //gamemodes
-        this.gamemodes = this.game.gamemodes.allObjects.filter((x: any) => x.id !== 'melvorD:Unset');
+        this.gamemodes = this.game.gamemodes.allObjects.filter(
+            (x: any) => x.id !== "melvorD:Unset"
+        );
 
         // empty items
         this.emptyItem = this.game.emptyEquipmentItem;
@@ -246,7 +315,9 @@ class MICSR {
         this.pets = this.actualGame.pets;
         // dg array
         this.dungeons = this.actualGame.dungeons;
-        this.dungeonIDs = this.dungeons.allObjects.map((dungeon: any) => dungeon.id);
+        this.dungeonIDs = this.dungeons.allObjects.map(
+            (dungeon: any) => dungeon.id
+        );
         this.dungeonCount = this.dungeonIDs.length;
 
         // TODO filter special dungeons
@@ -254,20 +325,24 @@ class MICSR {
         // TODO filter special monsters
         //  this.dungeons[Dungeons.Into_the_Mist].monsters = [147, 148, 149];
         // monsters
-        this.bardID = 'melvorF:WanderingBard';
+        this.bardID = "melvorF:WanderingBard";
         this.monsters = this.actualGame.monsters;
         this.monsterList = this.actualGame.monsters.allObjects;
         this.combatAreas = this.actualGame.combatAreas;
         this.slayerAreas = this.actualGame.slayerAreas;
         this.monsterIDs = [
             ...this.combatAreas.allObjects
-                .map((area: any) => area.monsters.map((monster: any) => monster.id))
+                .map((area: any) =>
+                    area.monsters.map((monster: any) => monster.id)
+                )
                 .reduce((a: any, b: any) => a.concat(b), []),
             this.bardID,
             ...this.slayerAreas.allObjects
-                .map((area: any) => area.monsters.map((monster: any) => monster.id))
+                .map((area: any) =>
+                    area.monsters.map((monster: any) => monster.id)
+                )
                 .reduce((a: any, b: any) => a.concat(b), []),
-        ]
+        ];
         // potions
         this.herblorePotions = this.actualGame.herblore.actions;
         // items
@@ -302,15 +377,15 @@ class MICSR {
     // logging //
     /////////////
     debug(...args: any[]) {
-        console.debug('MICSR:', ...args);
+        console.debug("MICSR:", ...args);
     }
     log(...args: any[]) {
-        console.log('MICSR:', ...args);
+        console.log("MICSR:", ...args);
     }
     warn(...args: any[]) {
-        console.warn('MICSR:', ...args);
+        console.warn("MICSR:", ...args);
     }
     error(...args: any[]) {
-        console.error('MICSR:', ...args);
+        console.error("MICSR:", ...args);
     }
-};
+}
