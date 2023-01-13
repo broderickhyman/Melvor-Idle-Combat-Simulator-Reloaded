@@ -70,11 +70,9 @@ class SimPlayer extends Player {
     potionSelected!: boolean;
     potionTier!: number;
     runesProvided: any;
-    skillLevel: any;
+    skillLevel: Map<string, number>;
     skillXP: Map<string, number>;
     slayercoins: any;
-    // @ts-expect-error HACK
-    spellSelection: any;
     summoningSynergy: any;
     target: any;
     timers: any;
@@ -95,6 +93,7 @@ class SimPlayer extends Player {
         // this.manager = simManager;
         this.usedFood = 0;
         this.gp = 0;
+        this.skillLevel = new Map();
         this.skillXP = new Map(
             this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
         );
@@ -281,8 +280,8 @@ class SimPlayer extends Player {
     // replace globals with properties
     replaceGlobals() {
         // skillLevel
-        this.skillLevel = this.micsr.skillNames.map((_: any) => 1);
-        this.skillLevel[this.micsr.skillIDs.Hitpoints] = 10;
+        this.skillLevel = new Map(Object.keys(this.micsr.skillIDs).map((skill) => [skill, 0])),
+        this.skillLevel.set(this.micsr.skillIDs.Hitpoints, 10);
         // currentGamemode, numberMultiplier
         this.currentGamemodeID = this.micsr.game.currentGamemode.id;
         // petUnlocked
@@ -374,10 +373,11 @@ class SimPlayer extends Player {
             usedSummoningCharges /= 2;
         }
         // debugger;
-        const skillGain = this.game.skills.allObjects.map((skill) => {
+        const skillGain = this.game.skills.allObjects.reduce((container, skill) => {
             const start = this.skillXP.get(skill.id) || 0;
-            return (skill.xp - start) / seconds;
-        });
+            container[skill.id] = (skill.xp - start) / seconds;
+            return container;
+        }, {} as {[index: string]: number});
         return {
             gp: this.gp / seconds,
             skillXP: skillGain,
@@ -584,7 +584,7 @@ class SimPlayer extends Player {
 
     // get skill level from property instead of global `skillLevel`
     getSkillLevel(skillID: any) {
-        return Math.min(99, this.skillLevel[skillID]);
+        return Math.min(99, this.skillLevel.get(skillID)!);
     }
 
     // don't render anything
@@ -868,7 +868,7 @@ class SimPlayer extends Player {
             case "Level":
                 met = requirement.levels.every(
                     (levelReq: any) =>
-                        this.skillLevel[levelReq.skill] >= levelReq.level
+                        this.skillLevel.get(levelReq.skill)! >= levelReq.level
                 );
                 break;
             case "Dungeon":
@@ -887,6 +887,70 @@ class SimPlayer extends Player {
                 break;
         }
         return met;
+    }
+
+    getSpellFromType(spellType: string) {
+        switch (spellType) {
+            case "standard":
+                return this.spellSelection.standard;
+            case "ancient":
+                return this.spellSelection.ancient;
+            case "aurora":
+                return this.spellSelection.aurora;
+            case "curse":
+                return this.spellSelection.curse;
+            case "archaic":
+                return this.spellSelection.archaic;
+            default:
+                debugger;
+                throw new Error(`Bad spell type: ${spellType}`);
+        }
+    }
+
+    setSpellFromType(spellType: string, spell: CombatSpell) {
+        switch (spellType) {
+            case "standard":
+                this.spellSelection.standard = spell as any;
+                break;
+            case "ancient":
+                this.spellSelection.ancient = spell as any;
+                break;
+            case "aurora":
+                this.spellSelection.aurora = spell as any;
+                break;
+            case "curse":
+                this.spellSelection.curse = spell as any;
+                break;
+            case "archaic":
+                this.spellSelection.archaic = spell as any;
+                break;
+            default:
+                debugger;
+                throw new Error(`Bad spell type: ${spellType}`);
+        }
+    }
+
+    disableSpellFromType(spellType: string) {
+        switch (spellType) {
+            case "standard":
+                this.spellSelection.standard = undefined;
+                break;
+            case "ancient":
+                this.spellSelection.ancient = undefined;
+                break;
+            case "aurora":
+                this.spellSelection.aurora = undefined;
+                break;
+            case "curse":
+                this.spellSelection.curse = undefined;
+                break;
+            case "archaic":
+                this.spellSelection.archaic = undefined;
+                break;
+            default:
+                debugger;
+                throw new Error(`Bad spell type: ${spellType}`);
+        }
     }
 
     hasKey<O extends object>(obj: O, key: PropertyKey): key is keyof O {

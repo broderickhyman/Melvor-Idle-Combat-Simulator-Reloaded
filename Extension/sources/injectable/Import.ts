@@ -54,6 +54,44 @@
 // }
 // this.micsr.defaultSettings.levels[this.micsr.skillIDs.Hitpoints] = 10;
 
+interface IImportSettings {
+    version: any;
+    // lists
+    //TODO astrologyModifiers: any;
+    //TODO course: any;
+    courseMastery: any;
+    equipment: any;
+    levels: Map<string, number>;
+    // TODO petUnlocked: any;
+    // objects
+    styles: {
+        magic: any;
+        melee: any;
+        ranged: any;
+    };
+    // simple values
+    ancient: any;
+    archaic: any;
+    aurora: any;
+    autoEatTier: any;
+    cookingMastery: any;
+    // TODO cookingPool: any;
+    currentGamemode: any;
+    curse: any;
+    foodSelected: any;
+    healAfterDeath: any;
+    isAncient: any;
+    isManualEating: any;
+    isSlayerTask: any;
+    pillar: any;
+    // TODO potionID: any;
+    // TODO potionTier: any;
+    prayerSelected: any;
+    standard: any;
+    summoningSynergy: any;
+    useCombinationRunes: any;
+}
+
 /**
  * Class to handle importing
  */
@@ -186,19 +224,17 @@ class Import {
             this.micsr.actualGame.combat.player.equipmentSets[setID].equipment;
 
         // create settings object
-        const settings = {
+        const settings: IImportSettings = {
             version: this.micsr.version,
             // lists
             //TODO astrologyModifiers: astrologyModifiers,
             //TODO course: chosenAgilityObstacles,
             courseMastery: this.micsr.actualGame.agility.actions.allObjects.map(
-                (action: any) =>
+                (action) =>
                     this.micsr.actualGame.agility.getMasteryLevel(action) >= 99
             ),
-            equipment: equipment.slotArray.map((x: any) => x.item.id),
-            levels: this.micsr.actualGame.skills.allObjects.map(
-                (x: any) => x.level
-            ),
+            equipment: equipment.slotArray.map((x) => x.item.id),
+            levels: new Map(this.micsr.actualGame.skills.allObjects.map((skill) => [skill.id, skill.level])),
             // TODO petUnlocked: petUnlocked,
             // objects
             styles: {
@@ -247,11 +283,11 @@ class Import {
         this.update();
     }
 
-    exportSettings() {
+    exportSettings(): IImportSettings {
         const courseMastery = {};
-        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
         this.player.course.forEach(
             (o: any, i: any) =>
+            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 (courseMastery[o] = this.player.courseMastery[i])
         );
         return {
@@ -263,7 +299,7 @@ class Import {
             equipment: this.player.equipment.slotArray.map(
                 (x: any) => x.item.id
             ),
-            levels: [...this.player.skillLevel],
+            levels: this.player.skillLevel,
             petUnlocked: [...this.player.petUnlocked],
             // objects
             styles: { ...this.player.attackStyles },
@@ -291,21 +327,21 @@ class Import {
         };
     }
 
-    importSettings(settings: any) {
+    importSettings(settings: IImportSettings) {
         if (settings.version !== this.micsr.version) {
             this.micsr.warn(
                 `Importing MICSR ${settings.version} settings in MICSR ${this.micsr.version}.`
             );
         }
         // validate
-        for (const prop in this.micsr.defaultSettings) {
-            if (settings[prop] === undefined) {
-                this.micsr.log(
-                    `No valid ${prop} data imported, using default ${this.micsr.defaultSettings[prop]}.`
-                );
-                settings[prop] = this.micsr.defaultSettings[prop];
-            }
-        }
+        // for (const prop in this.micsr.defaultSettings) {
+        //     if (settings[prop] === undefined) {
+        //         this.micsr.log(
+        //             `No valid ${prop} data imported, using default ${this.micsr.defaultSettings[prop]}.`
+        //         );
+        //         settings[prop] = this.micsr.defaultSettings[prop];
+        //     }
+        // }
         // import settings
         this.importEquipment(settings.equipment);
         this.importLevels(settings.levels);
@@ -359,18 +395,18 @@ class Import {
             if (itemID === "melvorD:Empty_Equipment") {
                 continue;
             }
-            this.app.equipItem(slotID, this.micsr.items.getObjectByID(itemID));
+            this.app.equipItem(slotID, this.micsr.items.getObjectByID(itemID), false);
         }
         // update style drop down
         this.app.updateStyleDropdowns();
     }
 
-    importLevels(levels: any) {
-        this.app.skillKeys.forEach((key: any) => {
+    importLevels(levels: Map<string, number>) {
+        this.app.skillKeys.forEach((key) => {
             this.document.getElementById(`MCS ${key} Input`).value =
-                levels[this.micsr.skillIDs[key]];
+                levels.get(this.micsr.skillIDs[key]);
         });
-        this.player.skillLevel = [...levels];
+        this.player.skillLevel = levels;
     }
 
     importStyle(styles: any) {
@@ -390,7 +426,7 @@ class Import {
     importSpells(spellSelection: any) {
         // Set all active spell UI to be disabled
         Object.keys(this.app.combatData.spells).forEach((spellType) => {
-            const spellID = this.player.spellSelection[spellType];
+            const spellID = this.player.getSpellFromType(spellType);
             this.app.disableSpell(spellType, spellID);
             this.app.enableSpell(spellType, spellSelection[spellType]);
         });

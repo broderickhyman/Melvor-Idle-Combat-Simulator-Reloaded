@@ -261,7 +261,7 @@ class CombatSimulator {
         trials: number,
         maxTicks: number
     ) {
-        this.micsr.log("Creating manager");
+        // this.micsr.log("Creating manager");
         (self as any).numberMultiplier = undefined;
         const reader = new SaveWriter("Read", 1);
         // debugger;
@@ -270,7 +270,7 @@ class CombatSimulator {
         this.micsr.game.onLoad();
         this.micsr.game.combat.player.initForWebWorker();
 
-        this.micsr.log("Finished setup");
+        // this.micsr.log("Finished setup");
         try {
             return this.micsr.game.combat.convertSlowSimToResult(
                 this.micsr.game.combat.runTrials(

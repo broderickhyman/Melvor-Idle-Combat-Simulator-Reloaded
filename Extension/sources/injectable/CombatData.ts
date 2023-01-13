@@ -23,19 +23,19 @@
  */
 class CombatData {
     combatStats: {
-        attackInterval: number,
-        minHit: number,
-        maxHit: number,
-        summoningMaxHit: number,
-        maxAttackRoll: number,
-        maxDefRoll: number,
-        maxRngDefRoll: number,
-        maxMagDefRoll: number,
-        maxHitpoints: number,
-        damageReduction: number,
-        autoEatThreshold: number,
-        lootBonusPercent: number,
-        gpBonus: number,
+        attackInterval: number;
+        minHit: number;
+        maxHit: number;
+        summoningMaxHit: number;
+        maxAttackRoll: number;
+        maxDefRoll: number;
+        maxRngDefRoll: number;
+        maxMagDefRoll: number;
+        maxHitpoints: number;
+        damageReduction: number;
+        autoEatThreshold: number;
+        lootBonusPercent: number;
+        gpBonus: number;
     };
     decreasedAttackSpeed: any;
     dropSelected: any;
@@ -44,7 +44,13 @@ class CombatData {
     manager: SimManager;
     // manager: CombatManager;
     player: SimPlayer;
-    spells: any;
+    spells: {
+        standard: NamespaceRegistry<StandardSpell>;
+        curse: NamespaceRegistry<CurseSpell>;
+        aurora: NamespaceRegistry<AuroraSpell>;
+        ancient: NamespaceRegistry<AncientSpell>;
+        archaic: NamespaceRegistry<ArchaicSpell>;
+    };
     micsr: MICSR;
 
     /**

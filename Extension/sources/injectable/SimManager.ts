@@ -20,7 +20,7 @@
 
 interface ISimGains {
     gp: number;
-    skillXP: number[];
+    skillXP: {[index: string]: number};
     petRolls: {};
     slayercoins: number;
     usedAmmo: number;
@@ -439,7 +439,7 @@ class SimManager extends CombatManager {
         );
         if (success) {
             this.selectMonster(monster, areaData);
-            this.micsr.log("progressing:", monster, areaData);
+            this.micsr.log("Fighting:", monster?.name, areaData.name);
             while (
                 this.simStats.killCount + this.simStats.deathCount < trials &&
                 this.tickCount < totalTickLimit

@@ -507,7 +507,7 @@ class ShowModifiers {
         // all
         this.relevantModifiers.all = this.getModifierNames(
             Object.getOwnPropertyNames(this.creasedModifiers),
-            this.micsr.game.skills.allObjects.map((_: any, x: number) => x),
+            this.micsr.game.skills.allObjects.map((skill, x: number) => skill.id),
         );
 
         // misc
@@ -707,7 +707,7 @@ class ShowModifiers {
         }
     }
 
-    getModifierNames(setNames: any, skillIDs: any) {
+    getModifierNames(setNames: any, skillIDs: string[]) {
         // add skill based on skillID
         skillIDs.forEach((id: any) => {
             if (!setNames.includes(this.micsr.skillNamesLC[id])) {

@@ -80,10 +80,10 @@ class App {
     selectedTimeShorthand: any;
     simOptionsCard!: Card;
     simulator!: Simulator;
-    skillKeys: any;
+    skillKeys: string[];
     skipConstellations: any;
     slayerToggleState: any;
-    spellSelectCard!: Card;
+    spellSelectCard!: TabCard;
     subInfoCard!: Card;
     timeMultiplier: any;
     timeMultipliers: any;
@@ -275,9 +275,9 @@ class App {
             stamina: "assets/media/main/stamina.png",
             question: "assets/media/main/question.svg",
             airRune:
-                this.micsr.game.items.getObjectByID("melvorD:Air_Rune").media,
+                this.micsr.game.items.getObjectByID("melvorD:Air_Rune")!.media,
             mistRune:
-                this.micsr.game.items.getObjectByID("melvorD:Mist_Rune").media,
+                this.micsr.game.items.getObjectByID("melvorD:Mist_Rune")!.media,
             bank: "assets/media/main/bank_header.svg",
             herblore: "assets/media/skills/herblore/herblore.svg",
             cooking: "assets/media/skills/cooking/cooking.svg",
@@ -1079,8 +1079,8 @@ class App {
     }
 
     addNoSingletonTippy(target: any, options: any) {
-        // @ts-expect-error TS(2304): Cannot find name 'tippy'.
         this.tippyNoSingletonInstances = this.tippyNoSingletonInstances.concat(
+            // @ts-expect-error TS(2304): Cannot find name 'tippy'.
             tippy(target, {
                 ...this.tippyOptions,
                 ...options,
@@ -1096,7 +1096,7 @@ class App {
             "150px"
         );
         this.levelSelectCard.addSectionTitle("Player Levels");
-        this.skillKeys.forEach((skillName: any) => {
+        this.skillKeys.forEach((skillName) => {
             let minLevel = 1;
             if (skillName === "Hitpoints") {
                 minLevel = 10;
@@ -1123,7 +1123,7 @@ class App {
                 "100%",
                 "150px"
             )
-        );
+        ) as TabCard;
         // add title for spellbook tab
         this.spellSelectCard.addSectionTitle("Spells");
         // add tab menu, it was not yet created in the constructor
@@ -1133,27 +1133,52 @@ class App {
         this.spellSelectCard.addPremadeTab(
             "Standard",
             this.media.spellbook,
-            this.createSpellSelectCard("Standard Magic", "standard")
+            this.createSpellSelectCard(
+                "Standard Magic",
+                "standard",
+                this.combatData.spells.standard.allObjects,
+                combatMenus.spells.standard
+            )
         );
         this.spellSelectCard.addPremadeTab(
             "Curses",
             this.media.curse,
-            this.createSpellSelectCard("Curses", "curse")
+            this.createSpellSelectCard(
+                "Curses",
+                "curse",
+                this.combatData.spells.curse.allObjects,
+                combatMenus.spells.curse
+            )
         );
         this.spellSelectCard.addPremadeTab(
             "Auroras",
             this.media.aurora,
-            this.createSpellSelectCard("Auroras", "aurora")
+            this.createSpellSelectCard(
+                "Auroras",
+                "aurora",
+                this.combatData.spells.aurora.allObjects,
+                combatMenus.spells.aurora
+            )
         );
         this.spellSelectCard.addPremadeTab(
             "Ancient Magicks",
             this.media.ancient,
-            this.createSpellSelectCard("Ancient Magicks", "ancient")
+            this.createSpellSelectCard(
+                "Ancient Magicks",
+                "ancient",
+                this.combatData.spells.ancient.allObjects,
+                combatMenus.spells.ancient
+            )
         );
         this.spellSelectCard.addPremadeTab(
             "Archaic Magic",
             this.media.ancient,
-            this.createSpellSelectCard("Archaic Magic", "archaic")
+            this.createSpellSelectCard(
+                "Archaic Magic",
+                "archaic",
+                this.combatData.spells.archaic.allObjects,
+                combatMenus.spells.archaic
+            )
         );
 
         // add combination rune toggle
@@ -1171,7 +1196,12 @@ class App {
      * @param {string} spellType The type of spells to generate the select menu for
      * @return {Card} The created spell select card
      */
-    createSpellSelectCard(title: any, spellType: any) {
+    createSpellSelectCard(
+        title: string,
+        spellType: string,
+        spells: CombatSpell[],
+        spellMenu: SpellMenu<CombatSpell>
+    ) {
         const newCard = new Card(
             this.micsr,
             this.spellSelectCard.container,
@@ -1179,36 +1209,19 @@ class App {
             "100px"
         );
         newCard.addSectionTitle(title);
-        const spells = this.combatData.spells[spellType].allObjects;
-        const spellImages = spells.map((spell: any) =>
-            spell.getMediaURL(spell.media)
+        const spellImages = spells.map(
+            (spell) =>
+                // spell.getMediaURL(spell.media)
+                spell.media
         );
-        const spellNames = spells.map((spell: any) => spell.id);
+        const spellNames = spells.map((spell) => spell.id);
         const spellCallbacks = spells.map(
-            (spell: any) => (event: any) =>
+            (spell) => (event: any) =>
                 this.spellButtonOnClick(event, spell, spellType)
         );
-        const tooltips = spells.map((spell: any) => {
-            let tooltip = `<div class="text-center">${spell.name}<br><small><span class="text-info">`;
-            switch (spellType) {
-                case "standard":
-                    tooltip += `Spell Damage: ${
-                        spell.maxHit * numberMultiplier
-                    }`;
-                    break;
-                case "aurora":
-                    tooltip += spell.description;
-                    break;
-                case "ancient":
-                    tooltip += spell.specialAttack.description;
-                    break;
-                default:
-                    tooltip += spell.description;
-            }
-            // @ts-expect-error TS(2304): Cannot find name 'combatMenus'.
-            const runes = combatMenus.spells.standard.getRuneHTML(spell);
-            tooltip += `</span><br><span class="text-warning">Requires:</span><br>${runes}</small></div>`;
-            return tooltip;
+        const tooltips = spells.map((spell) => {
+            // @ts-expect-error
+            return spellMenu.getTooltipHTML(spell);
         });
         newCard.addImageButtons(
             spellImages,
@@ -1232,9 +1245,6 @@ class App {
         const prayerNames: any = [];
         const prayerCallbacks: any = [];
         const tooltips: any = [];
-        const fakePrayerMenu = Object.create(
-            PrayerMenu.prototype
-        ) as PrayerMenu;
         this.micsr.prayers.forEach((prayer) => {
             prayerSources.push(prayer.media);
             prayerNames.push(this.getPrayerName(prayer));
@@ -1242,7 +1252,7 @@ class App {
                 this.prayerButtonOnClick(e, prayer)
             );
             // @ts-expect-error
-            tooltips.push(fakePrayerMenu.getUnlockedTooltipHTML(prayer));
+            tooltips.push(combatMenus.prayer.getUnlockedTooltipHTML(prayer));
         });
         this.prayerSelectCard.addImageButtons(
             prayerSources,
@@ -2572,7 +2582,7 @@ class App {
     /**
      * Equips an item to an equipment slot
      */
-    equipItem(slotID: any, item: any) {
+    equipItem(slotID: any, item: any, sanityCheck = true) {
         let slot = EquipmentSlots[slotID];
         // determine equipment slot
         if (item.occupiesSlots && item.occupiesSlots.includes(slot)) {
@@ -2600,7 +2610,7 @@ class App {
         this.setEquipmentImage(slotID, item);
         // update stats
         this.updateStyleDropdowns();
-        this.updateSpellOptions();
+        this.updateSpellOptions(sanityCheck);
         this.updateCombatStats();
     }
 
@@ -2730,7 +2740,7 @@ class App {
                 (x: any) => x.type === "Level"
             );
             if (levelReqs) {
-                this.skillKeys.forEach((skill: any) => {
+                this.skillKeys.forEach((skill) => {
                     const levelReq = levelReqs.levels.find(
                         (x: any) => x.skill.name === skill
                     );
@@ -2795,7 +2805,10 @@ class App {
     levelInputOnChange(event: any, skillName: any) {
         const newLevel = parseInt(event.currentTarget.value);
         if (newLevel >= 1) {
-            this.player.skillLevel[this.micsr.skillIDs[skillName]] = newLevel;
+            this.player.skillLevel.set(
+                this.micsr.skillIDs[skillName],
+                newLevel
+            );
             // Update Spell and Prayer Button UIS, and deselect things if they become invalid
             if (skillName === "Magic") {
                 this.updateSpellOptions();
@@ -2837,7 +2850,8 @@ class App {
         // Escape if prayer level is not reached
         if (
             !this.player.activePrayers.has(prayer) &&
-            this.player.skillLevel[this.micsr.skillIDs.Prayer] < prayer.level
+            this.player.skillLevel.get(this.micsr.skillIDs.Prayer)! <
+                prayer.level
         ) {
             this.micsr.imageNotify(
                 this.media.prayer,
@@ -2919,8 +2933,8 @@ class App {
     }
 
     // Callback Functions for the spell select buttons
-    spellButtonOnClick(event: any, spell: any, spellType: any) {
-        const selected = this.player.spellSelection[spellType];
+    spellButtonOnClick(event: any, spell: CombatSpell, spellType: string) {
+        const selected = this.player.getSpellFromType(spellType);
         if (selected === spell) {
             this.disableSpell(spellType, spell);
         } else {
@@ -2933,14 +2947,14 @@ class App {
     }
 
     disableSpell(
-        spellType: any,
-        spell: any,
+        spellType: string,
+        spell: CombatSpell | undefined,
         message: string | undefined = undefined
     ) {
         // do nothing
         if (
             spell === undefined ||
-            this.player.spellSelection[spellType] !== spell
+            this.player.getSpellFromType(spellType) !== spell
         ) {
             return;
         }
@@ -2949,7 +2963,7 @@ class App {
         if (button) {
             this.unselectButton(button);
         }
-        this.player.spellSelection[spellType] = undefined;
+        this.player.disableSpellFromType(spellType);
         // send message if required
         if (message) {
             this.micsr.imageNotify(this.media.magic, message, "danger");
@@ -2957,8 +2971,8 @@ class App {
     }
 
     enableSpell(
-        spellType: any,
-        spell: any,
+        spellType: string,
+        spell: CombatSpell,
         message: string | undefined = undefined
     ) {
         // do nothing
@@ -2966,7 +2980,9 @@ class App {
             return;
         }
         // Escape for not meeting the level/item requirement
-        if (this.player.skillLevel[this.micsr.skillIDs.Magic] < spell.level) {
+        if (
+            this.player.skillLevel.get(this.micsr.skillIDs.Magic)! < spell.level
+        ) {
             this.micsr.imageNotify(
                 this.media.magic,
                 `${spell.name} requires level ${spell.level} Magic.`,
@@ -2977,13 +2993,13 @@ class App {
         if (this.checkRequiredItem(spell)) {
             this.micsr.imageNotify(
                 this.media.magic,
-                `${spell.name} requires ${spell.requiredItem.name}.`,
+                `${spell.name} requires ${spell.requiredItem!.name}.`,
                 "danger"
             );
             return;
         }
         // remove previous selection
-        this.disableSpell(spellType, this.player.spellSelection[spellType]);
+        this.disableSpell(spellType, this.player.getSpellFromType(spellType));
         if (spellType === "ancient") {
             this.disableSpell(
                 "standard",
@@ -3003,7 +3019,7 @@ class App {
         if (button) {
             this.selectButton(button);
         }
-        this.player.spellSelection[spellType] = spell;
+        this.player.setSpellFromType(spellType, spell);
         // send message if required
         if (message) {
             this.micsr.imageNotify(this.media.magic, message, "danger");
@@ -3047,19 +3063,19 @@ class App {
             return;
         }
         // get rid of invalid spells selections
-        Object.keys(this.combatData.spells).forEach((spellType) => {
-            if (spellSelection[spellType] === undefined) {
-                return;
-            }
-            if (spellSelection[spellType] === undefined) {
-                this.player.spellSelection[spellType] = undefined;
-                this.micsr.imageNotify(
-                    this.media.magic,
-                    `disabled invalid ${spellType} spell ${spellSelection[spellType].id}`,
-                    "danger"
-                );
-            }
-        });
+        // Object.keys(this.combatData.spells).forEach((spellType) => {
+        //     if (spellSelection[spellType] === undefined) {
+        //         return;
+        //     }
+        //     if (spellSelection[spellType] === undefined) {
+        //         this.player.spellSelection[spellType] = undefined;
+        //         this.micsr.imageNotify(
+        //             this.media.magic,
+        //             `disabled invalid ${spellType} spell ${spellSelection[spellType].id}`,
+        //             "danger"
+        //         );
+        //     }
+        // });
         // check that at least one spell is selected
         if (
             spellSelection.standard === undefined &&
@@ -3079,9 +3095,7 @@ class App {
             this.disableSpell(
                 "ancient",
                 spellSelection.ancient,
-                `Disabled ${
-                    this.combatData.spells.ancient[spellSelection.ancient].name
-                }.`
+                `Disabled ${spellSelection.ancient.name}.`
             );
         }
         // if ancient magic is selected, disable curses
@@ -3092,9 +3106,7 @@ class App {
             this.disableSpell(
                 "curse",
                 spellSelection.curse,
-                `Disabled ${
-                    this.combatData.spells.curse[spellSelection.curse].name
-                }.`
+                `Disabled ${spellSelection.curse.name}.`
             );
         }
     }
@@ -3824,12 +3836,14 @@ class App {
     /**
      * Updates the list of options in the spell menus, based on if the player can use it
      */
-    updateSpellOptions() {
+    updateSpellOptions(sanityCheck = true) {
         this.player.computeAttackType();
         this.player.checkMagicUsage();
         this.checkForSpellLevel();
         this.checkForSpellItem();
-        this.spellSanityCheck();
+        if (sanityCheck) {
+            this.spellSanityCheck();
+        }
     }
 
     /**
@@ -3837,8 +3851,7 @@ class App {
      */
     checkForSpellLevel() {
         const magicLevel =
-            this.micsr.game.skills.getObjectByID(this.micsr.skillIDs.Magic)
-                ?.level || 0;
+            this.micsr.game.skills.getObjectByID("melvorD:Magic")?.level || 0;
         const setSpellsPerLevel = (spell: any, spellType: any) => {
             const id = `MCS ${spell.id} Button Image`;
             const elt = document.getElementById(id);
@@ -3921,7 +3934,9 @@ class App {
      * Updates the prayers that display in the prayer selection card, based on if the player can use it
      */
     updatePrayerOptions() {
-        const prayerLevel = this.player.skillLevel[this.micsr.skillIDs.Prayer];
+        const prayerLevel = this.player.skillLevel.get(
+            this.micsr.skillIDs.Prayer
+        )!;
         this.micsr.prayers.forEach((prayer: any) => {
             const prayerName = this.getPrayerName(prayer);
             if (prayer.prayerLevel > prayerLevel) {

@@ -51,7 +51,7 @@ class MICSR {
     namespace!: DataNamespace;
     gamemodes!: Gamemode[];
     emptyItem!: EquipmentItem;
-    skillIDs!: { [index: string]: number };
+    skillIDs!: { [index: string]: string };
     skillNames!: string[];
     pets!: NamespaceRegistry<Pet>;
     dungeons!: NamespaceRegistry<Dungeon>;
@@ -72,7 +72,7 @@ class MICSR {
     archaicSpells!: NamespaceRegistry<ArchaicSpell>;
     prayers!: NamespaceRegistry<ActivePrayer>;
     attackStylesIdx: any;
-    skillNamesLC: any;
+    skillNamesLC!: { [index: string]: string };
     showModifiersInstance!: ShowModifiers;
 
     constructor(isDev = false) {
@@ -312,11 +312,11 @@ class MICSR {
         // skill IDs
         this.skillIDs = {};
         this.skillNames = [];
-        this.skillNamesLC = [];
-        this.game.skills.allObjects.forEach((x: any, i: number) => {
-            this.skillIDs[x.name] = i;
+        this.skillNamesLC = {};
+        this.game.skills.allObjects.forEach((x, i) => {
+            this.skillIDs[x.name] = x.id;
             this.skillNames.push(x.name);
-            this.skillNamesLC.push(x.name.toLowerCase());
+            this.skillNamesLC[x.id] = x.name.toLowerCase();
         });
         // pets array
         this.pets = this.actualGame.pets;

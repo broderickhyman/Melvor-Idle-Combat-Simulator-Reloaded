@@ -250,7 +250,7 @@ class Consumables {
     setRunesInUse() {
         this.runesInUse = {};
         for (const spellType in this.app.combatData.spells) {
-            const spell = this.player.spellSelection[spellType];
+            const spell = this.player.getSpellFromType(spellType);
             if (spell === undefined) {
                 continue;
             }
