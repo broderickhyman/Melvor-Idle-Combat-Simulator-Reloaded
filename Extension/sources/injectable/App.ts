@@ -880,14 +880,14 @@ class App {
         // auto eat dropdown
         let autoEatTierNames = [
             "No Auto Eat",
-            this.micsr.game.shop.purchases
-                .getObjectByID("melvorD:Auto_Eat_Tier_I")
+            this.micsr.actualGame.shop.purchases
+                .getObjectByID("melvorD:Auto_Eat_Tier_I")!
                 .name.replace(" - Tier", ""),
-            this.micsr.game.shop.purchases
-                .getObjectByID("melvorD:Auto_Eat_Tier_II")
+            this.micsr.actualGame.shop.purchases
+                .getObjectByID("melvorD:Auto_Eat_Tier_II")!
                 .name.replace(" - Tier", ""),
-            this.micsr.game.shop.purchases
-                .getObjectByID("melvorD:Auto_Eat_Tier_III")
+            this.micsr.actualGame.shop.purchases
+                .getObjectByID("melvorD:Auto_Eat_Tier_III")!
                 .name.replace(" - Tier", ""),
         ];
         let autoEatTierValues = [-1, 0, 1, 2];

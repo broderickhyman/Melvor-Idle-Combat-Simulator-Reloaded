@@ -106,6 +106,7 @@ export function setup(setupContext: Modding.ModContext) {
                 await micsr.initialize(simGame, game);
 
                 simGame.decode(reader, saveVersion);
+                simGame.onLoad();
 
                 const app = new App(simGame);
                 await app.initialize(urls);

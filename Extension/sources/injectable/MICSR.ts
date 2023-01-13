@@ -142,7 +142,6 @@ class MICSR {
             game.registerDataPackage(this.dataPackage["TotH"]);
         }
         this.setupGame(game, actualGame);
-        game.initialize();
         this.showModifiersInstance = new ShowModifiers(
             this,
             "",
@@ -214,16 +213,24 @@ class MICSR {
         this.dataPackage[id].data.shopUpgradeChains = undefined;
         this.dataPackage[id].modifications = undefined;
 
-        const includedCategories = ["Slayer"];
+        const includedCategories = ["Slayer", "General"];
 
         this.dataPackage[id].data.shopPurchases = this.dataPackage[
             id
-        ].data.shopPurchases.filter((x: any) =>
-            includedCategories
-                .map(
-                    (includedCategory: string) => `melvorF:${includedCategory}`
-                )
-                .includes(x.category)
+        ].data.shopPurchases.filter(
+            (x: any) =>
+                includedCategories
+                    .map(
+                        (includedCategory: string) =>
+                            `melvorF:${includedCategory}`
+                    )
+                    .includes(x.category) ||
+                includedCategories
+                    .map(
+                        (includedCategory: string) =>
+                            `melvorD:${includedCategory}`
+                    )
+                    .includes(x.category)
         );
 
         const bannedSkills = [

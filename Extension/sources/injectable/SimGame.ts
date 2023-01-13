@@ -33,19 +33,38 @@ class SimGame extends Game {
             this.township = {
                 // @ts-expect-error
                 tasks: {
-                    updateMonsterTasks: () => {},
+                    updateMonsterTasks: () => null,
                 },
             };
             // @ts-expect-error
             this.completion = {
-                updatePet: () => {},
+                updatePet: () => null,
             };
-            this.petManager.unlockPet = () => {};
+            this.petManager.unlockPet = () => null;
+            this.bank.addItem = () => true;
         }
+        // Fix SimPlayer object to match replaced Player object
+        this.combat.player.registerStatProvider(this.petManager);
+        this.combat.player.registerStatProvider(this.shop);
+        this.combat.player.registerStatProvider(this.potions);
     }
 
-    initialize() {
+    onLoad() {
+        // this.completion.onLoad();
+        // this.bank.onLoad();
+        // @ts-expect-error
+        this.potions.computeProvidedStats(false);
+        this.petManager.onLoad();
+        this.shop.computeProvidedStats(false);
         this.combat.initialize();
+        // this.gp.onLoad();
+        // this.slayerCoins.onLoad();
+        // this.raidCoins.onLoad();
+        // this.settings.initializeToggles();
+        // this.settings.initializeChoices();
+        // this.township.postStatLoad();
+        // this.township.tasks.onLoad();
+        // this.settings.onLoad();
     }
 
     constructEventMatcher(data: GameEventMatcherData): GameEventMatcher {

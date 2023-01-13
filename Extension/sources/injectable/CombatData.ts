@@ -22,15 +22,28 @@
  * CombatData class, stores all the combat data of a simulation
  */
 class CombatData {
-    combatStats: any;
+    combatStats: {
+        attackInterval: number,
+        minHit: number,
+        maxHit: number,
+        summoningMaxHit: number,
+        maxAttackRoll: number,
+        maxDefRoll: number,
+        maxRngDefRoll: number,
+        maxMagDefRoll: number,
+        maxHitpoints: number,
+        damageReduction: number,
+        autoEatThreshold: number,
+        lootBonusPercent: number,
+        gpBonus: number,
+    };
     decreasedAttackSpeed: any;
     dropSelected: any;
     equipmentStats: any;
     luckyHerb: any;
     manager: SimManager;
     // manager: CombatManager;
-    modifiers: any;
-    player: any;
+    player: SimPlayer;
     spells: any;
     micsr: MICSR;
 
@@ -43,7 +56,6 @@ class CombatData {
         this.manager = manager;
         this.micsr = manager.micsr;
         this.player = this.manager.player;
-        this.modifiers = this.player.modifiers;
         // Spell Selection
         this.spells = {
             standard: this.micsr.standardSpells,
@@ -72,8 +84,6 @@ class CombatData {
         this.luckyHerb = 0;
         // equipment stats
         this.equipmentStats = this.player.equipmentStats;
-        // combat stats
-        this.combatStats = {};
         // selected item drop
         this.dropSelected = "micsr:none";
     }
@@ -158,6 +168,7 @@ class CombatData {
         this.combatStats.maxHitpoints = this.player.stats.maxHitpoints;
 
         // Calculate auto eat threshold
+        // @ts-expect-error TS(2445)
         this.combatStats.autoEatThreshold = this.player.autoEatThreshold;
     }
 

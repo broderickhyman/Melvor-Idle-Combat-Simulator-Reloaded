@@ -307,6 +307,7 @@ class CombatSimulator {
         // debugger;
         const saveVersion = reader.setDataFromSaveString(saveString);
         this.micsr.game.decodeSimple(reader, saveVersion);
+        this.micsr.game.onLoad();
         this.micsr.game.combat.player.initForWebWorker();
 
         this.micsr.log("Finished setup");

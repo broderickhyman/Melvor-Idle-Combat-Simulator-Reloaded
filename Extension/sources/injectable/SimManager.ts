@@ -82,16 +82,6 @@ class SimManager extends CombatManager {
         super(game as any, namespace);
         this.tickCount = 0;
         this.micsr = game.micsr;
-        // this.game = game;
-        // const simPlayer = SimPlayer.newFromPlayerString(this, playerString);
-        // simPlayer.registerStatProvider(game.petManager);
-        // simPlayer.registerStatProvider(game.shop);
-        // simPlayer.registerStatProvider(game.potions);
-        // simPlayer.initialize();
-        // manager.player = player;
-        // simPlayer.initForWebWorker();
-        // const simPlayer = new SimPlayer(this, game);
-        // this.player = simPlayer as any;
         this.player = new SimPlayer(this, game);
         this.enemy = new SimEnemy(this, game);
         this.simStats = {
@@ -112,7 +102,6 @@ class SimManager extends CombatManager {
         super.initialize();
         this.detachGlobals();
         this.replaceGlobals();
-        this.player.initialize();
         this.renderCombat = false;
     }
 

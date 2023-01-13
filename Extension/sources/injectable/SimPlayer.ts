@@ -33,11 +33,7 @@ class SimPlayer extends Player {
     // @ts-expect-error HACK
     attackStyle: any;
     attackType: any;
-    // @ts-expect-error HACK
-    autoEatEfficiency: any;
-    // @ts-expect-error HACK
-    autoEatThreshold: any;
-    autoEatTier: any;
+    autoEatTier!: number;
     canAurora: any;
     canCurse: any;
     chargesUsed: any;
@@ -218,10 +214,6 @@ class SimPlayer extends Player {
             this.equipment.slots.Summon1.item.id,
             this.equipment.slots.Summon2.item.id
         );
-    }
-
-    initialize(): void {
-        super.initialize();
     }
 
     static newFromPlayerString(manager: SimManager, playerString: string) {

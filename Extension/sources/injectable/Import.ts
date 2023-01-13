@@ -59,7 +59,7 @@
  */
 class Import {
     app: App;
-    autoEatTiers: any;
+    autoEatTiers: ShopPurchase[];
     document: any;
     player: SimPlayer;
     micsr: MICSR;
@@ -70,15 +70,15 @@ class Import {
         this.player = app.player;
         this.document = document;
         this.autoEatTiers = [
-            this.micsr.game.shop.purchases.getObjectByID(
+            this.micsr.actualGame.shop.purchases.getObjectByID(
                 "melvorD:Auto_Eat_Tier_I"
-            ),
-            this.micsr.game.shop.purchases.getObjectByID(
+            )!,
+            this.micsr.actualGame.shop.purchases.getObjectByID(
                 "melvorD:Auto_Eat_Tier_II"
-            ),
-            this.micsr.game.shop.purchases.getObjectByID(
+            )!,
+            this.micsr.actualGame.shop.purchases.getObjectByID(
                 "melvorD:Auto_Eat_Tier_III"
-            ),
+            )!,
         ];
     }
 
@@ -116,10 +116,10 @@ class Import {
             this.micsr.actualGame.combat.player.food.currentSlot.item;
         // get cooking mastery for foodSelected
         const foodMastery = foodSelected.masteryID;
-        // @ts-expect-error TS(2304): Cannot find name 'Skills'.
         const cookingMastery =
-            foodSelected !== "melvorD:Empty_Food" &&
+            foodSelected.name !== "melvorD:Empty_Food" &&
             foodMastery &&
+            // @ts-expect-error TS(2304): Cannot find name 'Skills'.
             foodMastery[0] === Skills.Cooking &&
             // @ts-expect-error TS(2304): Cannot find name 'exp'.
             exp.xp_to_level(MASTERY[Skills.Cooking].xp[foodMastery[1]]) > 99;
@@ -128,7 +128,7 @@ class Import {
         const autoEatTier =
             -1 +
             this.autoEatTiers.filter((x: any) =>
-                this.micsr.actualGame.shop.upgradesPurchased.get(x)
+                this.micsr.actualGame.shop.isUpgradePurchased(x)
             ).length;
         /* TODO
         // get the active astrology modifiers
