@@ -342,6 +342,8 @@ class Simulator {
             CustomSkillMilestone,
             BankRenderQueue,
             ItemUpgrade,
+            TutorialRenderQueue,
+            ShopRenderQueue,
         ].forEach((clas: any) =>
             classNames.push({ name: clas.name, data: emptyClass })
         );
@@ -435,11 +437,9 @@ class Simulator {
             TargetModifiers,
             Timer,
             Tutorial,
-            TutorialRenderQueue,
             BinaryWriter,
             SaveWriter,
             Shop,
-            ShopRenderQueue,
             SlayerTask,
             SlowEffect,
             SplashManager,
@@ -474,6 +474,7 @@ class Simulator {
             ShopCategory,
             ShopPurchase,
             ShopUpgradeChain,
+            DummyShopPurchase,
             BurnEffect,
             PoisonEffect,
             SlayerArea,
@@ -495,6 +496,7 @@ class Simulator {
             GameEventMatcher,
             MonsterKilledEvent,
             MonsterDropEvent,
+            FoodEatenEvent,
             // , SkillActionEventMatcher,
 
             // WoodcuttingActionEventMatcher, FishingActionEventMatcher, FiremakingActionEventMatcher, BonfireLitEventMatcher,
@@ -830,7 +832,7 @@ class Simulator {
         // not time-weighted averages
         data.deathRate = 0;
         data.highestDamageTaken = 0;
-        data.lowestHitpoints = Infinity;
+        data.lowestHitpoints = Number.MAX_SAFE_INTEGER;
         data.killTimeS = 0;
         data.simulationTime = 0;
         monsters.forEach((monster: any) => {

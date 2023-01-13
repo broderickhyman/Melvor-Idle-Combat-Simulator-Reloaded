@@ -45,7 +45,7 @@ class ExportCheat extends Import {
             setEquipmentImage: () => {
             },
             equipItem: (slotID: any, itemID: any) => {
-                const qty = [EquipmentSlots.Quiver, EquipmentSlots.Summon1, EquipmentSlots.Summon2].includes(slotID) ? 1e9 : 1;
+                const qty = [EquipmentSlots.Quiver, EquipmentSlots.Summon1, EquipmentSlots.Summon2].includes(slotID) ? Number.MAX_SAFE_INTEGER : 1;
                 // @ts-expect-error TS(2304): Cannot find name 'addItemToBank'.
                 addItemToBank(itemID, qty, true, false, true);
                 this.player.equipItem(itemID, 0, EquipmentSlots[slotID], qty)
@@ -69,7 +69,7 @@ class ExportCheat extends Import {
         this.player.computeAllStats();
         // add some runes, in case we need them
         // @ts-expect-error TS(2304): Cannot find name 'items'.
-        items.filter((x: any) => x.type === 'Rune').forEach((x: any) => addItemToBank(x.id, 1e9, true, false, true));
+        items.filter((x: any) => x.type === 'Rune').forEach((x: any) => addItemToBank(x.id, Number.MAX_SAFE_INTEGER, true, false, true));
         // set levels and completion to 100%
         // @ts-expect-error TS(2304): Cannot find name 'skillLevel'.
         skillLevel.fill(99)
@@ -134,8 +134,8 @@ class ExportCheat extends Import {
         // @ts-expect-error TS(2304): Cannot find name 'items'.
         if (items[foodSelected] !== undefined) {
             // @ts-expect-error TS(2304): Cannot find name 'addItemToBank'.
-            addItemToBank(foodSelected, 1e9);
-            this.player.equipFood(foodSelected, 1e9);
+            addItemToBank(foodSelected, Number.MAX_SAFE_INTEGER);
+            this.player.equipFood(foodSelected, Number.MAX_SAFE_INTEGER);
         }
         // set cooking pool
         // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
@@ -163,7 +163,7 @@ class ExportCheat extends Import {
         if (isSlayerTask) {
             this.micsr.actualGame.combat.slayerTask.monster = this.micsr.monsters.getObjectByID(this.actualApp.barMonsterIDs[this.actualApp.selectedBar]);
         }
-        this.micsr.actualGame.combat.slayerTask.killsLeft = isSlayerTask * 1e9;
+        this.micsr.actualGame.combat.slayerTask.killsLeft = isSlayerTask * Number.MAX_SAFE_INTEGER;
     }
 
     importGameMode(currentGamemode: any) {

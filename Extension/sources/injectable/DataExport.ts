@@ -75,8 +75,8 @@ class DataExport {
         }
         if (x.toString() === "[object Object]") {
             const result = {};
-            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             Object.getOwnPropertyNames(x).forEach(
+                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
                 (prop) => (result[prop] = this.round(x[prop]))
             );
             return result;

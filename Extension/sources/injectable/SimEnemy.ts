@@ -58,7 +58,6 @@ class SimEnemy extends Enemy {
         };
     }
 
-    // decode(reader: SaveWriter, version: number): void {
-
-    // }
+    // Don't render
+    render() {}
 }

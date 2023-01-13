@@ -122,7 +122,7 @@ class Consumables {
             name,
             '',
             0,
-            Infinity,
+            Number.MAX_SAFE_INTEGER,
             (event: any) => this.setConsumableSecondsFromEvent(event, id),
         );
         if (override !== undefined) {

@@ -230,7 +230,6 @@ class SimPlayer extends Player {
         // recompute stats
         this.updateForEquipmentChange();
         this.resetGains();
-        this.computeModifiers();
     }
 
     // detach globals attached by parent constructor
@@ -732,7 +731,7 @@ class SimPlayer extends Player {
         // Unequip previous food
         this.food.unequipSelected();
         // Proceed to equip the food
-        this.food.equip(item, Infinity);
+        this.food.equip(item, Number.MAX_SAFE_INTEGER);
     }
 
     unequipFood() {
@@ -834,20 +833,6 @@ class SimPlayer extends Player {
         super.damage(amount, source);
         this.highestDamageTaken = Math.max(this.highestDamageTaken, amount);
         if (this.hitpoints > 0) {
-            this.autoEat();
-            if (
-                this.hitpoints <
-                (this.stats.maxHitpoints *
-                    this.modifiers.increasedRedemptionThreshold) /
-                    100
-            ) {
-                this.heal(
-                    applyModifier(
-                        this.stats.maxHitpoints,
-                        this.modifiers.increasedRedemptionPercent
-                    )
-                );
-            }
             if (
                 this.hitpoints <
                 (this.stats.maxHitpoints *
@@ -865,7 +850,7 @@ class SimPlayer extends Player {
 
     autoEat() {
         if (this.emptyAutoHeal) {
-            this.usedFood = Infinity;
+            this.usedFood = Number.MAX_SAFE_INTEGER;
         } else {
             super.autoEat();
         }

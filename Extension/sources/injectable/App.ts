@@ -908,7 +908,7 @@ class App {
     }
 
     equipFood(item: any) {
-        this.player.equipFood(item);
+        this.player.equipFood(item, Number.MAX_SAFE_INTEGER);
         const img = document.getElementById("MCS Food Image");
         if (item === "melvorD:Empty_Equipment") {
             (img as any).src = "assets/media/skills/combat/food_empty.svg";
@@ -1116,7 +1116,7 @@ class App {
                 skillName,
                 minLevel,
                 minLevel,
-                Infinity,
+                Number.MAX_SAFE_INTEGER,
                 (event: any) => this.levelInputOnChange(event, skillName)
             );
         });
@@ -1856,7 +1856,7 @@ class App {
             "Alch Min Sale Value",
             this.loot.alchemyCutoff,
             0,
-            Infinity,
+            Number.MAX_SAFE_INTEGER,
             (event: any) => this.alchemyCutoffInputOnChange(event)
         );
     }

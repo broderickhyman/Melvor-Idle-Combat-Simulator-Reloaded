@@ -254,46 +254,6 @@ class CombatSimulator {
     /**
      * Simulation Method for a single monster
      */
-    // async simulateMonster(
-    //     playerString: string,
-    //     monsterID: string,
-    //     dungeonID: string,
-    //     trials: number,
-    //     maxTicks: number
-    // ) {
-    //     this.micsr.log("Creating manager");
-    //     (self as any).numberMultiplier = undefined;
-    //     const reader = new SaveWriter("Read", 1);
-    //     // debugger;
-    //     const saveVersion = reader.setDataFromSaveString(playerString);
-    //     this.micsr.game.combat.player.decode(reader, saveVersion);
-    //     this.micsr.game.combat.player.initForWebWorker();
-
-    //     this.micsr.log("Finished setup");
-    //     try {
-    //         return this.micsr.game.combat.convertSlowSimToResult(
-    //             this.micsr.game.combat.runTrials(
-    //                 monsterID,
-    //                 dungeonID,
-    //                 trials,
-    //                 maxTicks
-    //             ),
-    //             trials
-    //         );
-    //     } catch (error) {
-    //         this.micsr.error(
-    //             `Error while simulating monster ${monsterID} in dungeon ${dungeonID}: ${error}`
-    //         );
-    //         return {
-    //             simSuccess: false,
-    //             reason: "simulation error",
-    //         };
-    //     }
-    // }
-
-    /**
-     * Simulation Method for a single monster
-     */
     async simulateMonster(
         saveString: string,
         monsterID: string,

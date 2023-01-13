@@ -72,6 +72,7 @@ class SimGame extends Game {
     }
 
     generateSaveStringSimple(): string {
+        // @ts-expect-error
         const header = this.getSaveHeader();
         const writer = new SaveWriter("Write", 512);
         this.encodeSimple(writer);
@@ -95,8 +96,8 @@ class SimGame extends Game {
         this.combat.encode(writer);
         // this.golbinRaid.encode(writer);
         // this.minibar.encode(writer);
-        // this.petManager.encode(writer);
-        // this.shop.encode(writer);
+        this.petManager.encode(writer);
+        this.shop.encode(writer);
         // this.itemCharges.encode(writer);
         this.tutorial.encode(writer);
         // this.potions.encode(writer);
@@ -155,8 +156,8 @@ class SimGame extends Game {
         this.combat.decode(reader, version);
         // this.golbinRaid.decode(reader, version);
         // this.minibar.decode(reader, version);
-        // this.petManager.decode(reader, version);
-        // this.shop.decode(reader, version);
+        this.petManager.decode(reader, version);
+        this.shop.decode(reader, version);
         // this.itemCharges.decode(reader, version);
         this.tutorial.decode(reader, version);
         // this.potions.decode(reader, version);
@@ -182,6 +183,9 @@ class SimGame extends Game {
         //     if (!this.isGolbinRaid) this._isPaused = false;
         // }
     }
+
+    // Don't render
+    render() {}
 }
 
 class CustomEventMatcher extends GameEventMatcher {
