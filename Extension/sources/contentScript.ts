@@ -38,6 +38,7 @@ async function loadScripts(ctx: Modding.ModContext) {
     'Plotter',
     'Menu',
     'Simulator',
+    'SimGame',
     'SimEnemy',
     'SimManager',
     'SimPlayer',
@@ -45,40 +46,59 @@ async function loadScripts(ctx: Modding.ModContext) {
     // uses the other classes
     'App',
   ];
-  // debugger;
   for (let i = 0; i < injectableNames.length; i++) {
     const scriptPath = `built/injectable/${injectableNames[i]}.js`;
     await ctx.loadScript(scriptPath);
   }
-  await ctx.loadScript('built/workers/simulator.js');
+  // await ctx.loadScript('built/workers/simulator.js');
 }
 
 export function setup(setupContext: Modding.ModContext) {
+  const isDev = true;
   loadScripts(setupContext);
 
+  setupContext.onCharacterSelectionLoaded(() => {
+    if (isDev) {
+      console.clear();
+      // Load character
+      $("#save-slot-display-3").find("button.btn-gamemode-standard").trigger("click");
+      // Accept warning
+      $("button.swal2-confirm").trigger("click");
+    }
+  });
+
   setupContext.onInterfaceReady(async (characterContext) => {
-    // debugger;
     const urls = {
       crossedOut: characterContext.getResourceUrl('icons/crossedOut.svg'),
       simulationWorker: characterContext.getResourceUrl('built/workers/simulator.js'),
     };
-    const micsr = new MICSR(game);
-    await micsr.initialize();
-
+    const micsr = new MICSR(isDev);
+    
     // micsr.log('Loading sim with provided URLS');
     let tryLoad = true;
     let wrongVersion = false;
     if (gameVersion !== micsr.gameVersion && gameVersion !== localStorage.getItem('MICSR-gameVersion')) {
       wrongVersion = true;
       tryLoad = window.confirm(`${micsr.name} ${micsr.version}\n`
-        + `A different game version was detected (expected: ${micsr.gameVersion}).\n`
-        + `Loading the combat sim may cause unexpected behaviour.\n`
-        + `After a successful load, this popup will be skipped for Melvor ${gameVersion}\n`
-        + `Try loading the simulator?`);
+      + `A different game version was detected (expected: ${micsr.gameVersion}).\n`
+      + `Loading the combat sim may cause unexpected behaviour.\n`
+      + `After a successful load, this popup will be skipped for Melvor ${gameVersion}\n`
+      + `Try loading the simulator?`);
     }
     if (tryLoad) {
       try {
-        const app = new App(micsr);
+        // debugger;
+        const saveString = game.generateSaveString();
+        const reader = new SaveWriter('Read',1);
+        const saveVersion = reader.setDataFromSaveString(saveString);
+        const simGame = new SimGame(micsr);
+
+        await micsr.fetchData();
+        await micsr.initialize(simGame, game);
+
+        simGame.decode(reader, saveVersion);
+
+        const app = new App(simGame);
         await app.initialize(urls);
         if (wrongVersion) {
           micsr.log(`${micsr.name} ${micsr.version} loaded, but simulation results may be inaccurate due to game version incompatibility.`);
@@ -87,11 +107,13 @@ export function setup(setupContext: Modding.ModContext) {
         } else {
           micsr.log(`${micsr.name} ${micsr.version} loaded.`);
         }
-        if(micsr.isDev){
+        if (micsr.isDev) {
           // Auto open the combat sim menu
           $("#mcsButton").children().first().trigger("click");
-          // Import first set
+          // Import set
           $("[id='MCS 1 Button']").trigger("click");
+          // Start sim
+          $("[id='MCS Simulate All Button']").trigger("click")
         }
       } catch (error) {
         micsr.warn(`${micsr.name} ${micsr.version} was not loaded due to the following error:`);

@@ -77,7 +77,7 @@ class Simulator {
         this.micsr.monsters.forEach((monster: any) => {
             this.monsterSimData[monster.id] = this.newSimData(true);
             this.monsterSimIDs.push(monster.id);
-            this.monsterSimFilter[monster.id] = true;
+            this.monsterSimFilter[monster.id] = this.micsr.isDev;
         });
         this.dungeonSimData = {};
         this.micsr.dungeons.forEach((dungeon: any) => {
@@ -184,6 +184,11 @@ class Simulator {
                 { name: 'combatTriangle', data: combatTriangle },
                 { name: 'numberMultiplier', data: numberMultiplier },
                 { name: 'burnEffect', data: burnEffect },
+                { name: 'poisonEffect', data: poisonEffect },
+                { name: 'rageEffect', data: rageEffect },
+                { name: 'shockEffect', data: shockEffect },
+                { name: 'dualityEffect', data: dualityEffect },
+                { name: 'deadlyPoisonEffect', data: deadlyPoisonEffect },
                 { name: 'afflictionEffect', data: afflictionEffect },
                 { name: 'frostBurnEffect', data: frostBurnEffect },
                 { name: 'effectMedia', data: {} },
@@ -193,6 +198,7 @@ class Simulator {
                 { name: 'equipmentSlotData', data: this.cloner.equipmentSlotData() },
                 { name: 'modifierData', data: this.cloner.modifierData() },
                 { name: 'SlayerTierID', data: SlayerTierID },
+                { name: 'AttackTypeID', data: AttackTypeID },
             ];
         [
             // these objects are copied from the game
@@ -252,6 +258,11 @@ class Simulator {
         // these classes are empty for the simulation
         // contains empty functions to make the classes work
         const emptyClass = class {
+            rootItems: any;
+            constructor() {
+                this.rootItems = [];
+            }
+
             addDummyItemOnLoad() {
             };
 
@@ -266,15 +277,17 @@ class Simulator {
             };
         };
         [
-            CombatQuickEquipMenu, Bank, Completion, Minibar, Settings, SkillRenderQueue,
+            CombatQuickEquipMenu, Completion, Minibar, Settings, SkillRenderQueue,
             CompletionMap, AltMagicRenderQueue, PrayerRenderQueue, ArtisanSkillRenderQueue,
             WoodcuttingRenderQueue, FishingRenderQueue, FiremakingRenderQueue, CookingRenderQueue,
             MiningRenderQueue, ThievingRenderQueue, FarmingRenderQueue, TownshipTasks, TownshipData,
             AgilityRenderQueue, SummoningRenderQueue, AstrologyRenderQueue, TownshipRenderQueue,
-            MasteryLevelUnlock, CustomSkillMilestone,
+            MasteryLevelUnlock, CustomSkillMilestone, BankRenderQueue, ItemUpgrade
         ].forEach((clas: any) => classNames.push({ name: clas.name, data: emptyClass }));
         // these classes are copied from the game
         [
+            Bank, BankItem,
+
             NamespaceMap, NamespaceRegistry, NamespacedObject, NamespacedArray, ItemRegistry, CharacterStats,
             NormalDamage, Gamemode, Page, Skill, SkillWithMastery, CombatSkill, SkillMasteryMilestone, GatheringSkill, CraftingSkill, ArtisanSkill,
             // skills
@@ -315,7 +328,7 @@ class Simulator {
             // CookingRecipe, SkillCategory, CookingCategory
 
             // Combat sim classes
-            MICSR, ShowModifiers, SimManager, SimPlayer, SimEnemy, Simulator, CloneData
+            MICSR, ShowModifiers, SimManager, SimPlayer, SimEnemy, SimGame, Simulator, CloneData
         ].forEach((clas: any) => classNames.push({ name: clas.name, data: clas }));
         const classes: { [name: string]: string; } = {};
         classNames.forEach(clas => {
@@ -335,6 +348,7 @@ class Simulator {
             this.micsr.log('An error occurred in a simulation worker');
             this.micsr.log(event);
         };
+        // debugger;
         worker.postMessage({
             action: 'RECEIVE_GAMEDATA',
             // constants
@@ -348,19 +362,21 @@ class Simulator {
             classes: classes,
             // TODO: This might also be sent with the MICSR object
             slayerTaskData: SlayerTask.data,
-            dataPackage: this.micsr.dataPackage
+            dataPackage: this.micsr.dataPackage,
+            //// @ts-expect-error
+            // pakoInflate: pako.inflate.toString()
         });
     }
 
     /**
      * Iterate through all the combatAreas and this.micsr.dungeons to create a set of monsterSimData and dungeonSimData
      */
-    simulateCombat(single: any) {
+    async simulateCombat(single: any) {
         this.setupCurrentSim(single);
         // Start simulation workers
         // @ts-expect-error TS(2531): Object is possibly 'null'.
         document.getElementById('MCS Simulate All Button').textContent = `Cancel (0/${this.simulationQueue.length})`;
-        this.initializeSimulationJobs();
+        await this.initializeSimulationJobs();
     }
 
     initCurrentSim() {
@@ -499,7 +515,7 @@ class Simulator {
         }
         // Queue simulation of monsters in slayer areas
         this.micsr.slayerAreas.forEach((area: any) => {
-            if (!this.parent.player.checkRequirements(area.entryRequirements)) {
+            if (!this.micsr.game.checkRequirements(area.entryRequirements)) {
                 const tryToSim = area.monsters.reduce((sim: any, monster: any) => (this.monsterSimFilter[monster.id] && !this.monsterSimData[monster.id].inQueue) || sim, false);
                 if (tryToSim) {
                     this.parent.notify(`Can't access ${area.name}`, 'danger');
@@ -697,7 +713,7 @@ class Simulator {
     }
 
     /** Starts processing simulation jobs */
-    initializeSimulationJobs() {
+    async initializeSimulationJobs() {
         if (!this.simInProgress) {
             if (this.simulationQueue.length > 0) {
                 this.simInProgress = true;
@@ -705,7 +721,7 @@ class Simulator {
                 for (let i = 0; i < this.simulationWorkers.length; i++) {
                     this.simulationWorkers[i].selfTime = 0;
                     if (i < this.simulationQueue.length) {
-                        this.startJob(i);
+                        await this.startJob(i);
                     } else {
                         break;
                     }
@@ -720,15 +736,21 @@ class Simulator {
     /** Starts a job for a given worker
      * @param {number} workerID
      */
-    startJob(workerID: any) {
+    async startJob(workerID: any) {
         if (this.currentJob < this.simulationQueue.length && !this.simCancelled) {
             const monsterID = this.simulationQueue[this.currentJob].monsterID;
             const dungeonID = this.simulationQueue[this.currentJob].dungeonID;
+            const saveString = this.micsr.game.generateSaveString();
+            const reader = new SaveWriter('Read', 1);
+            const saveVersion = reader.setDataFromSaveString(saveString);
+            // debugger;
             this.simulationWorkers[workerID].worker.postMessage({
                 action: 'START_SIMULATION',
                 monsterID: monsterID,
                 dungeonID: dungeonID,
-                playerString: this.parent.player.generatePlayerString(),
+                // playerString: SimPlayer.generatePlayerString(this.micsr.game, this.parent.player as any as Player),
+                saveString: saveString,
+                saveVersion: saveVersion,
                 trials: this.micsr.trials,
                 maxTicks: this.micsr.maxTicks,
             });
@@ -749,7 +771,7 @@ class Simulator {
                 if (this.isTestMode) {
                     this.testCount++;
                     if (this.testCount < this.testMax) {
-                        this.simulateCombat(false);
+                        await this.simulateCombat(false);
                     } else {
                         this.isTestMode = false;
                     }
@@ -825,6 +847,7 @@ class Simulator {
      * @return {number[]}
      */
     getDataSet(keyValue: any) {
+        // debugger;
         const dataSet = [];
         const isSignet = keyValue === 'signetChance';
         if (!this.parent.isViewingDungeon) {
@@ -954,7 +977,7 @@ class Simulator {
         for (const area of this.micsr.slayerAreas.allObjects) {
             // push `canEnter` for every monster in this zone
             for (const monster of area.monsters) {
-                enterSet.push(this.parent.player.checkRequirements(area.entryRequirements));
+                enterSet.push(this.checkRequirements(area.entryRequirements));
             }
         }
         // Perform simulation of monsters in dungeons and auto slayer
@@ -965,5 +988,31 @@ class Simulator {
             enterSet.push(true);
         }));
         return enterSet;
+    }
+
+    checkRequirements(reqs: any, notifyOnFailure = false, failureMessage = 'do that.') {
+        return reqs.every((req: any) => this.checkRequirement(req, notifyOnFailure, failureMessage));
+    }
+
+    checkRequirement(requirement: any, notifyOnFailure = false, failureMessage = 'do that.') {
+        let met = false;
+        switch (requirement.type) {
+            case 'Level':
+                met = requirement.levels.every((levelReq: any) => this.micsr.game.skills.getObjectByID(levelReq.skill)?.level || 0 >= levelReq.level);
+                break;
+            case 'Dungeon':
+                met = true;
+                break;
+            case 'Completion':
+                met = true;
+                break;
+            case 'SlayerItem':
+                met = this.parent.player.modifiers.bypassSlayerItems > 0 || this.parent.player.equipment.checkForItemID(requirement.itemID);
+                break;
+            case 'ShopPurchase':
+                met = true;
+                break;
+        }
+        return met;
     }
 }

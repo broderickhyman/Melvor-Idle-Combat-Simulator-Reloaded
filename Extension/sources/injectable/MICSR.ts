@@ -43,12 +43,12 @@ class MICSR {
     imageNotify: (media: string, message: string, messageTheme?: StandardTheme | undefined) => void;
     cloudManager: any;
     actualGame!: Game;
-    game!: Game;
+    game!: SimGame;
     namespace!: DataNamespace;
     gamemodes!: Gamemode[];
     emptyItem!: EquipmentItem;
-    skillIDs: any;
-    skillNames: any;
+    skillIDs: string[];
+    skillNames: string[];
     pets!: NamespaceRegistry<Pet>;
     dungeons!: NamespaceRegistry<Dungeon>;
     dungeonIDs!: any[];
@@ -71,9 +71,9 @@ class MICSR {
     skillNamesLC: any;
     showModifiersInstance: ShowModifiers;
 
-    constructor(game: Game) {
+    constructor(isDev = false) {
         // TODO: Change to a setting
-        this.isDev = true;
+        this.isDev = isDev;
         // combat sim name
         this.name = 'Melvor Idle Combat Simulator Reloaded';
         this.shortName = 'Combat Simulator';
@@ -108,13 +108,9 @@ class MICSR {
             // Full: {},
             // TotH: {}
         };
-
-        this.setupGame(game);
-
-        this.showModifiersInstance = new ShowModifiers(this, '', 'MICSR', false /* TODO */);
     }
 
-    async initialize() {
+    async fetchData(){
         await this.fetchDataPackage('Demo', `/assets/data/melvorDemo.json?${this.DATA_VERSION}`);
         if (this.cloudManager.hasFullVersionEntitlement) {
             await this.fetchDataPackage('Full', `/assets/data/melvorFull.json?${this.DATA_VERSION}`);
@@ -122,6 +118,19 @@ class MICSR {
         if (this.cloudManager.hasTotHEntitlement) {
             await this.fetchDataPackage('TotH', `/assets/data/melvorTotH.json?${this.DATA_VERSION}`);
         }
+    }
+    
+    async initialize(game: SimGame, actualGame: Game) {
+        game.registerDataPackage(this.dataPackage["Demo"]);
+        if (this.cloudManager.hasFullVersionEntitlement) {
+            game.registerDataPackage(this.dataPackage["Full"]);
+        }
+        if (this.cloudManager.hasTotHEntitlement) {
+            game.registerDataPackage(this.dataPackage["TotH"]);
+        }
+        this.setupGame(game, actualGame);
+        game.initialize();
+        this.showModifiersInstance = new ShowModifiers(this, '', 'MICSR', false /* TODO */);
     }
 
     versionCheck(exact: any, major: any, minor: any, patch: any, prerelease: any) {
@@ -168,7 +177,7 @@ class MICSR {
         if (!response.ok)
             throw new Error(`Could not fetch data package with URL: ${url}`);
         this.dataPackage[id] = (await response.json());
-        this.cleanupDataPackage(id);
+        // this.cleanupDataPackage(id);
     }
 
     cleanupDataPackage (id: PackageTypes) {
@@ -209,13 +218,15 @@ class MICSR {
     // }
 
     // any setup that requires a game object
-    setupGame(game: Game) {
-        this.actualGame = game;
-        this.game = this.actualGame; // TODO this should be a mock game object probably
-        this.namespace = this.game.registeredNamespaces.getNamespace('micsr');
-        if (this.namespace === undefined) {
-            this.namespace = this.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
+    setupGame(game: SimGame, actualGame: Game) {
+        // debugger;
+        this.actualGame = actualGame;
+        this.game = game;
+        let namespace = this.game.registeredNamespaces.getNamespace('micsr');
+        if (namespace === undefined) {
+            namespace = this.game.registeredNamespaces.registerNamespace("micsr", 'Combat Simulator', true);
         }
+        this.namespace = namespace;
         //gamemodes
         this.gamemodes = this.game.gamemodes.allObjects.filter((x: any) => x.id !== 'melvorD:Unset');
 

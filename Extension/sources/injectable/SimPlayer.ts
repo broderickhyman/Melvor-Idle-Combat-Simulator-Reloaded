@@ -50,9 +50,9 @@ class SimPlayer extends Player {
     dataNames: any;
     eatFood: any;
     emptyAutoHeal: any;
-    // @ts-expect-error HACK
-    equipment: any;
-    equipmentSets: any;
+    //// @ts-expect-error HACK
+    // equipment: any;
+    // equipmentSets: any;
     food: any;
     getFoodHealing: any;
     gp: any;
@@ -65,6 +65,7 @@ class SimPlayer extends Player {
     isManualEating: any;
     isSlayerTask: any;
     lowestHitpoints: any;
+    // @ts-expect-error Force SimManager type
     manager: SimManager;
     petRolls: any;
     petUnlocked: any;
@@ -74,7 +75,7 @@ class SimPlayer extends Player {
     potionTier: any;
     runesProvided: any;
     skillLevel: any;
-    skillXP: any;
+    skillXP: Map<string, number>;
     slayercoins: any;
     // @ts-expect-error HACK
     spellSelection: any;
@@ -92,13 +93,25 @@ class SimPlayer extends Player {
     activeSummoningSynergy: any;
     micsr: MICSR;
 
-    constructor(simManager: SimManager, simGame: Game) {
-        super(simManager, simGame);
+    constructor(simManager: SimManager, simGame: SimGame) {
+        super(simManager as any, simGame as any);
         this.micsr = simManager.micsr;
-        this.manager = simManager;
+        // this.manager = simManager;
         this.usedFood = 0;
-        this.detachGlobals();
-        this.replaceGlobals();
+        this.gp = 0;
+        this.skillXP = new Map(this.game.skills.allObjects.map(skill => [skill.id, skill.xp]));
+        this.petRolls = {};
+        this._slayercoins = 0;
+        this.usedAmmo = 0;
+        this.usedFood = 0;
+        this.usedRunes = {};
+        this.usedPotionCharges = 0;
+        this.usedPrayerPoints = 0;
+        this.chargesUsed = {
+            Summon1: 0,
+            Summon2: 0,
+        };
+        this.highestDamageTaken = 0;
         // remove standard spell selection
         this.spellSelection.standard = undefined;
         // overwrite food consumption
@@ -207,9 +220,14 @@ class SimPlayer extends Player {
         return this.getSynergyData(this.equipment.slots.Summon1.item.id, this.equipment.slots.Summon2.item.id);
     }
 
+    initialize(): void {
+        super.initialize();
+    }
+
     static newFromPlayerString(manager: SimManager, playerString: string) {
         const reader = new SaveWriter('Read', 1);
         reader.setDataFromSaveString(playerString);
+        // reader.setRawData(playerString)
         const newSimPlayer = new SimPlayer(manager, manager.micsr.game);
         newSimPlayer.decode(reader, manager.micsr.currentSaveVersion);
         return newSimPlayer;
@@ -324,7 +342,7 @@ class SimPlayer extends Player {
 
     resetGains() {
         this.gp = 0;
-        this.skillXP = this.micsr.skillNames.map((_: any) => 0);
+        this.skillXP = new Map(this.game.skills.allObjects.map(skill => [skill.id, skill.xp]));
         this.petRolls = {};
         this._slayercoins = 0;
         this.usedAmmo = 0;
@@ -368,9 +386,13 @@ class SimPlayer extends Player {
         if (this.chargesUsed.Summon1 > 0 && this.chargesUsed.Summon2 > 0) {
             usedSummoningCharges /= 2;
         }
+        const skillGain = this.game.skills.allObjects.map(skill => {
+            const start = this.skillXP.get(skill.id) || 0;
+            return (skill.xp - start) / seconds;
+        });
         return {
             gp: this.gp / seconds,
-            skillXP: this.skillXP.map((x: any) => x / seconds),
+            skillXP: skillGain,
             petRolls: petRolls,
             slayercoins: this.slayercoins / seconds,
             usedAmmo: this.usedAmmo / seconds,
@@ -386,9 +408,9 @@ class SimPlayer extends Player {
         };
     }
 
-    tick() {
-        // @ts-expect-error HACK
-        super.tick();
+    // TODO: Is this correct? used to be tick
+    activeTick() {
+        super.activeTick();
         if (this.isManualEating) {
             this.manualEat();
         }
@@ -464,9 +486,9 @@ class SimPlayer extends Player {
         this.gp += amount;
     }
 
-    addXP(skill: any, amount: any) {
-        this.skillXP[skill] += this.getSkillXPToAdd(skill, amount);
-    }
+    // addXP(skill: any, amount: any) {
+    //     this.skillXP[skill] += this.getSkillXPToAdd(skill, amount);
+    // }
 
     // addPetModifiers() {
     //     this.micsr.pets.allObjects.forEach((pet: any, i: any) => {
@@ -515,46 +537,46 @@ class SimPlayer extends Player {
         return this.equipment.slotArray[slotID].item.id;
     }
 
-    equipmentIDs() {
-        return this.equipment.slotArray.map((x: any) => x.item.id);
-    }
+    // equipmentIDs() {
+    //     return this.equipment.slotArray.map((x: any) => x.item.id);
+    // }
 
     equipmentOccupiedBy(slotID: any) {
         return this.equipment.slotArray[slotID].occupiedBy;
     }
 
-    getSkillXPToAdd(skill: any, xp: any) {
-        let xpMultiplier = 1;
-        xpMultiplier += this.modifiers.getSkillModifierValue("increasedSkillXP", skill) / 100;
-        xpMultiplier -= this.modifiers.getSkillModifierValue("decreasedSkillXP", skill) / 100;
-        xpMultiplier += (this.modifiers.increasedGlobalSkillXP - this.modifiers.decreasedGlobalSkillXP) / 100;
-        return xp * xpMultiplier;
-    }
+    // getSkillXPToAdd(skill: any, xp: any) {
+    //     let xpMultiplier = 1;
+    //     xpMultiplier += this.modifiers.getSkillModifierValue("increasedSkillXP", skill) / 100;
+    //     xpMultiplier -= this.modifiers.getSkillModifierValue("decreasedSkillXP", skill) / 100;
+    //     xpMultiplier += (this.modifiers.increasedGlobalSkillXP - this.modifiers.decreasedGlobalSkillXP) / 100;
+    //     return xp * xpMultiplier;
+    // }
 
-    rewardXPAndPetsForDamage(damage: number) {
-        damage = damage / numberMultiplier;
-        const attackInterval = this.timers.act.maxTicks * TICK_INTERVAL;
-        // Combat Style
-        if (this.attackStyle !== undefined) {
-            this.attackStyle.experienceGain.forEach((gain: any) => {
-                gain.skill.addXP(gain.ratio * damage);
-            });
-        }
-        // Hitpoints
-        this.addXP(this.micsr.skillIDs.Hitpoints, damage * 1.33);
-        // Prayer
-        let prayerRatio = 0;
-        this.activePrayers.forEach((prayer: any) => {
-            return (prayerRatio += prayer.pointsPerPlayer);
-        });
-        prayerRatio /= 3;
-        if (prayerRatio > 0) {
-            this.addXP(this.micsr.skillIDs.Prayer, prayerRatio * damage);
-        }
-        // TODO summoning marks
-        // pets
-        this.petRolls[attackInterval] = 1 + (this.petRolls[attackInterval] | 0);
-    }
+    // rewardXPAndPetsForDamage(damage: number) {
+    //     damage = damage / numberMultiplier;
+    //     const attackInterval = this.timers.act.maxTicks * TICK_INTERVAL;
+    //     // Combat Style
+    //     if (this.attackStyle !== undefined) {
+    //         this.attackStyle.experienceGain.forEach((gain: any) => {
+    //             gain.skill.addXP(gain.ratio * damage);
+    //         });
+    //     }
+    //     // Hitpoints
+    //     this.addXP(this.micsr.skillIDs.Hitpoints, damage * 1.33);
+    //     // Prayer
+    //     let prayerRatio = 0;
+    //     this.activePrayers.forEach((prayer: any) => {
+    //         return (prayerRatio += prayer.pointsPerPlayer);
+    //     });
+    //     prayerRatio /= 3;
+    //     if (prayerRatio > 0) {
+    //         this.addXP(this.micsr.skillIDs.Prayer, prayerRatio * damage);
+    //     }
+    //     // TODO summoning marks
+    //     // pets
+    //     this.petRolls[attackInterval] = 1 + (this.petRolls[attackInterval] | 0);
+    // }
 
     // get skill level from property instead of global `skillLevel`
     getSkillLevel(skillID: any) {
@@ -665,8 +687,7 @@ class SimPlayer extends Player {
         }
     }
 
-    // @ts-expect-error HACK
-    equipItem(item: any, set: any, slot = "Default", quantity = 1) {
+    equipItem(item: EquipmentItem, set: number, slot?: SlotTypes | 'Default', quantity?: number): boolean {
         const itemToEquip = item === undefined ? this.micsr.emptyItems[slot] : item;
         if (slot === "Default") {
             slot = itemToEquip.validSlots[0];
@@ -678,16 +699,16 @@ class SimPlayer extends Player {
             }
         });
         this.equipment.equipItem(itemToEquip, slot, quantity);
+        return true;
     }
 
-    // @ts-expect-error HACK
-    unequipItem(set: any, slot: any) {
+    protected unequipItem(set: number, slot: SlotTypes): boolean {
         this.equipment.unequipItem(slot);
         this.updateForEquipmentChange();
+        return true;
     }
 
-    // @ts-expect-error HACK
-    equipFood(item: any) {
+    equipFood(item: FoodItem, quantity: number): boolean | undefined {
         if (item.id === 'melvorD:Empty_Equipment') {
             this.unequipFood();
             return;
@@ -792,150 +813,166 @@ class SimPlayer extends Player {
         }
     }
 
-    checkRequirements(reqs: any, notifyOnFailure = false, failureMessage = 'do that.') {
-        return reqs.every((req: any) => this.checkRequirement(req, notifyOnFailure, failureMessage));
-    }
-
-    checkRequirement(requirement: any, notifyOnFailure = false, failureMessage = 'do that.') {
-        let met = false;
-        switch (requirement.type) {
-            case 'Level':
-                met = requirement.levels.every((levelReq: any) => this.skillLevel[levelReq.skill] >= levelReq.level);
-                break;
-            case 'Dungeon':
-                met = true;
-                break;
-            case 'Completion':
-                met = true;
-                break;
-            case 'SlayerItem':
-                met = this.modifiers.bypassSlayerItems > 0 || this.equipment.checkForItemID(requirement.itemID);
-                break;
-            case 'ShopPurchase':
-                met = true;
-                break;
-        }
-        return met;
-    }
-
     hasKey<O extends object>(obj: O, key: PropertyKey): key is keyof O {
         return key in obj;
     }
 
     /** Encode the SimPlayer object */
-    encode(writer: any) {
-        super.encode(writer);
-        this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
-            // console.log('encode boolean array', x)
-            if (this.hasKey(this, x)) {
-                writer.writeArray(this[x], (object: any, writer: any) => writer.writeBoolean(object));
-            }
-        });
-        this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-            // console.log('encode boolean array', x)
-            if (this.hasKey(this, x)) {
-                writer.writeArray(this[x], (object: any, writer: any) => writer.writeInt32(object));
-            }
-        });
-        this.dataNames.booleans.forEach((x: PropertyKey) => {
-            // console.log('encode boolean', x)
-            if (this.hasKey(this, x)) {
-                writer.writeBoolean(this[x]);
-            }
-        });
-        this.dataNames.numbers.forEach((x: PropertyKey) => {
-            // console.log('encode number', x)
-            if (this.hasKey(this, x)) {
-                writer.writeInt32(this[x]);
-            }
-        });
-        this.dataNames.strings.forEach((x: PropertyKey) => {
-            // console.log('encode string', x)
-            if (this.hasKey(this, x)) {
-                writer.writeString(this[x]);
-            }
-        });
-        return writer.data;
-    }
+    // encode(writer: any) {
+    //     return super.encode(writer);
+    //     // this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
+    //     //     // console.log('encode boolean array', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         writer.writeArray(this[x], (object: any, writer: any) => writer.writeBoolean(object));
+    //     //     }
+    //     // });
+    //     // this.dataNames.numberArrays.forEach((x: PropertyKey) => {
+    //     //     // console.log('encode boolean array', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         writer.writeArray(this[x], (object: any, writer: any) => writer.writeInt32(object));
+    //     //     }
+    //     // });
+    //     // this.dataNames.booleans.forEach((x: PropertyKey) => {
+    //     //     // console.log('encode boolean', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         writer.writeBoolean(this[x]);
+    //     //     }
+    //     // });
+    //     // this.dataNames.numbers.forEach((x: PropertyKey) => {
+    //     //     // console.log('encode number', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         writer.writeInt32(this[x]);
+    //     //     }
+    //     // });
+    //     // this.dataNames.strings.forEach((x: PropertyKey) => {
+    //     //     // console.log('encode string', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         writer.writeString(this[x]);
+    //     //     }
+    //     // });
+    //     // return writer.data;
+    // }
 
     /** Decode the SimPlayer object */
-    decode(reader: any, version: any = this.micsr.currentSaveVersion) {
-        super.decode(reader, version);
-        this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
-            // console.log('decode boolean array', x)
-            if (this.hasKey(this, x)) {
-                this[x] = reader.getArray((reader: any) => reader.getBoolean());
-                // console.log(this[x]);
-            }
-        });
-        this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-            // console.log('decode number array', x)
-            if (this.hasKey(this, x)) {
-                this[x] = reader.getArray((reader: any) => reader.getInt32());
-                // console.log(this[x]);
-            }
-        });
-        this.dataNames.booleans.forEach((x: PropertyKey) => {
-            // console.log('decode boolean', x)
-            if (this.hasKey(this, x)) {
-                this[x] = reader.getBoolean();
-                // console.log(this[x]);
-            }
-        });
-        this.dataNames.numbers.forEach((x: PropertyKey) => {
-            // console.log('decode number', x)
-            if (this.hasKey(this, x)) {
-                this[x] = reader.getInt32();
-                // console.log(this[x]);
-            }
-        });
-        this.dataNames.strings.forEach((x: PropertyKey) => {
-            // console.log('decode string', x)
-            if (this.hasKey(this, x)) {
-                this[x] = reader.getString();
-                // console.log(this[x]);
-            }
-        });
-        // after reading the data, recompute stats and reset gains
-        super.computeAllStats();
-        this.resetGains();
-    }
+    // decode(reader: any, version: any = this.micsr.currentSaveVersion) {
+    //     super.decode(reader, version);
+    //     // this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
+    //     //     // console.log('decode boolean array', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         this[x] = reader.getArray((reader: any) => reader.getBoolean());
+    //     //         // console.log(this[x]);
+    //     //     }
+    //     // });
+    //     // this.dataNames.numberArrays.forEach((x: PropertyKey) => {
+    //     //     // console.log('decode number array', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         this[x] = reader.getArray((reader: any) => reader.getInt32());
+    //     //         // console.log(this[x]);
+    //     //     }
+    //     // });
+    //     // this.dataNames.booleans.forEach((x: PropertyKey) => {
+    //     //     // console.log('decode boolean', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         this[x] = reader.getBoolean();
+    //     //         // console.log(this[x]);
+    //     //     }
+    //     // });
+    //     // this.dataNames.numbers.forEach((x: PropertyKey) => {
+    //     //     // console.log('decode number', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         this[x] = reader.getInt32();
+    //     //         // console.log(this[x]);
+    //     //     }
+    //     // });
+    //     // this.dataNames.strings.forEach((x: PropertyKey) => {
+    //     //     // console.log('decode string', x)
+    //     //     if (this.hasKey(this, x)) {
+    //     //         this[x] = reader.getString();
+    //     //         // console.log(this[x]);
+    //     //     }
+    //     // });
+    //     // after reading the data, recompute stats and reset gains
+    //     super.computeAllStats();
+    //     this.resetGains();
+    // }
 
-    generatePlayerString() {
-        const micsrPlayerHeader = () => this.micsr.actualGame.getSaveHeader()
+    // generatePlayerString() {
+    //     const micsrPlayerHeader = () => this.micsr.actualGame.getSaveHeader()
+    //     const writer = new SaveWriter('Write', 512);
+    //     this.encode(writer);
+    //     return this.getSaveString(writer, micsrPlayerHeader());
+    // }
+
+    // getSaveString(w: any, headerInfo: any) {
+    //     // Save namespace mapping as an array, as it is ordered
+    //     w.header.writeMap(w.namespaceMap, (namespace: any, writer: any) => {
+    //         writer.writeString(namespace);
+    //     }, (idMap: any, writer: any) => {
+    //         writer.writeMap(idMap, (localID: any, writer: any) => {
+    //             writer.writeString(localID);
+    //         }, (numericID: any, writer: any) => {
+    //             writer.writeUint16(numericID);
+    //         });
+    //     });
+    //     w.writeHeaderInfo(headerInfo);
+    //     // Combine header and namespace data
+    //     const headerData = w.header.getRawData();
+    //     const bodyData = w.getRawData();
+    //     const combinedData = new BinaryWriter('Write', headerData.byteLength + bodyData.byteLength);
+    //     combinedData.writeFixedLengthBuffer(w.stringEncoder.encode('melvor'), 6);
+    //     combinedData.writeBuffer(headerData);
+    //     combinedData.writeBuffer(bodyData);
+    //     const rawSaveData = combinedData.getRawData();
+    //     const compressedData = new Uint8Array(rawSaveData);
+    //     console.log('sent', compressedData)
+    //     return compressedData;/*
+    //             const decoder = new TextDecoder('utf8');
+    //             console.log(1, compressedData)
+    //             console.log(2, decoder.decode(compressedData))
+    //             const saveString = btoa(unescape(encodeURIComponent(decoder.decode(compressedData))));
+    //             // console.log(`Compressed: ${compressedData.length} bytes. Save String: ${saveString.length} bytes`);
+    //             return saveString;*/
+    // }
+
+    static generatePlayerString(game: Game, player: Player) {
+        // const gameString = game.generateSaveString();
+        // const header = await game.getHeaderFromSaveString(gameString);
+        const header = game.getSaveHeader()
         const writer = new SaveWriter('Write', 512);
-        this.encode(writer);
-        return this.getSaveString(writer, micsrPlayerHeader());
+        // writer.writeHeaderInfo()
+        player.encode(writer);
+        return writer.getSaveString(header);
     }
 
-    getSaveString(w: any, headerInfo: any) {
-        // Save namespace mapping as an array, as it is ordered
-        w.header.writeMap(w.namespaceMap, (namespace: any, writer: any) => {
-            writer.writeString(namespace);
-        }, (idMap: any, writer: any) => {
-            writer.writeMap(idMap, (localID: any, writer: any) => {
-                writer.writeString(localID);
-            }, (numericID: any, writer: any) => {
-                writer.writeUint16(numericID);
-            });
-        });
-        w.writeHeaderInfo(headerInfo);
-        // Combine header and namespace data
-        const headerData = w.header.getRawData();
-        const bodyData = w.getRawData();
-        const combinedData = new BinaryWriter('Write', headerData.byteLength + bodyData.byteLength);
-        combinedData.writeFixedLengthBuffer(w.stringEncoder.encode('melvor'), 6);
-        combinedData.writeBuffer(headerData);
-        combinedData.writeBuffer(bodyData);
-        const rawSaveData = combinedData.getRawData();
-        const compressedData = new Uint8Array(rawSaveData);
-        console.log('sent', compressedData)
-        return compressedData;/*
-                const decoder = new TextDecoder('utf8');
-                console.log(1, compressedData)
-                console.log(2, decoder.decode(compressedData))
-                const saveString = btoa(unescape(encodeURIComponent(decoder.decode(compressedData))));
-                // console.log(`Compressed: ${compressedData.length} bytes. Save String: ${saveString.length} bytes`);
-                return saveString;*/
-    }
+    // static getSaveString(w: SaveWriter, headerInfo: any) {
+    //     // Save namespace mapping as an array, as it is ordered
+    //     w.header.writeMap(w.namespaceMap, (namespace: any, writer: any) => {
+    //         writer.writeString(namespace);
+    //     }, (idMap: any, writer: any) => {
+    //         writer.writeMap(idMap, (localID: any, writer: any) => {
+    //             writer.writeString(localID);
+    //         }, (numericID: any, writer: any) => {
+    //             writer.writeUint16(numericID);
+    //         });
+    //     });
+    //     w.writeHeaderInfo(headerInfo);
+    //     // Combine header and namespace data
+    //     const headerData = w.header.getRawData();
+    //     const bodyData = w.getRawData();
+    //     const combinedData = new BinaryWriter('Write', headerData.byteLength + bodyData.byteLength);
+    //     combinedData.writeFixedLengthBuffer(w.stringEncoder.encode('melvor'), 6);
+    //     combinedData.writeBuffer(headerData);
+    //     combinedData.writeBuffer(bodyData);
+    //     // return combinedData.();
+    //     const rawSaveData = combinedData.getRawData();
+    //     const compressedData = new Uint8Array(rawSaveData);
+    //     // // console.log('sent', compressedData)
+    //     // // return compressedData;
+    //     const decoder = new TextDecoder('utf8');
+    //     // // console.log(1, compressedData)
+    //     // // console.log(2, decoder.decode(compressedData))
+    //     const saveString = btoa(unescape(encodeURIComponent(decoder.decode(compressedData))));
+    //     // // console.log(`Compressed: ${compressedData.length} bytes. Save String: ${saveString.length} bytes`);
+    //     return saveString;
+    // }
 }

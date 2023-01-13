@@ -28,6 +28,7 @@ class CombatData {
     equipmentStats: any;
     luckyHerb: any;
     manager: SimManager;
+    // manager: CombatManager;
     modifiers: any;
     player: any;
     spells: any;
@@ -37,6 +38,8 @@ class CombatData {
      *
      */
     constructor(manager: SimManager) {
+    // constructor(micsr: MICSR, manager: CombatManager) {
+    // constructor(micsr: MICSR, manager: SimManager) {
         this.manager = manager;
         this.micsr = manager.micsr;
         this.player = this.manager.player;

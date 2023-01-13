@@ -5,7 +5,8 @@
   "scripts": {
     "test": "cd ./dist && web-ext lint",
     "build": "npx tsc && node build.js",
-    "watch": "onchange \"sources/**/*.ts\" -- npm run build"
+    "watch": "onchange \"sources/**/*.ts\" -- npm run build",
+    "watch-build": "onchange \"sources/**/*.ts\" -- npx tsc"
   },
   "license": "GPL-3.0",
   "bugs": {

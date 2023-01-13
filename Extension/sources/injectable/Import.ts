@@ -61,7 +61,7 @@ class Import {
     app: App;
     autoEatTiers: any;
     document: any;
-    player: Player;
+    player: SimPlayer;
     micsr: MICSR;
 
     constructor(app: App) {

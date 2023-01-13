@@ -38,6 +38,17 @@
   // spoof $ so we get useful information regarding where the bugs are
   const $ = (...args: any[]) => console.log(...args);
 
+  importScripts("https://steam.melvoridle.com/assets/js/pako.min.js");
+
+  // Fake globals
+  const combatMenus = {
+    eventMenu: {
+      setButtonCallbacks() {
+
+      }
+    }
+  }
+
   let combatSimulator: CombatSimulator;
 
   onmessage = async (event) => {
@@ -111,6 +122,22 @@
      */
     switch (event.data.action) {
       case 'RECEIVE_GAMEDATA':
+        // debugger;
+        //// @ts-expect-error TS(2304): Cannot find name 'pako'.
+        // self.pako = {
+        //   inflate: (x: string) => {
+        //     const buffer = new ArrayBuffer(x.length);
+        //     const dataView = new DataView(buffer);
+        //     for (var i = 0; i < x.length; i++) {
+        //       dataView.setUint8(i, x.charCodeAt(i))
+        //     }
+        //     return { buffer: buffer };
+        //   }
+        // };
+        // self.pako = {
+        //   inflate: eval(event.data.pakoInflate)
+        // }
+
         // constants
         event.data.constantNames.forEach((name: any) => {
           // this.micsr.log('constant', name, event.data.constants[name])
@@ -131,15 +158,6 @@
         });
 
         // create instances
-        // @ts-expect-error TS(2304): Cannot find name 'pako'.
-        self.pako = {
-          inflate: (x: any) => {
-            const buffer = new ArrayBuffer(x.length);
-            const dataView = new DataView(buffer);
-            x.forEach((entry: number, idx: number) => dataView.setUint8(idx, entry));
-            return { buffer: buffer };
-          }
-        };
         // restore data
         const cloneData = new CloneData();
         cloneData.restoreModifierData();
@@ -154,29 +172,38 @@
         // @ts-expect-error
         cloudManager.hasFullVersionEntitlement = !!full;
 
-        const game = new Game();
-
-        const micsr = new MICSR(game);
+        const micsr = new MICSR();
+        const simGame = new SimGame(micsr);
         micsr.dataPackage = event.data.dataPackage;
+        micsr.cleanupDataPackage("Demo");
+        // @ts-expect-error
+        if (cloudManager.hasFullVersionEntitlement) {
+          micsr.cleanupDataPackage("Full");
+        }
+        // @ts-expect-error
+        if (cloudManager.hasTotHEntitlement) {
+          micsr.cleanupDataPackage("TotH");
+        }
+        await micsr.initialize(simGame, simGame as any);
 
         // @ts-expect-error
         self.firstSkillAction = true;
         self.saveData = (vars?) => { };
         // @ts-expect-error
         self.deleteScheduledPushNotification = () => { };
-        game.constructEventMatcher = (data: GameEventMatcherData): GameEventMatcher => {
-          return {} as any;
-        };
+        // game.constructEventMatcher = (data: GameEventMatcherData): GameEventMatcher => {
+        //   return {} as any;
+        // };
 
-        game.registerDataPackage(event.data.dataPackage.Demo);
-        // @ts-expect-error
-        if (cloudManager.hasFullVersionEntitlement) {
-          game.registerDataPackage(full);
-        }
-        // @ts-expect-error
-        if (cloudManager.hasTotHEntitlement) {
-          game.registerDataPackage(toth);
-        }
+        // simGame.registerDataPackage(event.data.dataPackage.Demo);
+        // // @ts-expect-error
+        // if (cloudManager.hasFullVersionEntitlement) {
+        //   simGame.registerDataPackage(full);
+        // }
+        // // @ts-expect-error
+        // if (cloudManager.hasTotHEntitlement) {
+        //   simGame.registerDataPackage(toth);
+        // }
 
         micsr.log('Creating MICSR');
         combatSimulator = new CombatSimulator(micsr);
@@ -186,7 +213,8 @@
         //settings
         // run the simulation
         combatSimulator.simulateMonster(
-          event.data.playerString,
+          // event.data.playerString,
+          event.data.saveString,
           event.data.monsterID,
           event.data.dungeonID,
           event.data.trials,
@@ -222,7 +250,7 @@ class CombatSimulator {
   cancelStatus: any;
   micsr: MICSR;
 
-    constructor(micsr: MICSR) {
+  constructor(micsr: MICSR) {
     this.micsr = micsr;
     this.cancelStatus = false;
   }
@@ -230,22 +258,28 @@ class CombatSimulator {
   /**
    * Simulation Method for a single monster
    */
-  async simulateMonster(playerString: string, monsterID: string, dungeonID: string, trials: number, maxTicks: number) {
+  // async simulateMonster(playerString: string, monsterID: string, dungeonID: string, trials: number, maxTicks: number) {
+  async simulateMonster(saveString: string, monsterID: string, dungeonID: string, trials: number, maxTicks: number) {
     this.micsr.log('Creating manager');
     (self as any).numberMultiplier = undefined;
-    const manager = new SimManager(this.micsr, this.micsr.game, this.micsr.namespace);
-    this.micsr.log('Creating player', playerString);
-    // @ts-expect-error TS(2304): Cannot find name 'pako'.
-    console.log('received', pako.inflate(playerString).buffer)
-    const atobCopy = atob;
-    self.atob = (x: any) => x;
-    const player = SimPlayer.newFromPlayerString(manager, playerString);
-    manager.player = player;
-    self.atob = atobCopy;
-    player.initForWebWorker();
+    // const manager = new SimManager(this.micsr, this.micsr.game, this.micsr.namespace, playerString);
+    // this.micsr.log('Creating player', playerString);
+    //// @ts-expect-error TS(2304): Cannot find name 'pako'.
+    // console.log('received', pako.inflate(playerString).buffer)
+    // const atobCopy = atob;
+    // self.atob = (x: any) => x;
+    // const player = SimPlayer.newFromPlayerString(manager, playerString);
+    // manager.player = player;
+    // player.initForWebWorker();
+    // self.atob = atobCopy;
+    const reader = new SaveWriter('Read',1);
+    // debugger;
+    const saveVersion = reader.setDataFromSaveString(saveString);
+    this.micsr.game.decode(reader, saveVersion);
+
     this.micsr.log('Finished setup');
     try {
-      return manager.convertSlowSimToResult(manager.runTrials(monsterID, dungeonID, trials, maxTicks), trials);
+      return this.micsr.game.combat.convertSlowSimToResult(this.micsr.game.combat.runTrials(monsterID, dungeonID, trials, maxTicks), trials);
     } catch (error) {
       this.micsr.error(`Error while simulating monster ${monsterID} in dungeon ${dungeonID}: ${error}`);
       return {

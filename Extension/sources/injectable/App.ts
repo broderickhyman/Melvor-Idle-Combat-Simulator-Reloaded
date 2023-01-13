@@ -28,12 +28,12 @@ class App {
     agilitySelectCard: any;
     astrologySelectCard: any;
     astrologySelected: any;
-    barMonsterIDs: any;
+    barMonsterIDs!: string[];
     barSelected: any;
     barType: any;
     barTypes: any;
     botContent: any;
-    combatData: any;
+    combatData: CombatData;
     combatPotionIDs: any;
     combatStatCard: any;
     combatStatKeys: any;
@@ -53,7 +53,7 @@ class App {
     foodCCContainer: any;
     foodItems: any;
     force: any;
-    import: any;
+    import!: Import;
     importedSettings: any;
     infoPlaceholder: any;
     initialTimeUnitIndex: any;
@@ -63,15 +63,17 @@ class App {
     lootSelectCard: any;
     mainTabCard: any;
     manager: SimManager;
+    // manager: CombatManager;
     media: any;
     menuItemId: any;
     modalID: any;
     monsterToggleState: any;
     petIDs: any;
     petSelectCard: any;
-    player: Player;
+    // player: Player;
+    player: SimPlayer;
     plotTypes: any;
-    plotter: any;
+    plotter!: Plotter;
     potionSelectCard: any;
     prayerSelectCard: any;
     savedSimulations: any;
@@ -103,12 +105,25 @@ class App {
     /**
      * Constructs an instance of mcsApp
      */
-    constructor(micsr: MICSR) {
-        this.micsr = micsr;
-        // Combat Data Object
-        this.manager = new SimManager(micsr, micsr.game, micsr.namespace)
-        this.manager.initialize();
+    constructor(game: SimGame) {
+        // debugger;
+        this.micsr = game.micsr;
+        this.manager = game.combat;
         this.player = this.manager.player;
+        // Combat Data Object
+        // this.manager = this.micsr.game.combat;
+        // this.player = this.manager.player;
+        // const writer = new SaveWriter("Write", 1);
+        // this.micsr.game.combat.player.encode(writer)
+        // const playerString = writer.getString();
+        // const writer = new SaveWriter('Write',512);
+        // this.micsr.game.combat.encode(writer);
+        //this.micsr.game.combat.player.getSaveHeader()
+        // const playerString = writer.getSaveString("");
+        // const playerString = SimPlayer.generatePlayerString(this.micsr.game, this.micsr.game.combat.player)
+        // this.manager = new SimManager(micsr, micsr.game, micsr.namespace, playerString)
+        // this.manager.initialize();
+        // this.player = this.manager.player;
         this.combatData = new CombatData(this.manager);
         // prepare tooltips
         this.tippyOptions = { allowHTML: true, animation: false, hideOnClick: false };
@@ -380,9 +395,9 @@ class App {
         // @ts-expect-error TS(2531): Object is possibly 'null'.
         document.getElementById(`MCS  Pet (%)/${this.timeShorthand[this.initialTimeUnitIndex]} Label`).textContent = this.loot.petSkill + ' Pet (%)/' + this.selectedTimeShorthand;
         this.updateSpellOptions();
-        this.updatePrayerOptions();
-        this.updateCombatStats();
-        this.updateHealing();
+        // this.updatePrayerOptions();
+        // this.updateCombatStats();
+        // this.updateHealing();
         this.updatePlotData();
         // TODO this.toggleAstrologySelectCard();
         // slayer sim is off by default, so toggle auto slayer off
@@ -2311,7 +2326,7 @@ class App {
      * Callback for when the simulate button is clicked
      * @param {boolean} single
      */
-    simulateButtonOnClick(single: any) {
+    async simulateButtonOnClick(single: any) {
         if (this.simulator.simInProgress) {
             this.simulator.cancelSimulation();
             const simButton = document.getElementById('MCS Simulate All Button');
@@ -2322,7 +2337,7 @@ class App {
         if (!this.simulator.simInProgress && this.simulator.simulationWorkers.length === this.simulator.maxThreads) {
             // @ts-expect-error TS(2531): Object is possibly 'null'.
             document.getElementById('MCS Simulate Selected Button').style.display = 'none';
-            this.simulator.simulateCombat(single);
+            await this.simulator.simulateCombat(single);
         }
     }
 
@@ -2849,7 +2864,7 @@ class App {
      * Checks if magic level required for spell is met
      */
     checkForSpellLevel() {
-        const magicLevel = this.player.skillLevel[this.micsr.skillIDs.Magic];
+        const magicLevel = this.micsr.game.skills.getObjectByID(this.micsr.skillIDs.Magic)?.level || 0;
         const setSpellsPerLevel = (spell: any, spellType: any) => {
             const id = `MCS ${spell.id} Button Image`;
             const elt = document.getElementById(id);
@@ -2867,25 +2882,25 @@ class App {
         this.micsr.archaicSpells.forEach((spell: any) => setSpellsPerLevel(spell, 'archaic'));
     }
 
-    checkRequiredItem(spell: any) {
-        return spell.requiredItem !== undefined && !this.player.equipmentIDs().includes(spell.requiredItem.id);
+    checkRequiredItem(spell: CombatSpell) {
+        return spell.requiredItem !== undefined && !this.player.equipment.slotArray.map((x: any) => x.item.id).includes(spell.requiredItem.id);
     }
 
     /**
      * Checks if item required for spell is equipped
      */
     checkForSpellItem() {
-        const disableSpellsForItem = (spell: any, spellType: any) => {
+        const disableSpellsForItem = (spell: CombatSpell, spellType: string) => {
             if (this.checkRequiredItem(spell)) {
                 (document.getElementById(`MCS ${spell.id} Button Image`) as any).src = this.media.question;
-                this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires ${spell.requiredItem.name}.`);
+                this.disableSpell(spellType, spell, `${spell.name} has been de-selected. It requires ${spell.requiredItem?.name}.`);
             }
         };
-        this.micsr.standardSpells.forEach((spell: any) => disableSpellsForItem(spell, 'standard'));
-        this.micsr.auroraSpells.forEach((spell: any) => disableSpellsForItem(spell, 'aurora'));
-        this.micsr.curseSpells.forEach((spell: any) => disableSpellsForItem(spell, 'curse'));
-        this.micsr.ancientSpells.forEach((spell: any) => disableSpellsForItem(spell, 'ancient'));
-        this.micsr.archaicSpells.forEach((spell: any) => disableSpellsForItem(spell, 'archaic'));
+        this.micsr.standardSpells.forEach((spell) => disableSpellsForItem(spell, 'standard'));
+        this.micsr.auroraSpells.forEach((spell) => disableSpellsForItem(spell, 'aurora'));
+        this.micsr.curseSpells.forEach((spell) => disableSpellsForItem(spell, 'curse'));
+        this.micsr.ancientSpells.forEach((spell) => disableSpellsForItem(spell, 'ancient'));
+        this.micsr.archaicSpells.forEach((spell) => disableSpellsForItem(spell, 'archaic'));
     }
 
     /**

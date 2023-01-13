@@ -220,7 +220,9 @@ class Plotter {
             const newCross = document.createElement('img');
             newCross.src = this.maskImageFile;
             newCross.className = 'mcsCross';
-            newCross.style.display = 'none';
+            if (this.micsr.isDev) {
+                newCross.style.display = 'none';
+            }
             this.xAxisCrosses.push(newCross);
 
             imageContainer.appendChild(this.xAxisImages[i]);
@@ -312,6 +314,7 @@ class Plotter {
      * @param {number[]} barData The new data to diplay
      */
     updateBarData(barData: any, rawData: any) {
+        // debugger;
         const enterSet = this.parent.simulator.getEnterSet();
         let barMax = 0;
         for (let i = 0; i < this.bars.length; i++) {
@@ -542,11 +545,11 @@ class Plotter {
      */
     crossImagesPerSetting() {
         for (let i = 0; i < this.parent.barType.length; i++) {
-            if (this.parent.barIsMonster(i) && !this.parent.simulator.monsterSimFilter[this.parent.barMonsterIDs[i].id]) {
+            if (this.parent.barIsMonster(i) && !this.parent.simulator.monsterSimFilter[this.parent.barMonsterIDs[i]]) {
                 this.xAxisCrosses[i].style.display = '';
-            } else if (this.parent.barIsDungeon(i) && !this.parent.simulator.dungeonSimFilter[this.parent.barMonsterIDs[i].id]) {
+            } else if (this.parent.barIsDungeon(i) && !this.parent.simulator.dungeonSimFilter[this.parent.barMonsterIDs[i]]) {
                 this.xAxisCrosses[i].style.display = '';
-            } else if (this.parent.barIsTask(i) && !this.parent.simulator.slayerSimFilter[this.parent.barMonsterIDs[i].display]) {
+            } else if (this.parent.barIsTask(i) && !this.parent.simulator.slayerSimFilter[this.parent.barMonsterIDs[i]]) {
                 this.xAxisCrosses[i].style.display = '';
             } else {
                 this.xAxisCrosses[i].style.display = 'none';

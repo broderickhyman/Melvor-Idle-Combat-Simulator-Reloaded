@@ -37,13 +37,13 @@ class DataExport {
             dungeonMonsters: true,
             nonSimmed: false,
         }
-        this.header = Object.getOwnPropertyNames(this.app.manager.convertSlowSimToResult(this.app.manager.getSimStats())).filter(prop =>
-            ![
-                'simSuccess',
-                'reason',
-                'inQueue',
-            ].includes(prop)
-        );
+        // this.header = Object.getOwnPropertyNames(this.app.manager.convertSlowSimToResult(this.app.manager.getSimStats())).filter(prop =>
+        //     ![
+        //         'simSuccess',
+        //         'reason',
+        //         'inQueue',
+        //     ].includes(prop)
+        // );
     }
 
     skip(filter: any, data: any) {

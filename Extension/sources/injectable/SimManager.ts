@@ -33,37 +33,46 @@ class SimManager extends CombatManager {
     isActive: any;
     loot: any;
     paused: any;
-    simPlayer: SimPlayer;
+    // simPlayer: SimPlayer;
+    // @ts-expect-error Force SimPlayer type
+    player: SimPlayer;
     renderCombat: any;
     selectedMonster: any;
     simStats: any;
     spawnTimer: any;
     startFight: any;
-    tickCount: any;
-    game: Game;
+    tickCount: number;
+    // @ts-expect-error Force SimGame type
+    game: SimGame;
     micsr: MICSR;
 
-    constructor(micsr: MICSR, game: Game, namespace: DataNamespace) {
-        super(game, namespace);
-        this.micsr = micsr;
-        this.game = game;
-        this.simPlayer = new SimPlayer(this, game);
-        this.simPlayer.registerStatProvider(game.petManager);
-        this.simPlayer.registerStatProvider(game.shop);
-        this.simPlayer.registerStatProvider(game.potions);
-        this.simPlayer.initialize();
-        this.player = this.simPlayer as any;
+    constructor(game: SimGame, namespace: DataNamespace) {
+        super(game as any, namespace);
+        this.tickCount = 0;
+        this.micsr = game.micsr;
+        // this.game = game;
+        // const simPlayer = SimPlayer.newFromPlayerString(this, playerString);
+        // simPlayer.registerStatProvider(game.petManager);
+        // simPlayer.registerStatProvider(game.shop);
+        // simPlayer.registerStatProvider(game.potions);
+        // simPlayer.initialize();
+        // manager.player = player;
+        // simPlayer.initForWebWorker();
+        // const simPlayer = new SimPlayer(this, game);
+        // this.player = simPlayer as any;
+        this.player = new SimPlayer(this, game)
         this.enemy = new SimEnemy(this, game);
-        this.detachGlobals();
-        this.replaceGlobals();
     }
-
+    
     get onSlayerTask() {
         return this.player.isSlayerTask && this.areaType !== 'Dungeon' && this.areaType !== 'None';
     }
-
+    
     initialize() {
         super.initialize();
+        this.detachGlobals();
+        this.replaceGlobals();
+        this.player.initialize();
         this.renderCombat = false;
     }
 
@@ -82,6 +91,7 @@ class SimManager extends CombatManager {
             },
             getQty: () => 1e6,
         };
+        this.player.detachGlobals();
     }
 
     addItemStat() {
@@ -98,6 +108,7 @@ class SimManager extends CombatManager {
 
     // replace globals with properties
     replaceGlobals() {
+        this.player.replaceGlobals();
         this.resetSimStats();
     }
 
@@ -379,4 +390,8 @@ class SimManager extends CombatManager {
         }
         return simResult;
     }
+
+    // decode(reader: SaveWriter, version: number): void {
+        
+    // }
 }
