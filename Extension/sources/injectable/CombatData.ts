@@ -177,18 +177,18 @@ class CombatData {
      * */
     computePotionBonus() {
         this.luckyHerb = 0;
-        if (this.player.potionSelected) {
-            // @ts-expect-error TS(2304): Cannot find name 'items'.
-            const potion =
-                items[
-                    Herblore.potions[this.player.potionID].potionIDs[
-                        this.player.potionTier
-                    ]
-                ];
-            if (potion.potionBonusID === 11) {
-                this.luckyHerb = potion.potionBonus;
-            }
-        }
+        // if (this.player.potionSelected) {
+        //     const potion =
+        //     // @ts-expect-error TS(2304): Cannot find name 'items'.
+        //         items[
+        //             Herblore.potions[this.player.potion].potionIDs[
+        //                 this.player.potionTier
+        //             ]
+        //         ];
+        //     if (potion.potionBonusID === 11) {
+        //         this.luckyHerb = potion.potionBonus;
+        //     }
+        // }
     }
 
     playerAttackSpeed() {

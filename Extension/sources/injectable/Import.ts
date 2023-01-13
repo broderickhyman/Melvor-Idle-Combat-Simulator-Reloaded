@@ -283,7 +283,7 @@ class Import {
             isManualEating: this.player.isManualEating,
             isSlayerTask: this.player.isSlayerTask,
             pillar: this.player.pillar,
-            potionID: this.player.potionID,
+            potionID: this.player.potion,
             potionTier: this.player.potionTier,
             standard: this.player.spellSelection.standard,
             summoningSynergy: this.player.summoningSynergy,
@@ -419,19 +419,23 @@ class Import {
         if (this.player.potionSelected) {
             this.app.unselectButton(
                 this.document.getElementById(
-                    `MCS ${this.app.getPotionName(this.player.potionID)} Button`
+                    `MCS ${this.app.getPotionHtmlId(
+                        this.player.potion!
+                    )} Button`
                 )
             );
             this.player.potionSelected = false;
-            this.player.potionID = -1;
+            this.player.potion = null;
         }
         // Select new potion if applicable
         if (potionID !== -1) {
             this.player.potionSelected = true;
-            this.player.potionID = potionID;
+            this.player.potion = potionID;
             this.app.selectButton(
                 this.document.getElementById(
-                    `MCS ${this.app.getPotionName(this.player.potionID)} Button`
+                    `MCS ${this.app.getPotionHtmlId(
+                        this.player.potion!
+                    )} Button`
                 )
             );
         }
@@ -446,27 +450,23 @@ class Import {
         }
     }
 
-    importPets(petUnlocked: any) {
+    importPets(petUnlocked: Pet[]) {
+        this.player.petUnlocked = [];
+        this.app.micsr.pets.forEach((pet) => {
+            this.app.unselectButton(
+                this.document.getElementById(`MCS ${pet.name} Button`)
+            );
+        });
         // Import pets
-        petUnlocked.forEach((owned: any, petID: any) => {
-            this.player.petUnlocked[petID] = owned;
-            if (this.app.petIDs.includes(petID)) {
-                if (owned) {
-                    this.app.selectButton(
-                        this.document.getElementById(
-                            `MCS ${this.micsr.pets[petID].name} Button`
-                        )
-                    );
-                } else {
-                    this.app.unselectButton(
-                        this.document.getElementById(
-                            `MCS ${this.micsr.pets[petID].name} Button`
-                        )
-                    );
-                }
-            }
-            if (petID === 4 && owned)
-                this.document.getElementById("MCS Rock").style.display = "";
+        petUnlocked.forEach((pet: Pet) => {
+            this.player.petUnlocked.push(pet);
+            this.app.selectButton(
+                this.document.getElementById(
+                    `MCS ${pet.name} Button`
+                )
+            );
+            // if (petID === 4 && owned)
+            //     this.document.getElementById("MCS Rock").style.display = "";
         });
     }
 

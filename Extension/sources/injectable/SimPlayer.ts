@@ -64,11 +64,11 @@ class SimPlayer extends Player {
     // @ts-expect-error Force SimManager type
     manager: SimManager;
     petRolls: any;
-    petUnlocked: any;
+    petUnlocked!: Pet[];
     pillar: any;
-    potionID: any;
-    potionSelected: any;
-    potionTier: any;
+    potion: PotionItem | null;
+    potionSelected!: boolean;
+    potionTier!: number;
     runesProvided: any;
     skillLevel: any;
     skillXP: Map<string, number>;
@@ -79,10 +79,10 @@ class SimPlayer extends Player {
     target: any;
     timers: any;
     useCombinationRunesFlag: any;
-    usedAmmo: any;
+    usedAmmo: number;
     usedFood: number;
-    usedPotionCharges: any;
-    usedPrayerPoints: any;
+    usedPotionCharges: number;
+    usedPrayerPoints: number;
     usedRunes: any;
     // @ts-expect-error HACK
     usingAncient: any;
@@ -103,6 +103,7 @@ class SimPlayer extends Player {
         this.usedAmmo = 0;
         this.usedFood = 0;
         this.usedRunes = {};
+        this.potion = null;
         this.usedPotionCharges = 0;
         this.usedPrayerPoints = 0;
         this.chargesUsed = {
@@ -285,10 +286,7 @@ class SimPlayer extends Player {
         // currentGamemode, numberMultiplier
         this.currentGamemodeID = this.micsr.game.currentGamemode.id;
         // petUnlocked
-        this.petUnlocked = {};
-        this.micsr.pets.allObjects.forEach(
-            (pet: any) => (this.petUnlocked[pet.id] = false)
-        );
+        this.petUnlocked = [];
         // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
         this.course = Array(10).fill(-1);
         this.courseMastery = Array(10).fill(false);
@@ -296,7 +294,7 @@ class SimPlayer extends Player {
         // herbloreBonuses
         this.potionSelected = false;
         this.potionTier = 0;
-        this.potionID = -1;
+        this.potion = null;
         // isSynergyUnlocked
         this.summoningSynergy = true;
         // shopItemsPurchased
@@ -594,18 +592,12 @@ class SimPlayer extends Player {
 
     render() {}
 
-    getPotion() {
-        return this.micsr.items.getObjectByID(
-            this.micsr.herblorePotions[this.potionID].potionIDs[this.potionTier]
-        );
-    }
-
     // track potion usage instead of consuming
     consumePotionCharge(type: any) {
         if (this.potionSelected) {
-            const item = this.getPotion();
-            // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
+            const item = this.potion;
             if (
+                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
                 type === Herblore.potions[item.masteryID[1]].consumesOn &&
                 !rollPercentage(
                     this.modifiers.increasedChanceToPreservePotionCharge -

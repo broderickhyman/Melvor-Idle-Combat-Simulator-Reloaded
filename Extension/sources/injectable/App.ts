@@ -24,8 +24,8 @@
  */
 class App {
     agilityCourse: any;
-    agilitySelectCard: any;
-    astrologySelectCard: any;
+    agilitySelectCard!: Card;
+    astrologySelectCard!: Card;
     astrologySelected: any;
     barMonsterIDs!: string[];
     barSelected: any;
@@ -33,14 +33,14 @@ class App {
     barTypes: any;
     botContent: any;
     combatData: CombatData;
-    combatPotionIDs: any;
-    combatStatCard: any;
+    combatPotionRecipes!: HerbloreRecipe[];
+    combatStatCard!: Card;
     combatStatKeys: any;
-    compareCard: any;
+    compareCard!: Card;
     constellationContainers: any;
     constellationModifierContainers: any;
     consumables: any;
-    consumablesCard: any;
+    consumablesCard!: Card;
     dataExport: any;
     defaultSpell: any;
     dropListFilters: any;
@@ -57,35 +57,34 @@ class App {
     infoPlaceholder: any;
     initialTimeUnitIndex: any;
     isViewingDungeon: any;
-    levelSelectCard: any;
+    levelSelectCard!: Card;
     loot: any;
-    lootSelectCard: any;
-    mainTabCard: any;
+    lootSelectCard!: Card;
+    mainTabCard!: TabCard;
     manager: SimManager;
     // manager: CombatManager;
     media: any;
     menuItemId: any;
     modalID: any;
     monsterToggleState: any;
-    petIDs: any;
-    petSelectCard: any;
+    petSelectCard!: Card;
     // player: Player;
     player: SimPlayer;
     plotTypes: any;
     plotter!: Plotter;
-    potionSelectCard: any;
-    prayerSelectCard: any;
+    potionSelectCard!: Card;
+    prayerSelectCard!: Card;
     savedSimulations: any;
     selectedBar: any;
     selectedTime: any;
     selectedTimeShorthand: any;
-    simOptionsCard: any;
+    simOptionsCard!: Card;
     simulator!: Simulator;
     skillKeys: any;
     skipConstellations: any;
     slayerToggleState: any;
-    spellSelectCard: any;
-    subInfoCard: any;
+    spellSelectCard!: Card;
+    subInfoCard!: Card;
     timeMultiplier: any;
     timeMultipliers: any;
     timeOptions: any;
@@ -98,7 +97,7 @@ class App {
     trackHistory: any;
     uniqueModifiers: any;
     viewedDungeonID: any;
-    zoneInfoCard: any;
+    zoneInfoCard!: Card;
     micsr: MICSR;
 
     /**
@@ -291,16 +290,6 @@ class App {
         // default spell is wind strike
         this.defaultSpell =
             this.micsr.standardSpells.getObjectByID("melvorD:WindStrike");
-
-        // combat pet IDs
-        this.petIDs = [
-            "melvorD:Pyro", // FM pet
-            // cb skill pets
-            // slayer area pets
-            // dungeon pets
-            // Mark
-            // Bone
-        ];
 
         // Forced equipment sorting
         this.force = {
@@ -1243,13 +1232,17 @@ class App {
         const prayerNames: any = [];
         const prayerCallbacks: any = [];
         const tooltips: any = [];
-        this.micsr.prayers.forEach((prayer: any) => {
+        const fakePrayerMenu = Object.create(
+            PrayerMenu.prototype
+        ) as PrayerMenu;
+        this.micsr.prayers.forEach((prayer) => {
             prayerSources.push(prayer.media);
             prayerNames.push(this.getPrayerName(prayer));
             prayerCallbacks.push((e: any) =>
                 this.prayerButtonOnClick(e, prayer)
             );
-            tooltips.push(this.createPrayerTooltip(prayer));
+            // @ts-expect-error
+            tooltips.push(fakePrayerMenu.getUnlockedTooltipHTML(prayer));
         });
         this.prayerSelectCard.addImageButtons(
             prayerSources,
@@ -1258,32 +1251,6 @@ class App {
             prayerCallbacks,
             tooltips
         );
-    }
-
-    createPrayerTooltip(prayer: any) {
-        let tooltip = `<div class="text-center">${prayer.name}<br><small><span class='text-info'>`;
-        tooltip += prayer.description;
-        tooltip += "<br></span>";
-        if (prayer.pointsPerPlayer > 0) {
-            tooltip += `<span class='text-success'>+${(
-                prayer.pointsPerPlayer /
-                3 /
-                numberMultiplier
-            ).toFixed(3)} Prayer XP per damage dealt to enemy</span><br>`;
-        }
-        tooltip +=
-            '<span class="text-warning">Prayer Point Cost:</span><br><span class="text-info">';
-        if (prayer.pointsPerPlayer > 0) {
-            tooltip += `${prayer.pointsPerPlayer}</span> per <span class='text-success'>PLAYER</span> attack`;
-        }
-        if (prayer.pointsPerEnemy > 0) {
-            tooltip += `${prayer.pointsPerEnemy}</span> per <span class='text-danger'>ENEMY</span> attack`;
-        }
-        if (prayer.pointsPerRegen > 0) {
-            tooltip += `${prayer.pointsPerRegen}</span> per <span class='text-info'>HP REGEN</span>`;
-        }
-        tooltip += "</small></div>";
-        return tooltip;
     }
 
     createPotionSelectCard() {
@@ -1300,24 +1267,24 @@ class App {
             [0, 1, 2, 3],
             (e: any) => this.potionTierDropDownOnChange(e)
         );
-        const potionSources = [];
-        const potionNames = [];
-        const potionCallbacks = [];
-        const tooltips = [];
+        const potionSources: string[] = [];
+        const potionNames: string[] = [];
+        const potionCallbacks: { (e: any): void }[] = [];
+        const tooltips: string[] = [];
         /** @type {number[]} */
-        this.combatPotionIDs = [];
-        for (let i = 0; i < this.micsr.herblorePotions.length; i++) {
-            if (this.micsr.herblorePotions[i].category === 0) {
-                const potion = this.micsr.herblorePotions[i].potions[0];
+        this.combatPotionRecipes = [];
+        this.micsr.herblorePotionRecipes.forEach((herblorePotionRecipe) => {
+            if (herblorePotionRecipe.category.localID === "CombatPotions") {
+                const potion = herblorePotionRecipe.potions[0];
                 potionSources.push(potion.media);
-                potionNames.push(this.getPotionName(i));
+                potionNames.push(this.getPotionHtmlId(potion));
                 potionCallbacks.push((e: any) =>
-                    this.potionImageButtonOnClick(e, i)
+                    this.potionImageButtonOnClick(e, potion)
                 );
                 tooltips.push(this.getPotionTooltip(potion));
-                this.combatPotionIDs.push(i);
+                this.combatPotionRecipes.push(herblorePotionRecipe);
             }
-        }
+        });
         this.potionSelectCard.addImageButtons(
             potionSources,
             potionNames,
@@ -1328,9 +1295,7 @@ class App {
     }
 
     createPetSelectCard() {
-        const combatPets = this.petIDs.map((id: any) =>
-            this.micsr.pets.getObjectByID(id)
-        );
+        const combatPets = this.micsr.pets.allObjects;
         this.petSelectCard = this.mainTabCard.addTab(
             "Pets",
             this.media.pet,
@@ -1338,10 +1303,10 @@ class App {
             "100px"
         );
         this.petSelectCard.addSectionTitle("Pets");
-        const petImageSources = combatPets.map((pet: any) => pet.media);
-        const petNames = combatPets.map((pet: any) => pet.name);
-        const petButtonCallbacks = this.petIDs.map(
-            (petId: any) => (e: any) => this.petButtonOnClick(e, petId)
+        const petImageSources = combatPets.map((pet) => pet.media);
+        const petNames = combatPets.map((pet) => pet.name);
+        const petButtonCallbacks = combatPets.map(
+            (pet) => (e: any) => this.petButtonOnClick(e, pet)
         );
         const tooltips = combatPets.map(
             (pet: any) =>
@@ -1360,11 +1325,11 @@ class App {
             tooltips
         );
         this.petSelectCard.addButton("Clear All Pets", () => {
-            this.import.importPets(Array(this.micsr.pets.length).fill(false));
+            this.import.importPets([]);
             this.updateCombatStats();
         });
         this.petSelectCard.addImage(
-            this.micsr.pets.getObjectByID("melvorD:CoolRock").media,
+            this.micsr.pets.getObjectByID("melvorD:CoolRock")!.media,
             100,
             "MCS Rock"
         ).style.display = "none";
@@ -2868,7 +2833,7 @@ class App {
      * @param {MouseEvent} event The onclick event for a button
      * @param {number} prayerID Index of this.micsr.prayersS
      */
-    prayerButtonOnClick(event: any, prayer: any) {
+    prayerButtonOnClick(event: any, prayer: ActivePrayer) {
         // Escape if prayer level is not reached
         if (
             !this.player.activePrayers.has(prayer) &&
@@ -2922,30 +2887,32 @@ class App {
     /**
      * Callback for when a potion button is clicked
      * @param {MouseEvent} event The onclick event for a button
-     * @param {number} potionID The ID of the potion
+     * @param {PotionItem} clickedPotion
      */
-    potionImageButtonOnClick(event: any, potionID: any) {
+    potionImageButtonOnClick(event: any, clickedPotion: PotionItem) {
         if (this.player.potionSelected) {
-            if (this.player.potionID === potionID) {
+            if (this.player.potion === clickedPotion) {
                 // Deselect Potion
                 this.player.potionSelected = false;
-                this.player.potionID = -1;
+                this.player.potion = null;
                 this.unselectButton(event.currentTarget);
             } else {
                 // Change Potion
-                const button = document.getElementById(
-                    `MCS ${this.getPotionName(this.player.potionID)} Button`
-                );
-                if (button) {
-                    this.unselectButton(button);
+                if (this.player.potion) {
+                    const button = document.getElementById(
+                        `MCS ${this.getPotionHtmlId(this.player.potion)} Button`
+                    );
+                    if (button) {
+                        this.unselectButton(button);
+                    }
                 }
-                this.player.potionID = potionID;
                 this.selectButton(event.currentTarget);
+                this.player.potion = clickedPotion;
             }
         } else {
             // Select Potion
             this.player.potionSelected = true;
-            this.player.potionID = potionID;
+            this.player.potion = clickedPotion;
             this.selectButton(event.currentTarget);
         }
         this.updateCombatStats();
@@ -3136,14 +3103,16 @@ class App {
     /**
      *
      * @param {MouseEvent} event
-     * @param {number} petID
+     * @param {Pet} pet
      */
-    petButtonOnClick(event: any, petID: any) {
-        if (this.player.petUnlocked[petID]) {
-            this.player.petUnlocked[petID] = false;
+    petButtonOnClick(event: any, pet: Pet) {
+        if (this.player.petUnlocked.includes(pet)) {
+            this.player.petUnlocked = this.player.petUnlocked.filter(
+                (unlockedPet) => unlockedPet !== pet
+            );
             this.unselectButton(event.currentTarget);
         } else {
-            this.player.petUnlocked[petID] = true;
+            this.player.petUnlocked.push(pet);
             this.selectButton(event.currentTarget);
         }
         this.updateCombatStats();
@@ -4044,12 +4013,11 @@ class App {
      * Updates the images and tooltips for potions when the potion tier is changed
      * @param {number} potionTier The new potion tier
      */
-    updatePotionTier(potionTier: any) {
-        this.combatPotionIDs.forEach((potionId: any) => {
-            const potion =
-                this.micsr.herblorePotions[potionId].potions[potionTier];
+    updatePotionTier(potionTier: number) {
+        this.combatPotionRecipes.forEach((recipe: HerbloreRecipe) => {
+            const potion = recipe.potions[potionTier];
             const img = document.getElementById(
-                `MCS ${this.getPotionName(potionId)} Button Image`
+                `MCS ${this.getPotionHtmlId(potion)} Button Image`
             );
             (img as any).src = potion.media;
             // @ts-expect-error TS(2531): Object is possibly 'null'.
@@ -4062,15 +4030,14 @@ class App {
      * @param potion The potion object to get the tooltip for
      * @returns {string} The tooltip content
      */
-    getPotionTooltip(potion: any) {
+    getPotionTooltip(potion: PotionItem) {
         return (
             `<div class="text-center">${potion.name}<small>` +
             `<br><span class='text-info'>${potion.description.replace(
                 /\.$/,
                 ""
             )}</span>` +
-            `<br><span class='text-warning'>${potion.potionCharges} Potion Charges</span>` +
-            `</small></div>`
+            `<br></small></div>`
         );
     }
 
@@ -4134,13 +4101,15 @@ class App {
 
     /**
      * Removes HTML from the potion name
-     * @param {number} potionID The index of this.micsr.herblorePotions
+     * @param {PotionItem} potion The potion
      * @return {string} The name of a potion
      */
-    getPotionName(potionID: any) {
-        return this.replaceApostrophe(
-            this.micsr.herblorePotions[potionID].name
-        );
+    getPotionHtmlId(potion: PotionItem) {
+        return this.replaceApostrophe(potion.name)
+            .replace(" IV", "")
+            .replace(" III", "")
+            .replace(" II", "")
+            .replace(" I", "");
     }
 
     /**
@@ -4148,7 +4117,7 @@ class App {
      * @param {number} prayerID The index of this.micsr.prayers
      * @return {string} the name of a prayer
      */
-    getPrayerName(prayer: any) {
+    getPrayerName(prayer: ActivePrayer) {
         return this.replaceApostrophe(prayer.name);
     }
 
@@ -4176,7 +4145,7 @@ class App {
      * @param {string} stringToFix The string to replace
      * @return {string} the fixed string
      */
-    replaceApostrophe(stringToFix: any) {
+    replaceApostrophe(stringToFix: string) {
         return stringToFix.replace(/&apos;/g, "'");
     }
 

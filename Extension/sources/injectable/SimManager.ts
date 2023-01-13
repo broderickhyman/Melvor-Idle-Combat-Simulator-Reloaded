@@ -231,21 +231,21 @@ class SimManager extends CombatManager {
             simResult.tickCount / ticksPerSecond / simResult.simStats.killCount;
         // compute potion use
         let potionCharges = 1;
-        if (this.player.potionID > -1) {
-            // @ts-expect-error TS(2304): Cannot find name 'items'.
-            const potion =
-                items[
-                    Herblore.potions[this.player.potionID].potionIDs[
-                        this.player.potionTier
-                    ]
-                ];
-            potionCharges =
-                potion.potionCharges +
-                this.micsr.showModifiersInstance.getModifierValue(
-                    this.player.modifiers,
-                    "PotionChargesFlat"
-                );
-        }
+        // if (this.player.potionID > -1) {
+        //     // @ts-expect-error TS(2304): Cannot find name 'items'.
+        //     const potion =
+        //         items[
+        //             Herblore.potions[this.player.potionID].potionIDs[
+        //                 this.player.potionTier
+        //             ]
+        //         ];
+        //     potionCharges =
+        //         potion.potionCharges +
+        //         this.micsr.showModifiersInstance.getModifierValue(
+        //             this.player.modifiers,
+        //             "PotionChargesFlat"
+        //         );
+        // }
         return {
             // success
             simSuccess: simResult.success,

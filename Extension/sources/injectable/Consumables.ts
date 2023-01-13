@@ -25,12 +25,12 @@
 class Consumables {
     app: App;
     applyRates: any;
-    card: any;
+    card: Card;
     consumables: any;
-    player: any;
+    player: SimPlayer;
     runesInUse: any;
     showAll: any;
-    simulator: any;
+    simulator: Simulator;
     micsr: MICSR;
 
     constructor(app: App) {
@@ -311,12 +311,12 @@ class Consumables {
         // potion
         if (data.potionsUsedPerSecond > 0) {
             // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-            if (Herblore.potions[this.player.potionID]) {
+            if (Herblore.potions[this.player.potion]) {
                 // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                const potionID = Herblore.potions[this.player.potionID].potionIDs[0];
+                const potionID = Herblore.potions[this.player.potion].potionIDs[0];
                 factor += data.potionsUsedPerSecond * this.getConsumableCostInSeconds(potionID);
             } else {
-                this.micsr.warn(`Unknown potion id ${this.player.potionID} in Consumables.computeFactor, with ${data.potionsUsedPerSecond} potions per second`);
+                this.micsr.warn(`Unknown potion id ${this.player.potion} in Consumables.computeFactor, with ${data.potionsUsedPerSecond} potions per second`);
             }
         }
         // food

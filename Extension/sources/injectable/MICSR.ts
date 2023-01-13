@@ -63,7 +63,7 @@ class MICSR {
     combatAreas!: NamespaceRegistry<CombatArea>;
     slayerAreas!: NamespaceRegistry<SlayerArea>;
     monsterIDs!: any[];
-    herblorePotions!: NamespaceRegistry<HerbloreRecipe>;
+    herblorePotionRecipes!: NamespaceRegistry<HerbloreRecipe>;
     items!: ItemRegistry;
     standardSpells!: NamespaceRegistry<StandardSpell>;
     curseSpells!: NamespaceRegistry<CurseSpell>;
@@ -351,7 +351,7 @@ class MICSR {
                 .reduce((a: any, b: any) => a.concat(b), []),
         ];
         // potions
-        this.herblorePotions = this.actualGame.herblore.actions;
+        this.herblorePotionRecipes = this.actualGame.herblore.actions;
         // items
         this.items = this.actualGame.items;
         // spells

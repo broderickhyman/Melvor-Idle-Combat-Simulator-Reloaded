@@ -115,8 +115,7 @@ class ExportCheat extends Import {
         usePotion(id, false, true);
     }
 
-    importPets(petUnlocked: any) {
-        (window as any).petUnlocked = petUnlocked;
+    importPets(petUnlocked: Pet[]) {
     }
 
     importAutoEat(autoEatTier: any, foodSelected: any, cookingPool: any, cookingMastery: any) {
