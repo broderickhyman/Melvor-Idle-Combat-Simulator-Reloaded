@@ -86,8 +86,8 @@ class MICSR {
         this.gameVersion = "v1.1.1";
 
         // combat sim version
-        this.majorVersion = 1;
-        this.minorVersion = 7;
+        this.majorVersion = 2;
+        this.minorVersion = 0;
         this.patchVersion = 0;
         this.preReleaseVersion = undefined;
         this.version = `v${this.majorVersion}.${this.minorVersion}.${this.patchVersion}`;

@@ -1,3 +1,6 @@
+v2.0.0
+    Overhaul for v1.1
+
 v1.7.0
     Migrate to typescript, WIP
     Add 'unsafe-eval' to CSP in the manifest
