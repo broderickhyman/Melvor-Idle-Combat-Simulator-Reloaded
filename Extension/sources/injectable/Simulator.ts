@@ -274,6 +274,7 @@ class Simulator {
             "rollPercentage",
             "getDamageRoll",
             "rollInteger",
+            "readAttackEffect"
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
@@ -562,8 +563,6 @@ class Simulator {
             // TODO: This might also be sent with the MICSR object
             slayerTaskData: SlayerTask.data,
             dataPackage: this.micsr.dataPackage,
-            //// @ts-expect-error
-            // pakoInflate: pako.inflate.toString()
         });
     }
 
@@ -1027,19 +1026,12 @@ class Simulator {
             const monsterID = this.simulationQueue[this.currentJob].monsterID;
             const dungeonID = this.simulationQueue[this.currentJob].dungeonID;
             const saveString = this.micsr.game.generateSaveStringSimple();
-            // const reader = new SaveWriter('Read', 1);
-            // const saveVersion = reader.setDataFromSaveString(saveString);
             // debugger;
             this.simulationWorkers[workerID].worker.postMessage({
                 action: "START_SIMULATION",
                 monsterID: monsterID,
                 dungeonID: dungeonID,
-                playerString: SimPlayer.generatePlayerString(
-                    this.micsr.game,
-                    this.parent.player
-                ),
                 saveString: saveString,
-                // saveVersion: saveVersion,
                 trials: this.micsr.trials,
                 maxTicks: this.micsr.maxTicks,
             });

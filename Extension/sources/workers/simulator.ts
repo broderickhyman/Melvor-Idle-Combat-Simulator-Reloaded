@@ -119,20 +119,6 @@
         switch (event.data.action) {
             case "RECEIVE_GAMEDATA":
                 // debugger;
-                //// @ts-expect-error TS(2304): Cannot find name 'pako'.
-                // self.pako = {
-                //   inflate: (x: string) => {
-                //     const buffer = new ArrayBuffer(x.length);
-                //     const dataView = new DataView(buffer);
-                //     for (var i = 0; i < x.length; i++) {
-                //       dataView.setUint8(i, x.charCodeAt(i))
-                //     }
-                //     return { buffer: buffer };
-                //   }
-                // };
-                // self.pako = {
-                //   inflate: eval(event.data.pakoInflate)
-                // }
 
                 // constants
                 event.data.constantNames.forEach((name: any) => {
@@ -187,19 +173,6 @@
                 self.saveData = (vars?) => {};
                 // @ts-expect-error
                 self.deleteScheduledPushNotification = () => {};
-                // game.constructEventMatcher = (data: GameEventMatcherData): GameEventMatcher => {
-                //   return {} as any;
-                // };
-
-                // simGame.registerDataPackage(event.data.dataPackage.Demo);
-                // // @ts-expect-error
-                // if (cloudManager.hasFullVersionEntitlement) {
-                //   simGame.registerDataPackage(full);
-                // }
-                // // @ts-expect-error
-                // if (cloudManager.hasTotHEntitlement) {
-                //   simGame.registerDataPackage(toth);
-                // }
 
                 micsr.log("Creating MICSR");
                 combatSimulator = new CombatSimulator(micsr);
@@ -210,7 +183,6 @@
                 // run the simulation
                 combatSimulator
                     .simulateMonster(
-                        // event.data.playerString,
                         event.data.saveString,
                         event.data.monsterID,
                         event.data.dungeonID,
@@ -262,7 +234,6 @@ class CombatSimulator {
         maxTicks: number
     ) {
         // this.micsr.log("Creating manager");
-        (self as any).numberMultiplier = undefined;
         const reader = new SaveWriter("Read", 1);
         // debugger;
         const saveVersion = reader.setDataFromSaveString(saveString);

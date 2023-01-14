@@ -96,7 +96,8 @@ class MICSR {
         }
 
         // simulation settings
-        this.trials = 1e3;
+        // High trial count for development for consistent numbers
+        this.trials = isDev ? 2e4 : 1e3;
         this.maxTicks = 1e3;
         // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
         this.cloudManager = cloudManager;
@@ -272,7 +273,6 @@ class MICSR {
             magicSkillData.data.altSpells = [];
         }
         this.dataPackage[id].data.skillData = skillData;
-        // debugger;
     }
 
     // fetching() {

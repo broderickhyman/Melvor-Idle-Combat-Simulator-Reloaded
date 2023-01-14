@@ -21,14 +21,9 @@
 /**
  * Class to handle exporting to the game, this cheats the current character in a destructive irreversible manner!
  */
+/*
 class ExportCheat extends Import {
     actualApp: App;
-    app: any;
-    autoEatTiers: any;
-    document: any;
-    importSettings: any;
-    player: Player;
-    micsr: MICSR;
 
     constructor(app: App) {
         super(app);
@@ -205,3 +200,4 @@ class ExportCheat extends Import {
         // do nothing
     }
 }
+*/

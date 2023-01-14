@@ -88,6 +88,8 @@ class SimManager extends CombatManager {
             killCount: 0,
             deathCount: 0,
         };
+        this.detachGlobals();
+        this.replaceGlobals();
     }
 
     get onSlayerTask() {
@@ -100,8 +102,7 @@ class SimManager extends CombatManager {
 
     initialize() {
         super.initialize();
-        this.detachGlobals();
-        this.replaceGlobals();
+        this.player.initialize();
         this.renderCombat = false;
     }
 
@@ -135,7 +136,6 @@ class SimManager extends CombatManager {
 
     // replace globals with properties
     replaceGlobals() {
-        this.player.replaceGlobals();
         this.resetSimStats();
     }
 

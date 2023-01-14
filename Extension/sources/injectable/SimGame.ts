@@ -2,6 +2,7 @@ class SimGame extends Game {
     micsr: MICSR;
     // @ts-expect-error Force SimManager type
     combat: SimManager;
+    isWebWorker: boolean;
 
     static bannedSkills = [
         "Woodcutting",
@@ -25,6 +26,7 @@ class SimGame extends Game {
     constructor(micsr: MICSR, isWebWorker: boolean) {
         super();
         this.micsr = micsr;
+        this.isWebWorker = isWebWorker;
         const demoNamespace =
             this.registeredNamespaces.getNamespace("melvorD")!;
         this.combat = new SimManager(this, demoNamespace) as any;

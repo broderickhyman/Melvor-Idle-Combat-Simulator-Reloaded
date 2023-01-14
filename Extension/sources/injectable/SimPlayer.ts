@@ -26,8 +26,6 @@ class SimPlayer extends Player {
     activeAstrologyModifiers: any;
     activeDOTs: any;
     activeItemSynergies: any;
-    // @ts-expect-error HACK
-    activePrayers: any;
     activeSummonSlots: any;
     applyModifiersToPrayerCost: any;
     // @ts-expect-error HACK
@@ -37,24 +35,28 @@ class SimPlayer extends Player {
     canAurora: any;
     canCurse: any;
     chargesUsed: any;
-    combinations: any;
-    cookingMastery: any;
-    cookingPool: any;
-    course: any;
-    courseMastery: any;
+    combinations!: string[];
+    cookingMastery!: boolean;
+    cookingPool!: boolean;
+    course!: number[];
+    courseMastery!: boolean[];
     currentGamemodeID: any;
-    dataNames: any;
-    eatFood: any;
+    dataNames: {
+        booleanArrays: string[];
+        numberArrays: string[];
+        booleans: string[];
+        numbers: string[];
+        strings: string[];
+    };
     emptyAutoHeal: any;
     //// @ts-expect-error HACK
     // equipment: any;
     // equipmentSets: any;
     food: any;
-    getFoodHealing: any;
     gp: any;
-    hasRunes: any;
+    hasRunes!: boolean;
     heal: any;
-    healAfterDeath: any;
+    healAfterDeath!: boolean;
     highestDamageTaken: any;
     hitpoints: any;
     interruptAttack: any;
@@ -65,18 +67,18 @@ class SimPlayer extends Player {
     manager: SimManager;
     petRolls: any;
     petUnlocked!: Pet[];
-    pillar: any;
-    potion: PotionItem | null;
+    pillar!: number;
+    potion: PotionItem | undefined;
     potionSelected!: boolean;
     potionTier!: number;
     runesProvided: any;
     skillLevel: Map<string, number>;
     skillXP: Map<string, number>;
     slayercoins: any;
-    summoningSynergy: any;
+    summoningSynergy!: boolean;
     target: any;
     timers: any;
-    useCombinationRunesFlag: any;
+    useCombinationRunesFlag!: boolean;
     usedAmmo: number;
     usedFood: number;
     usedPotionCharges: number;
@@ -90,6 +92,8 @@ class SimPlayer extends Player {
     constructor(simManager: SimManager, simGame: SimGame) {
         super(simManager as any, simGame as any);
         this.micsr = simManager.micsr;
+        this.detachGlobals();
+        this.resetVariables();
         // this.manager = simManager;
         this.usedFood = 0;
         this.gp = 0;
@@ -102,7 +106,7 @@ class SimPlayer extends Player {
         this.usedAmmo = 0;
         this.usedFood = 0;
         this.usedRunes = {};
-        this.potion = null;
+        this.potion = undefined;
         this.usedPotionCharges = 0;
         this.usedPrayerPoints = 0;
         this.chargesUsed = {
@@ -119,7 +123,7 @@ class SimPlayer extends Player {
         // data names for serialization
         this.dataNames = {
             booleanArrays: ["courseMastery"],
-            numberArrays: ["skillLevel", "course"],
+            numberArrays: ["course"],
             booleans: [
                 "potionSelected",
                 "summoningSynergy",
@@ -134,7 +138,6 @@ class SimPlayer extends Player {
             numbers: [
                 "pillar",
                 "potionTier",
-                "potionID",
                 "autoEatTier",
                 "activeAstrologyModifiers", // this is an array of dictionaries, but it (de)serializes fine
             ],
@@ -188,7 +191,7 @@ class SimPlayer extends Player {
     get gamemode() {
         return this.manager.game.gamemodes.getObjectByID(
             this.currentGamemodeID
-        );
+        )!;
     }
 
     get allowRegen() {
@@ -277,13 +280,11 @@ class SimPlayer extends Player {
         }
     }
 
-    // replace globals with properties
-    replaceGlobals() {
+    resetVariables() {
         // skillLevel
-        this.skillLevel = new Map(Object.keys(this.micsr.skillIDs).map((skill) => [skill, 0])),
-        this.skillLevel.set(this.micsr.skillIDs.Hitpoints, 10);
+        this.skillLevel = new Map();
         // currentGamemode, numberMultiplier
-        this.currentGamemodeID = this.micsr.game.currentGamemode.id;
+        this.currentGamemodeID = "";
         // petUnlocked
         this.petUnlocked = [];
         // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
@@ -293,7 +294,7 @@ class SimPlayer extends Player {
         // herbloreBonuses
         this.potionSelected = false;
         this.potionTier = 0;
-        this.potion = null;
+        this.potion = undefined;
         // isSynergyUnlocked
         this.summoningSynergy = true;
         // shopItemsPurchased
@@ -303,18 +304,28 @@ class SimPlayer extends Player {
         this.cookingMastery = false;
         // useCombinationRunes
         this.useCombinationRunesFlag = false;
-        this.combinations = this.micsr.items
-            .filter((x: any) => x.type === "Rune" && x.providesRune)
-            .map((x: any) => x.id);
+        this.combinations = [];
         // other
         this.healAfterDeath = true;
         this.isSlayerTask = false;
         this.isManualEating = false;
-        this.resetGains();
         // activeAstrologyModifiers
         this.activeAstrologyModifiers = [];
         // runes in bank
         this.hasRunes = true;
+    }
+
+    // replace globals with properties
+    initialize() {
+        this.skillLevel = new Map(
+            Object.keys(this.micsr.skillIDs).map((skill) => [skill, 0])
+        );
+        this.skillLevel.set(this.micsr.skillIDs.Hitpoints, 10);
+        this.currentGamemodeID = this.micsr.game.currentGamemode.id;
+        this.combinations = this.micsr.items
+            .filter((x: any) => x.type === "Rune" && x.providesRune)
+            .map((x: any) => x.id);
+        this.resetGains();
     }
 
     rollForSummoningMarks() {}
@@ -348,6 +359,7 @@ class SimPlayer extends Player {
     }
 
     getGainsPerSecond(ticks: any): ISimGains {
+        // debugger;
         const seconds = ticks / 20;
         const usedRunesBreakdown = {};
         let usedRunes = 0;
@@ -372,12 +384,14 @@ class SimPlayer extends Player {
         if (this.chargesUsed.Summon1 > 0 && this.chargesUsed.Summon2 > 0) {
             usedSummoningCharges /= 2;
         }
-        // debugger;
-        const skillGain = this.game.skills.allObjects.reduce((container, skill) => {
-            const start = this.skillXP.get(skill.id) || 0;
-            container[skill.id] = (skill.xp - start) / seconds;
-            return container;
-        }, {} as {[index: string]: number});
+        const skillGain = this.game.skills.allObjects.reduce(
+            (container, skill) => {
+                const start = this.skillXP.get(skill.id) || 0;
+                container[skill.id] = (skill.xp - start) / seconds;
+                return container;
+            },
+            {} as { [index: string]: number }
+        );
         return {
             gp: this.gp / seconds,
             skillXP: skillGain,
@@ -453,6 +467,42 @@ class SimPlayer extends Player {
             return;
         }
         this.eatFood();
+    }
+
+    equipFood(item: FoodItem, quantity: number): boolean | undefined {
+        if (item.id === "melvorD:Empty_Equipment") {
+            this.unequipFood();
+            return;
+        }
+        // Unequip previous food
+        this.food.unequipSelected();
+        // Proceed to equip the food
+        this.food.equip(item, Number.MAX_SAFE_INTEGER);
+    }
+
+    unequipFood() {
+        this.food.unequipSelected();
+    }
+
+    getFoodHealingBonus(item: FoodItem): number {
+        let bonus =
+            this.modifiers.increasedFoodHealingValue -
+            this.modifiers.decreasedFoodHealingValue;
+        if (this.cookingMastery) {
+            bonus += 20;
+        }
+        if (this.cookingPool) {
+            bonus += 10;
+        }
+        return bonus;
+    }
+    
+    autoEat() {
+        if (this.emptyAutoHeal) {
+            this.usedFood = Number.MAX_SAFE_INTEGER;
+        } else {
+            super.autoEat();
+        }
     }
 
     getMaxDotDamage() {
@@ -548,12 +598,10 @@ class SimPlayer extends Player {
     // }
 
     getExperienceGainSkills(): AnySkill[] {
-        // debugger;
         return super.getExperienceGainSkills();
     }
 
     protected rewardXPAndPetsForDamage(damage: number): void {
-        // debugger;
         super.rewardXPAndPetsForDamage(damage);
     }
 
@@ -592,25 +640,6 @@ class SimPlayer extends Player {
 
     render() {}
 
-    // track potion usage instead of consuming
-    consumePotionCharge(type: any) {
-        if (this.potionSelected) {
-            const item = this.potion;
-            if (
-                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                type === Herblore.potions[item.masteryID[1]].consumesOn &&
-                !rollPercentage(
-                    this.modifiers.increasedChanceToPreservePotionCharge -
-                        this.modifiers.decreasedChanceToPreservePotionCharge
-                )
-            ) {
-                this.usedPotionCharges++;
-            }
-        }
-    }
-
-    reusePotion() {}
-
     // addPotionModifiers() {
     //     if (this.potionSelected) {
     //         const item = this.getPotion();
@@ -624,7 +653,6 @@ class SimPlayer extends Player {
     consumePrayerPoints(amount: any) {
         if (amount > 0) {
             amount = this.applyModifiersToPrayerCost(amount);
-            this.consumePotionCharge("PrayerPointCost");
             this.usedPrayerPoints += amount;
         }
     }
@@ -642,7 +670,6 @@ class SimPlayer extends Player {
         }
     }
 
-    //
     getRuneCosts(spell: any) {
         const spellCost: any = [];
         if (spell === undefined) {
@@ -713,34 +740,6 @@ class SimPlayer extends Player {
         this.equipment.unequipItem(slot);
         this.updateForEquipmentChange();
         return true;
-    }
-
-    equipFood(item: FoodItem, quantity: number): boolean | undefined {
-        if (item.id === "melvorD:Empty_Equipment") {
-            this.unequipFood();
-            return;
-        }
-        // Unequip previous food
-        this.food.unequipSelected();
-        // Proceed to equip the food
-        this.food.equip(item, Number.MAX_SAFE_INTEGER);
-    }
-
-    unequipFood() {
-        this.food.unequipSelected();
-    }
-
-    getFoodHealingBonus(item: any) {
-        let bonus =
-            this.modifiers.increasedFoodHealingValue -
-            this.modifiers.decreasedFoodHealingValue;
-        if (item.cookingID !== undefined && this.cookingMastery) {
-            bonus += 20;
-        }
-        if (this.cookingPool) {
-            bonus += 10;
-        }
-        return bonus;
     }
 
     computeSummoningSynergy() {
@@ -840,14 +839,6 @@ class SimPlayer extends Player {
         }
     }
 
-    autoEat() {
-        if (this.emptyAutoHeal) {
-            this.usedFood = Number.MAX_SAFE_INTEGER;
-        } else {
-            super.autoEat();
-        }
-    }
-
     checkRequirements(
         reqs: any,
         notifyOnFailure = false,
@@ -902,7 +893,6 @@ class SimPlayer extends Player {
             case "archaic":
                 return this.spellSelection.archaic;
             default:
-                debugger;
                 throw new Error(`Bad spell type: ${spellType}`);
         }
     }
@@ -925,7 +915,6 @@ class SimPlayer extends Player {
                 this.spellSelection.archaic = spell as any;
                 break;
             default:
-                debugger;
                 throw new Error(`Bad spell type: ${spellType}`);
         }
     }
@@ -948,7 +937,6 @@ class SimPlayer extends Player {
                 this.spellSelection.archaic = undefined;
                 break;
             default:
-                debugger;
                 throw new Error(`Bad spell type: ${spellType}`);
         }
     }
@@ -958,161 +946,127 @@ class SimPlayer extends Player {
     }
 
     /** Encode the SimPlayer object */
-    // encode(writer: any) {
-    //     return super.encode(writer);
-    //     // this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
-    //     //     // console.log('encode boolean array', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         writer.writeArray(this[x], (object: any, writer: any) => writer.writeBoolean(object));
-    //     //     }
-    //     // });
-    //     // this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-    //     //     // console.log('encode boolean array', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         writer.writeArray(this[x], (object: any, writer: any) => writer.writeInt32(object));
-    //     //     }
-    //     // });
-    //     // this.dataNames.booleans.forEach((x: PropertyKey) => {
-    //     //     // console.log('encode boolean', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         writer.writeBoolean(this[x]);
-    //     //     }
-    //     // });
-    //     // this.dataNames.numbers.forEach((x: PropertyKey) => {
-    //     //     // console.log('encode number', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         writer.writeInt32(this[x]);
-    //     //     }
-    //     // });
-    //     // this.dataNames.strings.forEach((x: PropertyKey) => {
-    //     //     // console.log('encode string', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         writer.writeString(this[x]);
-    //     //     }
-    //     // });
-    //     // return writer.data;
-    // }
-
-    /** Decode the SimPlayer object */
-    // decode(reader: any, version: any = this.micsr.currentSaveVersion) {
-    //     super.decode(reader, version);
-    //     // this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
-    //     //     // console.log('decode boolean array', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         this[x] = reader.getArray((reader: any) => reader.getBoolean());
-    //     //         // console.log(this[x]);
-    //     //     }
-    //     // });
-    //     // this.dataNames.numberArrays.forEach((x: PropertyKey) => {
-    //     //     // console.log('decode number array', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         this[x] = reader.getArray((reader: any) => reader.getInt32());
-    //     //         // console.log(this[x]);
-    //     //     }
-    //     // });
-    //     // this.dataNames.booleans.forEach((x: PropertyKey) => {
-    //     //     // console.log('decode boolean', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         this[x] = reader.getBoolean();
-    //     //         // console.log(this[x]);
-    //     //     }
-    //     // });
-    //     // this.dataNames.numbers.forEach((x: PropertyKey) => {
-    //     //     // console.log('decode number', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         this[x] = reader.getInt32();
-    //     //         // console.log(this[x]);
-    //     //     }
-    //     // });
-    //     // this.dataNames.strings.forEach((x: PropertyKey) => {
-    //     //     // console.log('decode string', x)
-    //     //     if (this.hasKey(this, x)) {
-    //     //         this[x] = reader.getString();
-    //     //         // console.log(this[x]);
-    //     //     }
-    //     // });
-    //     // after reading the data, recompute stats and reset gains
-    //     super.computeAllStats();
-    //     this.resetGains();
-    // }
-
-    // generatePlayerString() {
-    //     const micsrPlayerHeader = () => this.micsr.actualGame.getSaveHeader()
-    //     const writer = new SaveWriter('Write', 512);
-    //     this.encode(writer);
-    //     return this.getSaveString(writer, micsrPlayerHeader());
-    // }
-
-    // getSaveString(w: any, headerInfo: any) {
-    //     // Save namespace mapping as an array, as it is ordered
-    //     w.header.writeMap(w.namespaceMap, (namespace: any, writer: any) => {
-    //         writer.writeString(namespace);
-    //     }, (idMap: any, writer: any) => {
-    //         writer.writeMap(idMap, (localID: any, writer: any) => {
-    //             writer.writeString(localID);
-    //         }, (numericID: any, writer: any) => {
-    //             writer.writeUint16(numericID);
-    //         });
-    //     });
-    //     w.writeHeaderInfo(headerInfo);
-    //     // Combine header and namespace data
-    //     const headerData = w.header.getRawData();
-    //     const bodyData = w.getRawData();
-    //     const combinedData = new BinaryWriter('Write', headerData.byteLength + bodyData.byteLength);
-    //     combinedData.writeFixedLengthBuffer(w.stringEncoder.encode('melvor'), 6);
-    //     combinedData.writeBuffer(headerData);
-    //     combinedData.writeBuffer(bodyData);
-    //     const rawSaveData = combinedData.getRawData();
-    //     const compressedData = new Uint8Array(rawSaveData);
-    //     console.log('sent', compressedData)
-    //     return compressedData;/*
-    //             const decoder = new TextDecoder('utf8');
-    //             console.log(1, compressedData)
-    //             console.log(2, decoder.decode(compressedData))
-    //             const saveString = btoa(unescape(encodeURIComponent(decoder.decode(compressedData))));
-    //             // console.log(`Compressed: ${compressedData.length} bytes. Save String: ${saveString.length} bytes`);
-    //             return saveString;*/
-    // }
-
-    static generatePlayerString(game: SimGame, player: SimPlayer) {
-        // const gameString = game.generateSaveString();
-        // const header = await game.getHeaderFromSaveString(gameString);
-        const header = game.getSaveHeader();
-        const writer = new SaveWriter("Write", 512);
-        // writer.writeHeaderInfo()
-        player.encode(writer);
-        return writer.getSaveString(header);
+    encode(writer: SaveWriter) {
+        // debugger;
+        super.encode(writer);
+        this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                console.log("encode boolean array", x, this[x]);
+                writer.writeArray(
+                    this[x] as any[],
+                    (object: any, writer: any) => writer.writeBoolean(object)
+                );
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.numberArrays.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                console.log("encode number array", x, this[x]);
+                writer.writeArray(
+                    this[x] as any[],
+                    (object: any, writer: any) => writer.writeInt32(object)
+                );
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.booleans.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                console.log("encode boolean", x, this[x]);
+                writer.writeBoolean(this[x] as boolean);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.numbers.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                console.log("encode number", x, this[x]);
+                writer.writeInt32(this[x] as number);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.strings.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                console.log("encode string", x, this[x]);
+                writer.writeString(this[x] as string);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        writer.writeMap(
+            this.skillLevel,
+            (key, writer) => writer.writeString(key),
+            (value, writer) => writer.writeUint32(value)
+        );
+        writer.writeString(this.potion?.id || "");
+        return writer;
     }
 
-    // static getSaveString(w: SaveWriter, headerInfo: any) {
-    //     // Save namespace mapping as an array, as it is ordered
-    //     w.header.writeMap(w.namespaceMap, (namespace: any, writer: any) => {
-    //         writer.writeString(namespace);
-    //     }, (idMap: any, writer: any) => {
-    //         writer.writeMap(idMap, (localID: any, writer: any) => {
-    //             writer.writeString(localID);
-    //         }, (numericID: any, writer: any) => {
-    //             writer.writeUint16(numericID);
-    //         });
-    //     });
-    //     w.writeHeaderInfo(headerInfo);
-    //     // Combine header and namespace data
-    //     const headerData = w.header.getRawData();
-    //     const bodyData = w.getRawData();
-    //     const combinedData = new BinaryWriter('Write', headerData.byteLength + bodyData.byteLength);
-    //     combinedData.writeFixedLengthBuffer(w.stringEncoder.encode('melvor'), 6);
-    //     combinedData.writeBuffer(headerData);
-    //     combinedData.writeBuffer(bodyData);
-    //     // return combinedData.();
-    //     const rawSaveData = combinedData.getRawData();
-    //     const compressedData = new Uint8Array(rawSaveData);
-    //     // // console.log('sent', compressedData)
-    //     // // return compressedData;
-    //     const decoder = new TextDecoder('utf8');
-    //     // // console.log(1, compressedData)
-    //     // // console.log(2, decoder.decode(compressedData))
-    //     const saveString = btoa(unescape(encodeURIComponent(decoder.decode(compressedData))));
-    //     // // console.log(`Compressed: ${compressedData.length} bytes. Save String: ${saveString.length} bytes`);
-    //     return saveString;
-    // }
+    /** Decode the SimPlayer object */
+    decode(reader: SaveWriter, version: number) {
+        // debugger;
+        super.decode(reader, version);
+        // We don't need these extra values when creating the duplicate SimGame on the game side
+        if (!this.manager.game.isWebWorker) {
+            return;
+        }
+        this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                // @ts-expect-error
+                this[x] = reader.getArray((reader: any) => reader.getBoolean());
+                console.log("decode boolean array", x, this[x]);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.numberArrays.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                // @ts-expect-error
+                this[x] = reader.getArray((reader: any) => reader.getInt32());
+                console.log("decode number array", x, this[x]);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.booleans.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                // @ts-expect-error
+                this[x] = reader.getBoolean();
+                console.log("decode boolean", x, this[x]);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.numbers.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                // @ts-expect-error
+                this[x] = reader.getInt32();
+                console.log("decode number", x, this[x]);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.dataNames.strings.forEach((x: PropertyKey) => {
+            if (this.hasKey(this, x)) {
+                // @ts-expect-error
+                this[x] = reader.getString();
+                console.log("decode string", x, this[x]);
+            } else {
+                throw new Error(`Missing key: ${x.toString()}`);
+            }
+        });
+        this.skillLevel = reader.getMap(
+            (reader) => reader.getString(),
+            (reader) => reader.getUint32()
+        );
+        const potionId = reader.getString();
+        if (potionId) {
+            this.potion = this.game.items.potions.getObjectByID(potionId);
+        }
+        // after reading the data, recompute stats and reset gains
+        super.computeAllStats();
+        this.resetGains();
+    }
 }

@@ -108,19 +108,6 @@ class App {
         this.manager = game.combat;
         this.player = this.manager.player;
         // Combat Data Object
-        // this.manager = this.micsr.game.combat;
-        // this.player = this.manager.player;
-        // const writer = new SaveWriter("Write", 1);
-        // this.micsr.game.combat.player.encode(writer)
-        // const playerString = writer.getString();
-        // const writer = new SaveWriter('Write',512);
-        // this.micsr.game.combat.encode(writer);
-        //this.micsr.game.combat.player.getSaveHeader()
-        // const playerString = writer.getSaveString("");
-        // const playerString = SimPlayer.generatePlayerString(this.micsr.game, this.micsr.game.combat.player)
-        // this.manager = new SimManager(micsr, micsr.game, micsr.namespace, playerString)
-        // this.manager.initialize();
-        // this.player = this.manager.player;
         this.combatData = new CombatData(this.manager);
         // prepare tooltips
         this.tippyOptions = {
@@ -515,23 +502,26 @@ class App {
         this.plotter.timeDropdown.selectedIndex = this.initialTimeUnitIndex;
         this.subInfoCard.container.style.display = "none";
         this.plotter.petSkillDropdown.style.display = "none";
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
         document.getElementById(
             `MCS  Pet (%)/${
                 this.timeShorthand[this.initialTimeUnitIndex]
             } Label`
-        ).textContent =
+        )!.textContent =
             this.loot.petSkill + " Pet (%)/" + this.selectedTimeShorthand;
-        this.updateSpellOptions();
-        // this.updatePrayerOptions();
-        // this.updateCombatStats();
-        // this.updateHealing();
-        this.updatePlotData();
+        this.updateUi()
         // TODO this.toggleAstrologySelectCard();
         // slayer sim is off by default, so toggle auto slayer off
         this.toggleSlayerSims(!this.slayerToggleState, false);
         // load from local storage
         this.consumables.loadRates();
+    }
+
+    updateUi(){
+        this.updateSpellOptions();
+        this.updatePrayerOptions();
+        this.updateCombatStats();
+        this.updateHealing();
+        this.updatePlotData();
     }
 
     printRelevantModifiers(modifiers: any, options = {}) {
@@ -935,10 +925,9 @@ class App {
         const amt = this.player.getFoodHealing(
             this.player.food.currentSlot.item
         );
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
         document.getElementById(
             "MICSR-heal-amount-Label"
-        ).textContent = `+${amt}`;
+        )!.textContent = `+${amt}`;
     }
 
     createCombatStatDisplayCard() {
@@ -1996,7 +1985,6 @@ class App {
                 return;
             }
             this.import.importSettings(this.importedSettings);
-            this.import.update();
         });
         // data export
         this.simOptionsCard.container.appendChild(document.createElement("br"));
@@ -2065,7 +2053,6 @@ class App {
         }
         // load settings
         this.import.importSettings(simulation.settings);
-        this.import.update();
         // load results
         for (const id in simulation.monsterSimData) {
             this.simulator.monsterSimData[id] = {
@@ -2908,7 +2895,7 @@ class App {
             if (this.player.potion === clickedPotion) {
                 // Deselect Potion
                 this.player.potionSelected = false;
-                this.player.potion = null;
+                this.player.potion = undefined;
                 this.unselectButton(event.currentTarget);
             } else {
                 // Change Potion
