@@ -492,7 +492,7 @@ class SimPlayer extends Player {
         }
         return bonus;
     }
-    
+
     autoEat() {
         if (this.emptyAutoHeal) {
             this.usedFood = Number.MAX_SAFE_INTEGER;
@@ -630,11 +630,14 @@ class SimPlayer extends Player {
         this.levels.Ranged = this.getSkillLevel(this.game.ranged);
         this.levels.Magic = this.getSkillLevel(this.game.altMagic);
         this.levels.Prayer = this.getSkillLevel(this.game.prayer);
-      }
+    }
 
     // Get skill level from property instead of game skills
     getSkillLevel(skill: CombatSkill | AltMagic) {
-        return Math.min(skill.levelCap, this.skillLevel.get(skill.id)!) + this.modifiers.getHiddenSkillLevels(skill);
+        return (
+            Math.min(skill.levelCap, this.skillLevel.get(skill.id)!) +
+            this.modifiers.getHiddenSkillLevels(skill)
+        );
     }
 
     // don't render anything
@@ -842,44 +845,37 @@ class SimPlayer extends Player {
     }
 
     checkRequirements(
-        reqs: any,
-        notifyOnFailure = false,
-        failureMessage = "do that."
-    ) {
-        return reqs.every((req: any) =>
-            this.checkRequirement(req, notifyOnFailure, failureMessage)
+        requirements: AnyRequirement[],
+        notifyOnFailure?: boolean,
+        slayerLevelReq?: number
+    ): boolean {
+        return requirements.every((req: any) =>
+            this.checkRequirement(req, notifyOnFailure)
         );
     }
 
     checkRequirement(
-        requirement: any,
-        notifyOnFailure = false,
-        failureMessage = "do that."
-    ) {
-        let met = false;
+        requirement: AnyRequirement,
+        notifyOnFailure?: boolean,
+        slayerLevelReq?: number
+    ): boolean {
         switch (requirement.type) {
-            case "Level":
-                met = requirement.levels.every(
-                    (levelReq: any) =>
-                        this.skillLevel.get(levelReq.skill)! >= levelReq.level
+            case "SkillLevel":
+                return (
+                    this.skillLevel.get(requirement.skill.id)! >=
+                    requirement.level
                 );
-                break;
-            case "Dungeon":
-                met = true;
-                break;
-            case "Completion":
-                met = true;
-                break;
             case "SlayerItem":
-                met =
-                    this.modifiers.bypassSlayerItems > 0 ||
-                    this.equipment.checkForItemID(requirement.itemID);
-                break;
+                return (
+                    this.equipment.checkForItem(requirement.item) ||
+                    this.modifiers.bypassSlayerItems > 0
+                );
+            case "Completion":
+            case "DungeonCompletion":
             case "ShopPurchase":
-                met = true;
-                break;
+                return true;
         }
-        return met;
+        return false;
     }
 
     getSpellFromType(spellType: string) {

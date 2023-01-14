@@ -77,11 +77,11 @@ class Plotter {
 
         let totBars = 0;
 
-        this.micsr.combatAreas.forEach((area: any) => {
+        this.micsr.combatAreas.forEach((area) => {
             totBars += area.monsters.length;
             this.barBottomNames.push(area.name);
             this.barBottomLength.push(area.monsters.length);
-            area.monsters.forEach((monster: any) => {
+            area.monsters.forEach((monster) => {
                 this.barNames.push(monster.name);
                 this.barImageSrc.push(monster.media);
             });
@@ -91,13 +91,13 @@ class Plotter {
         this.barBottomLength.push(1);
         this.barNames.push(this.parent.getMonsterName(this.micsr.bardID));
         this.barImageSrc.push(
-            this.micsr.monsters.getObjectByID(this.micsr.bardID).media
+            this.micsr.monsters.getObjectByID(this.micsr.bardID)!.media
         );
-        this.micsr.slayerAreas.forEach((area: any) => {
+        this.micsr.slayerAreas.forEach((area) => {
             totBars += area.monsters.length;
             this.barBottomNames.push(area.name);
             this.barBottomLength.push(area.monsters.length);
-            area.monsters.forEach((monster: any) => {
+            area.monsters.forEach((monster) => {
                 this.barNames.push(monster.name);
                 this.barImageSrc.push(monster.media);
             });
@@ -135,7 +135,7 @@ class Plotter {
         // Use a dropdown menu for the plot title
         const skillTypeSelect = document.createElement("select");
         skillTypeSelect.className = "form-control";
-        this.parent.skillKeys.forEach((skillName: any, index: any) => {
+        this.parent.skillKeys.forEach((skillName) => {
             const newOption = document.createElement("option");
             newOption.textContent = skillName;
             newOption.value = skillName;
@@ -407,13 +407,13 @@ class Plotter {
                 if (this.parent.barIsDungeon(barIndex)) {
                     barName = this.micsr.dungeons.getObjectByID(
                         this.parent.barMonsterIDs[barIndex]
-                    ).name;
+                    )!.name;
                 } else if (this.parent.barIsTask(barIndex)) {
                     barName = `${this.parent.barMonsterIDs[barIndex]} Tasks`;
                 } else {
                     barName = this.micsr.monsters.getObjectByID(
                         this.parent.barMonsterIDs[barIndex]
-                    ).name;
+                    )!.name;
                 }
             }
             // open tooltip and set tooltip title

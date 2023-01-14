@@ -74,7 +74,7 @@ class App {
     plotter!: Plotter;
     potionSelectCard!: Card;
     prayerSelectCard!: Card;
-    savedSimulations: any;
+    savedSimulations: ISimSave[];
     selectedBar: any;
     selectedTime: any;
     selectedTimeShorthand: any;
@@ -96,7 +96,7 @@ class App {
     topContent: any;
     trackHistory: any;
     uniqueModifiers: any;
-    viewedDungeonID: any;
+    viewedDungeonID: string | undefined;
     zoneInfoCard!: Card;
     micsr: MICSR;
 
@@ -107,6 +107,7 @@ class App {
         this.micsr = game.micsr;
         this.manager = game.combat;
         this.player = this.manager.player;
+        this.savedSimulations = [];
         // Combat Data Object
         this.combatData = new CombatData(this.manager);
         // prepare tooltips
@@ -2045,7 +2046,7 @@ class App {
         });
     }
 
-    loadSavedSimulation(idx: any) {
+    loadSavedSimulation(idx: number) {
         const simulation = this.savedSimulations[idx];
         if (!simulation) {
             this.micsr.error(`Unable to load simulation with index ${idx}`);
@@ -2589,6 +2590,7 @@ class App {
                     this.micsr.equipmentSlotData[occupied].id
                 );
             });
+            //@ts-expect-error
             this.player.unequipItem(0, prevSlot);
             this.setEquipmentImage(this.micsr.equipmentSlotData[prevSlot].id);
         });
@@ -3209,7 +3211,7 @@ class App {
      * Callback for when the simulate button is clicked
      * @param {boolean} single
      */
-    async simulateButtonOnClick(single: any) {
+    async simulateButtonOnClick(single: boolean) {
         if (this.simulator.simInProgress) {
             this.simulator.cancelSimulation();
             const simButton = document.getElementById(
@@ -3232,34 +3234,34 @@ class App {
         }
     }
 
-    blockingSimulateButtonOnClick() {
-        const startTimeStamp = performance.now();
-        // queue the desired monsters
-        this.simulator.setupCurrentSim(true);
-        const ids = this.simulator.currentSim.ids;
-        this.simulator.simulationQueue.forEach((queueItem: any) => {
-            const simStats = this.manager.runTrials(
-                queueItem.monsterID,
-                ids.dungeonID,
-                this.micsr.trials,
-                this.micsr.maxTicks,
-                true
-            );
-            const simID = this.simulator.simID(
-                queueItem.monsterID,
-                ids.dungeonID
-            );
-            this.simulator.monsterSimData[simID] =
-                this.manager.convertSlowSimToResult(
-                    simStats,
-                    this.micsr.trials
-                );
-        });
-        this.simulator.performPostSimAnalysis(true);
-        this.updateDisplayPostSim();
-        const processingTime = performance.now() - startTimeStamp;
-        this.micsr.log(`Simulation took ${processingTime / 1000}s.`);
-    }
+    // blockingSimulateButtonOnClick() {
+    //     const startTimeStamp = performance.now();
+    //     // queue the desired monsters
+    //     this.simulator.setupCurrentSim(true);
+    //     const ids = this.simulator.currentSim.ids;
+    //     this.simulator.simulationQueue.forEach((queueItem: any) => {
+    //         const simStats = this.manager.runTrials(
+    //             queueItem.monsterID,
+    //             ids.dungeonID,
+    //             this.micsr.trials,
+    //             this.micsr.maxTicks,
+    //             true
+    //         );
+    //         const simID = this.simulator.simID(
+    //             queueItem.monsterID,
+    //             ids.dungeonID
+    //         );
+    //         this.simulator.monsterSimData[simID] =
+    //             this.manager.convertSlowSimToResult(
+    //                 simStats,
+    //                 this.micsr.trials
+    //             );
+    //     });
+    //     this.simulator.performPostSimAnalysis(true);
+    //     this.updateDisplayPostSim();
+    //     const processingTime = performance.now() - startTimeStamp;
+    //     this.micsr.log(`Simulation took ${processingTime / 1000}s.`);
+    // }
 
     exportSettingButtonOnClick() {
         const settings = this.import.exportSettings();
@@ -3791,7 +3793,7 @@ class App {
      */
     getMonsterList(dungeonID: any) {
         if (this.micsr.isDungeonID(dungeonID)) {
-            return this.micsr.dungeons.getObjectByID(this.viewedDungeonID)
+            return this.micsr.dungeons.getObjectByID(this.viewedDungeonID!)!
                 .monsters;
         }
         return this.simulator.slayerTaskMonsters[dungeonID];

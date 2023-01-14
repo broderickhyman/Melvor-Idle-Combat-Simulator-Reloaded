@@ -126,12 +126,14 @@ export function setup(setupContext: Modding.ModContext) {
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
                     $("[id='MCS 1 Button']").trigger("click");
+
                     // Start sim all
-                    // $("[id='MCS Simulate All Button']").trigger("click");
-                    // Click monster
-                    $($(".mcs-bar-container")[9]).trigger("click");
-                    // Start sim selected
-                    $("[id='MCS Simulate Selected Button']").trigger("click");
+                    $("[id='MCS Simulate All Button']").trigger("click");
+
+                    // // Click monster
+                    // $($(".mcs-bar-container")[9]).trigger("click");
+                    // // Start sim selected
+                    // $("[id='MCS Simulate Selected Button']").trigger("click");
                 }
             } catch (error) {
                 micsr.warn(

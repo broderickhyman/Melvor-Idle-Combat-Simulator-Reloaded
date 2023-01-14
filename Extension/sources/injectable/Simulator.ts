@@ -18,20 +18,36 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+interface ISimData {
+    simSuccess: boolean;
+    reason: string;
+    inQueue?: boolean;
+    petRolls?: {
+        other: any[];
+    };
+}
+
+interface ISimSave {
+    settings: IImportSettings;
+    export: string;
+    monsterSimData: { [index: string]: ISimData };
+    dungeonSimData: { [index: string]: ISimData };
+    slayerSimData: { [index: string]: ISimData };
+}
+
 /**
  * Simulator class, used for all simulation work, and storing simulation results and settings
  */
 class Simulator {
     currentJob: any;
     currentSim: any;
-    dungeonSimData: any;
-    dungeonSimFilter: any;
+    dungeonSimData: { [index: string]: ISimData };
+    dungeonSimFilter: { [index: string]: boolean };
     isTestMode: any;
     maxThreads: any;
-    monsterSimData: any;
-    monsterSimIDs: any;
-    monsterSimFilter: any;
-    newSimData: any;
+    monsterSimData: { [index: string]: ISimData };
+    monsterSimIDs: string[];
+    monsterSimFilter: { [index: string]: boolean };
     notSimulatedReason: any;
     parent: App;
     selectedPlotIsTime: any;
@@ -41,8 +57,8 @@ class Simulator {
     simStartTime: any;
     simulationQueue: any;
     simulationWorkers: any;
-    slayerSimData: any;
-    slayerSimFilter: any;
+    slayerSimData: { [index: string]: ISimData };
+    slayerSimFilter: { [index: string]: boolean };
     slayerTaskMonsters: any;
     testCount: any;
     testMax: any;
@@ -61,17 +77,6 @@ class Simulator {
         // not simulated reason
         this.notSimulatedReason = "entity not simulated";
         // Simulation data;
-        this.newSimData = (isMonster: any) => {
-            const data = {
-                simSuccess: false,
-                reason: this.notSimulatedReason,
-            };
-            if (isMonster) {
-                (data as any).inQueue = false;
-                (data as any).petRolls = { other: [] };
-            }
-            return data;
-        };
         this.monsterSimIDs = [];
         this.monsterSimData = {};
         this.micsr.monsters.forEach((monster: any) => {
@@ -118,6 +123,18 @@ class Simulator {
         this.simStartTime = 0;
         /** If the current sim has been cancelled */
         this.simCancelled = false;
+    }
+
+    newSimData(isMonster: boolean): ISimData {
+        const data: ISimData = {
+            simSuccess: false,
+            reason: this.notSimulatedReason,
+        };
+        if (isMonster) {
+            data.inQueue = false;
+            data.petRolls = { other: [] };
+        }
+        return data;
     }
 
     /**
@@ -274,7 +291,8 @@ class Simulator {
             "rollPercentage",
             "getDamageRoll",
             "rollInteger",
-            "readAttackEffect"
+            "readAttackEffect",
+            "getRandomArrayElement",
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
@@ -569,7 +587,7 @@ class Simulator {
     /**
      * Iterate through all the combatAreas and this.micsr.dungeons to create a set of monsterSimData and dungeonSimData
      */
-    async simulateCombat(single: any) {
+    async simulateCombat(single: boolean) {
         this.setupCurrentSim(single);
         // Start simulation workers
         // @ts-expect-error TS(2531): Object is possibly 'null'.
@@ -587,14 +605,14 @@ class Simulator {
         };
     }
 
-    simID(monsterID: any, dungeonID: any) {
+    simID(monsterID: string, dungeonID: string | undefined) {
         if (dungeonID === undefined) {
             return monsterID;
         }
         return `${dungeonID}-${monsterID}`;
     }
 
-    pushMonsterToQueue(monsterID: any, dungeonID: any) {
+    pushMonsterToQueue(monsterID: string, dungeonID: string | undefined) {
         const simID = this.simID(monsterID, dungeonID);
         if (!this.monsterSimData[simID].inQueue) {
             this.monsterSimData[simID].inQueue = true;
@@ -655,8 +673,8 @@ class Simulator {
                     return { dungeonID: dungeonID };
                 }
                 this.micsr.dungeons
-                    .getObjectByID(dungeonID)
-                    .monsters.forEach((monster: any) => {
+                    .getObjectByID(dungeonID)!
+                    .monsters.forEach((monster) => {
                         this.pushMonsterToQueue(monster.id, dungeonID);
                     });
                 return { dungeonID: dungeonID };
@@ -689,10 +707,15 @@ class Simulator {
         return {};
     }
 
-    queueSlayerTask(i: any) {
-        const task = this.micsr.slayerTaskData[i];
-        this.slayerTaskMonsters[i] = [];
-        if (!this.slayerSimFilter[i]) {
+    queueSlayerTask(taskName: string) {
+        const task = this.micsr.slayerTaskData.find(
+            (t) => t.display == taskName
+        );
+        if (!task) {
+            throw new Error(`Could not find task: ${taskName}`);
+        }
+        this.slayerTaskMonsters[taskName] = [];
+        if (!this.slayerSimFilter[taskName]) {
             return;
         }
         const minLevel = task.minLevel;
@@ -715,11 +738,11 @@ class Simulator {
             }
             // all checks passed
             this.pushMonsterToQueue(monster.id, undefined);
-            this.slayerTaskMonsters[i].push(monster);
+            this.slayerTaskMonsters[taskName].push(monster);
         });
     }
 
-    resetSimulationData(single: any) {
+    resetSimulationData(single: boolean) {
         // Reset the simulation status of all enemies
         this.resetSimDone();
         // Set up simulation queue
@@ -729,8 +752,8 @@ class Simulator {
             return;
         }
         // Queue simulation of monsters in combat areas
-        this.micsr.combatAreas.forEach((area: any) => {
-            area.monsters.forEach((monster: any) => {
+        this.micsr.combatAreas.forEach((area) => {
+            area.monsters.forEach((monster) => {
                 if (this.monsterSimFilter[monster.id]) {
                     this.pushMonsterToQueue(monster.id, undefined);
                 }
@@ -741,10 +764,10 @@ class Simulator {
             this.pushMonsterToQueue(this.micsr.bardID, undefined);
         }
         // Queue simulation of monsters in slayer areas
-        this.micsr.slayerAreas.forEach((area: any) => {
-            if (!this.micsr.game.checkRequirements(area.entryRequirements)) {
+        this.micsr.slayerAreas.forEach((area) => {
+            if (!this.micsr.game.combat.player.checkRequirements(area.entryRequirements)) {
                 const tryToSim = area.monsters.reduce(
-                    (sim: any, monster: any) =>
+                    (sim, monster) =>
                         (this.monsterSimFilter[monster.id] &&
                             !this.monsterSimData[monster.id].inQueue) ||
                         sim,
@@ -752,30 +775,30 @@ class Simulator {
                 );
                 if (tryToSim) {
                     this.parent.notify(`Can't access ${area.name}`, "danger");
-                    area.monsters.forEach((monster: any) => {
+                    area.monsters.forEach((monster) => {
                         this.monsterSimData[monster.id].reason =
                             "cannot access area";
                     });
                 }
                 return;
             }
-            area.monsters.forEach((monsterID: any) => {
-                if (this.monsterSimFilter[monsterID]) {
-                    this.pushMonsterToQueue(monsterID, undefined);
+            area.monsters.forEach((monster) => {
+                if (this.monsterSimFilter[monster.id]) {
+                    this.pushMonsterToQueue(monster.id, undefined);
                 }
             });
         });
         // Queue simulation of monsters in dungeons
-        this.micsr.dungeons.forEach((dungeon: any) => {
-            if (this.dungeonSimFilter[dungeon]) {
+        this.micsr.dungeons.forEach((dungeon) => {
+            if (this.dungeonSimFilter[dungeon.id]) {
                 for (let j = 0; j < dungeon.monsters.length; j++) {
-                    const monsterID = dungeon.monsters[j];
-                    this.pushMonsterToQueue(monsterID, dungeon);
+                    const monster = dungeon.monsters[j];
+                    this.pushMonsterToQueue(monster.id, dungeon.id);
                 }
             }
         });
         // Queue simulation of monsters in slayer tasks
-        this.micsr.taskIDs.forEach((taskID: string) => {
+        this.micsr.taskIDs.forEach((taskID) => {
             this.queueSlayerTask(taskID);
         });
     }
@@ -783,7 +806,7 @@ class Simulator {
     /**
      * Setup currentsim variables
      */
-    setupCurrentSim(single: any) {
+    setupCurrentSim(single: boolean) {
         this.simStartTime = performance.now();
         this.simCancelled = false;
         this.currentSim = this.initCurrentSim();
@@ -973,21 +996,12 @@ class Simulator {
 
     saveResult() {
         // store simulation
-        const monsterSimData = {};
-        for (const id in this.monsterSimData) {
-            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-            monsterSimData[id] = { ...this.monsterSimData[id] };
-        }
-        const save = {
+        const save: ISimSave = {
             settings: this.parent.import.exportSettings(),
             export: "",
-            monsterSimData: monsterSimData,
-            dungeonSimData: this.dungeonSimData.map((x: any) => {
-                return { ...x };
-            }),
-            slayerSimData: this.slayerSimData.map((x: any) => {
-                return { ...x };
-            }),
+            monsterSimData: this.monsterSimData,
+            dungeonSimData: this.dungeonSimData,
+            slayerSimData: this.slayerSimData,
         };
         save.export = JSON.stringify(save.settings, null, 1);
         this.parent.savedSimulations.push(save);
@@ -1157,7 +1171,7 @@ class Simulator {
                 );
             });
             // Perform simulation of monsters in slayer tasks
-            this.micsr.taskIDs.forEach((taskID: any) => {
+            this.micsr.taskIDs.forEach((taskID) => {
                 dataSet.push(
                     this.getBarValue(
                         this.slayerSimFilter[taskID],
@@ -1170,7 +1184,7 @@ class Simulator {
             // dungeons
             const dungeonID = this.parent.viewedDungeonID;
             this.micsr.dungeons
-                .getObjectByID(dungeonID)
+                .getObjectByID(dungeonID!)!
                 .monsters.forEach((monster: any) => {
                     const simID = this.simID(monster.id, dungeonID);
                     if (!isSignet) {
@@ -1186,17 +1200,18 @@ class Simulator {
                     }
                 });
             if (isSignet) {
-                const monsters =
-                    this.micsr.dungeons.getObjectByID(dungeonID).monsters;
-                const bossId = monsters[monsters.length - 1];
-                const simID = this.simID(bossId, dungeonID);
+                const monsters = this.micsr.dungeons.getObjectByID(
+                    dungeonID!
+                )!.monsters;
+                const boss = monsters[monsters.length - 1];
+                const simID = this.simID(boss.id, dungeonID);
                 dataSet[dataSet.length - 1] = this.getBarValue(
                     true,
                     this.monsterSimData[simID],
                     keyValue
                 );
             }
-        } else {
+        } else if (this.parent.viewedDungeonID) {
             // slayer tasks
             const taskID = this.parent.viewedDungeonID;
             this.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
@@ -1265,20 +1280,20 @@ class Simulator {
                 dataSet.push(this.dungeonSimData[dungeonID]);
             });
             // Perform simulation of monsters in slayer tasks
-            this.micsr.taskIDs.forEach((taskID: any) => {
+            this.micsr.taskIDs.forEach((taskID) => {
                 dataSet.push(this.slayerSimData[taskID]);
             });
         } else if (this.micsr.isDungeonID(this.parent.viewedDungeonID)) {
             // dungeons
             const dungeonID = this.parent.viewedDungeonID;
             this.micsr.dungeons
-                .getObjectByID(dungeonID)
+                .getObjectByID(dungeonID!)!
                 .monsters.forEach((monster: any) => {
                     dataSet.push(
                         this.monsterSimData[this.simID(monster.id, dungeonID)]
                     );
                 });
-        } else {
+        } else if (this.parent.viewedDungeonID) {
             // slayer tasks
             const taskID = this.parent.viewedDungeonID;
             this.slayerTaskMonsters[taskID].forEach((monsterID: any) => {
@@ -1315,7 +1330,7 @@ class Simulator {
         this.micsr.dungeonIDs.forEach((_: string) => {
             enterSet.push(true);
         });
-        this.micsr.taskIDs.forEach((taskID: string) =>
+        this.micsr.taskIDs.forEach((taskID) =>
             this.slayerTaskMonsters[taskID].forEach((_: string) => {
                 enterSet.push(true);
             })

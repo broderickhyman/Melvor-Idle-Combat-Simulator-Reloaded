@@ -30,7 +30,16 @@ class SimGame extends Game {
         const demoNamespace =
             this.registeredNamespaces.getNamespace("melvorD")!;
         this.combat = new SimManager(this, demoNamespace) as any;
-        if (isWebWorker) {
+        this.detachGlobals();
+
+        // Fix SimPlayer object to match replaced Player object
+        this.combat.player.registerStatProvider(this.petManager);
+        this.combat.player.registerStatProvider(this.shop);
+        this.combat.player.registerStatProvider(this.potions);
+    }
+
+    detachGlobals() {
+        if (this.isWebWorker) {
             // Fake the township item
             this.township = {
                 // @ts-expect-error
@@ -47,12 +56,8 @@ class SimGame extends Game {
             this.gp.add = (amount) => {
                 // Store gp on the SimPlayer
                 this.combat.player.gp += amount;
-            }
+            };
         }
-        // Fix SimPlayer object to match replaced Player object
-        this.combat.player.registerStatProvider(this.petManager);
-        this.combat.player.registerStatProvider(this.shop);
-        this.combat.player.registerStatProvider(this.potions);
     }
 
     onLoad() {

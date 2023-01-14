@@ -40,7 +40,7 @@ class MICSR {
     currentSaveVersion: number;
     equipmentSlotData: EquipmentObject<SlotData>;
     slayerTaskData: SlayerTaskData[];
-    taskIDs: any[];
+    taskIDs: string[];
     imageNotify: (
         media: string,
         message: string,
@@ -98,8 +98,13 @@ class MICSR {
         }
 
         // simulation settings
-        // High trial count for development for consistent numbers
-        this.trials = isDev ? 2e4 : 1e3;
+        this.trials = 1e3;
+        if(isDev){
+            // High trial count for development for consistent numbers
+            this.trials = 2e4;
+            // Low trial count for fast simulate all
+            this.trials = 1e2;
+        }
         this.maxTicks = 1e3;
         // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
         this.cloudManager = cloudManager;
@@ -107,7 +112,7 @@ class MICSR {
         this.currentSaveVersion = currentSaveVersion;
         this.equipmentSlotData = equipmentSlotData;
         this.slayerTaskData = SlayerTask.data;
-        this.taskIDs = this.slayerTaskData.map((task: any) => task.display);
+        this.taskIDs = this.slayerTaskData.map((task) => task.display);
         this.imageNotify = imageNotify;
 
         this.dataPackage = {
@@ -378,8 +383,11 @@ class MICSR {
         });
     }
 
-    isDungeonID(id: string) {
-        this.dungeons?.getObjectByID(id) !== undefined;
+    isDungeonID(id: string | undefined) {
+        if(!id){
+            return false;
+        }
+        return this.dungeons?.getObjectByID(id) !== undefined;
     }
 
     /////////////

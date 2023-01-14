@@ -45,6 +45,8 @@
         },
     };
 
+    self.addModalToQueue = () => undefined;
+
     let combatSimulator: CombatSimulator;
 
     onmessage = async (event) => {

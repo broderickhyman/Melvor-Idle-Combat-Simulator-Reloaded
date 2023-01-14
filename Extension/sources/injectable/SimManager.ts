@@ -45,6 +45,7 @@ interface ISimStats {
         killCount: number;
     };
     gainsPerSecond: ISimGains;
+    failMessage: string;
 }
 
 /**
@@ -60,7 +61,6 @@ class SimManager extends CombatManager {
     endFight: any;
     enemy: SimEnemy;
     isActive: any;
-    loot: any;
     paused: any;
     // simPlayer: SimPlayer;
     // @ts-expect-error Force SimPlayer type
@@ -111,8 +111,8 @@ class SimManager extends CombatManager {
         this.bank = {
             addItem: () => true,
             checkForItems: (costs: any) => {
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 if (
+                    // @ts-expect-error TS(2304): Cannot find name 'items'.
                     costs.find((x: any) => items[x.itemID].type === "Rune") !==
                     undefined
                 ) {
@@ -123,6 +123,7 @@ class SimManager extends CombatManager {
             consumeItems: () => {},
             getQty: () => 1e6,
         };
+        this.loot.render = () => undefined;
         this.player.detachGlobals();
     }
 
@@ -163,27 +164,27 @@ class SimManager extends CombatManager {
         if (super.activeEvent !== undefined) {
             // @ts-expect-error HACK
             this.enemy.addPassives(super.eventPassives, true, false, false);
-            // @ts-expect-error HACK
             if (
+                // @ts-expect-error HACK
                 this.selectedMonster !== super.activeEvent.firstBossMonster &&
                 // @ts-expect-error HACK
                 this.selectedMonster !== super.activeEvent.finalBossMonster
             ) {
-                // @ts-expect-error HACK
                 this.enemy.addPassives(
+                    // @ts-expect-error HACK
                     super.activeEvent.enemyPassives,
                     true,
                     true,
                     false
                 );
             }
-            // @ts-expect-error HACK
             if (
                 this.dungeonProgress ===
+                // @ts-expect-error HACK
                 super.eventDungeonLength - (super.atLastEventDungeon ? 2 : 1)
             ) {
-                // @ts-expect-error HACK
                 this.enemy.addPassives(
+                    // @ts-expect-error HACK
                     super.activeEvent.bossPassives,
                     true,
                     true,
@@ -207,7 +208,7 @@ class SimManager extends CombatManager {
         this.player.resetGains();
     }
 
-    getSimStats(monsterID: string, dungeonID: string, success: any): ISimStats {
+    getSimStats(monsterID: string, dungeonID: string, success: boolean, failMesage: string): ISimStats {
         return {
             success: success,
             monsterID: monsterID,
@@ -215,6 +216,7 @@ class SimManager extends CombatManager {
             tickCount: this.tickCount,
             simStats: this.simStats,
             gainsPerSecond: this.player.getGainsPerSecond(this.tickCount),
+            failMessage: failMesage
         };
     }
 
@@ -223,9 +225,12 @@ class SimManager extends CombatManager {
         const ticksPerSecond = 1000 / TICK_INTERVAL;
         const trials =
             simResult.simStats.killCount + simResult.simStats.deathCount;
-        let reason = undefined;
+        let reason = "";
+        if(!simResult.success && simResult.failMessage){
+            reason += simResult.failMessage + " ";
+        }
         if (targetTrials - trials > 0) {
-            reason = `simulated ${trials}/${targetTrials} trials`;
+            reason += `Simulated ${trials}/${targetTrials} trials.`;
         }
         const killTimeS =
             simResult.tickCount / ticksPerSecond / simResult.simStats.killCount;
@@ -422,9 +427,9 @@ class SimManager extends CombatManager {
         this.resetSimStats();
         const startTimeStamp = performance.now();
         const monster = this.game.monsters.getObjectByID(monsterID);
-        let areaData = this.game.getMonsterArea(monster);
+        let areaData = this.game.getMonsterArea(monster!);
         if (dungeonID !== undefined) {
-            areaData = this.micsr.dungeons.getObjectByID(dungeonID);
+            areaData = this.micsr.dungeons.getObjectByID(dungeonID)!;
             this.dungeonProgress = 0;
             while (areaData.monsters[this.dungeonProgress].id !== monsterID) {
                 this.dungeonProgress++;
@@ -434,9 +439,9 @@ class SimManager extends CombatManager {
         // debugger;
         const success = this.player.checkRequirements(
             areaData.entryRequirements,
-            true,
-            "fight this monster."
+            true
         );
+        let failMessage = "";
         if (success) {
             this.selectMonster(monster, areaData);
             this.micsr.log("Fighting:", monster?.name, areaData.name);
@@ -460,9 +465,12 @@ class SimManager extends CombatManager {
                 }
             }
         }
+        else {
+            failMessage = `Failed one of the following requirements: ${areaData.entryRequirements.map(r => r.type).join(", ")}.`;
+        }
         this.stopCombat();
         const processingTime = performance.now() - startTimeStamp;
-        const simStats = this.getSimStats(monsterID, dungeonID, success);
+        const simStats = this.getSimStats(monsterID, dungeonID, success, failMessage);
         if (verbose) {
             this.micsr.log(
                 `Processed ${this.simStats.killCount} / ${
