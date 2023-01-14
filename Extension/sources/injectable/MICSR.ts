@@ -24,6 +24,7 @@ type IDataPackage = {
 
 class MICSR {
     isDev: boolean;
+    isVerbose: boolean;
     name: string;
     shortName: string;
     gameVersion: string;
@@ -78,6 +79,7 @@ class MICSR {
     constructor(isDev = false) {
         // TODO: Change to a setting
         this.isDev = isDev;
+        this.isVerbose = false;
         // combat sim name
         this.name = "Melvor Idle Combat Simulator Reloaded";
         this.shortName = "Combat Simulator";
@@ -388,6 +390,11 @@ class MICSR {
     }
     log(...args: any[]) {
         console.log("MICSR:", ...args);
+    }
+    logVerbose(...args: any[]) {
+        if (this.isVerbose) {
+            console.log("MICSR:", ...args);
+        }
     }
     warn(...args: any[]) {
         console.warn("MICSR:", ...args);

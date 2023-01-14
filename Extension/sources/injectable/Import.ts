@@ -336,8 +336,8 @@ class Import {
         //     }
         // }
         // import settings
-        this.importEquipment(settings.equipment);
         this.importLevels(settings.levels);
+        this.importEquipment(settings.equipment);
         this.importStyle(settings.styles);
         this.importSpells({
             ancient: settings.ancient,

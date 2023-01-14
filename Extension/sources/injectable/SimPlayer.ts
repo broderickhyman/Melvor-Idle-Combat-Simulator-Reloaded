@@ -53,7 +53,7 @@ class SimPlayer extends Player {
     // equipment: any;
     // equipmentSets: any;
     food: any;
-    gp: any;
+    gp: number;
     hasRunes!: boolean;
     heal: any;
     healAfterDeath!: boolean;
@@ -317,10 +317,6 @@ class SimPlayer extends Player {
 
     // replace globals with properties
     initialize() {
-        this.skillLevel = new Map(
-            Object.keys(this.micsr.skillIDs).map((skill) => [skill, 0])
-        );
-        this.skillLevel.set(this.micsr.skillIDs.Hitpoints, 10);
         this.currentGamemodeID = this.micsr.game.currentGamemode.id;
         this.combinations = this.micsr.items
             .filter((x: any) => x.type === "Rune" && x.providesRune)
@@ -526,10 +522,6 @@ class SimPlayer extends Player {
         this._slayercoins += amount;
     }
 
-    addGP(amount: any) {
-        this.gp += amount;
-    }
-
     // addXP(skill: any, amount: any) {
     //     this.skillXP[skill] += this.getSkillXPToAdd(skill, amount);
     // }
@@ -630,9 +622,19 @@ class SimPlayer extends Player {
     //     this.petRolls[attackInterval] = 1 + (this.petRolls[attackInterval] | 0);
     // }
 
-    // get skill level from property instead of global `skillLevel`
-    getSkillLevel(skillID: any) {
-        return Math.min(99, this.skillLevel.get(skillID)!);
+    computeLevels() {
+        this.levels.Hitpoints = this.getSkillLevel(this.game.hitpoints);
+        this.levels.Attack = this.getSkillLevel(this.game.attack);
+        this.levels.Strength = this.getSkillLevel(this.game.strength);
+        this.levels.Defence = this.getSkillLevel(this.game.defence);
+        this.levels.Ranged = this.getSkillLevel(this.game.ranged);
+        this.levels.Magic = this.getSkillLevel(this.game.altMagic);
+        this.levels.Prayer = this.getSkillLevel(this.game.prayer);
+      }
+
+    // Get skill level from property instead of game skills
+    getSkillLevel(skill: CombatSkill | AltMagic) {
+        return Math.min(skill.levelCap, this.skillLevel.get(skill.id)!) + this.modifiers.getHiddenSkillLevels(skill);
     }
 
     // don't render anything
@@ -951,7 +953,7 @@ class SimPlayer extends Player {
         super.encode(writer);
         this.dataNames.booleanArrays.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
-                console.log("encode boolean array", x, this[x]);
+                this.micsr.logVerbose("encode boolean array", x, this[x]);
                 writer.writeArray(
                     this[x] as any[],
                     (object: any, writer: any) => writer.writeBoolean(object)
@@ -962,7 +964,7 @@ class SimPlayer extends Player {
         });
         this.dataNames.numberArrays.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
-                console.log("encode number array", x, this[x]);
+                this.micsr.logVerbose("encode number array", x, this[x]);
                 writer.writeArray(
                     this[x] as any[],
                     (object: any, writer: any) => writer.writeInt32(object)
@@ -973,7 +975,7 @@ class SimPlayer extends Player {
         });
         this.dataNames.booleans.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
-                console.log("encode boolean", x, this[x]);
+                this.micsr.logVerbose("encode boolean", x, this[x]);
                 writer.writeBoolean(this[x] as boolean);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
@@ -981,7 +983,7 @@ class SimPlayer extends Player {
         });
         this.dataNames.numbers.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
-                console.log("encode number", x, this[x]);
+                this.micsr.logVerbose("encode number", x, this[x]);
                 writer.writeInt32(this[x] as number);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
@@ -989,7 +991,7 @@ class SimPlayer extends Player {
         });
         this.dataNames.strings.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
-                console.log("encode string", x, this[x]);
+                this.micsr.logVerbose("encode string", x, this[x]);
                 writer.writeString(this[x] as string);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
@@ -1000,7 +1002,9 @@ class SimPlayer extends Player {
             (key, writer) => writer.writeString(key),
             (value, writer) => writer.writeUint32(value)
         );
+        this.micsr.logVerbose("encode skillLevel", this.skillLevel);
         writer.writeString(this.potion?.id || "");
+        this.micsr.logVerbose("encode potion id", this.potion?.id);
         return writer;
     }
 
@@ -1016,7 +1020,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 // @ts-expect-error
                 this[x] = reader.getArray((reader: any) => reader.getBoolean());
-                console.log("decode boolean array", x, this[x]);
+                this.micsr.logVerbose("decode boolean array", x, this[x]);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -1025,7 +1029,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 // @ts-expect-error
                 this[x] = reader.getArray((reader: any) => reader.getInt32());
-                console.log("decode number array", x, this[x]);
+                this.micsr.logVerbose("decode number array", x, this[x]);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -1034,7 +1038,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 // @ts-expect-error
                 this[x] = reader.getBoolean();
-                console.log("decode boolean", x, this[x]);
+                this.micsr.logVerbose("decode boolean", x, this[x]);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -1043,7 +1047,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 // @ts-expect-error
                 this[x] = reader.getInt32();
-                console.log("decode number", x, this[x]);
+                this.micsr.logVerbose("decode number", x, this[x]);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -1052,7 +1056,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 // @ts-expect-error
                 this[x] = reader.getString();
-                console.log("decode string", x, this[x]);
+                this.micsr.logVerbose("decode string", x, this[x]);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -1061,10 +1065,12 @@ class SimPlayer extends Player {
             (reader) => reader.getString(),
             (reader) => reader.getUint32()
         );
+        this.micsr.logVerbose("decode skillLevel", this.skillLevel);
         const potionId = reader.getString();
         if (potionId) {
             this.potion = this.game.items.potions.getObjectByID(potionId);
         }
+        this.micsr.logVerbose("decode potion id", potionId);
         // after reading the data, recompute stats and reset gains
         super.computeAllStats();
         this.resetGains();

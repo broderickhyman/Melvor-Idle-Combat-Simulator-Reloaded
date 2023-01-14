@@ -58,7 +58,7 @@ class App {
     initialTimeUnitIndex: any;
     isViewingDungeon: any;
     levelSelectCard!: Card;
-    loot: any;
+    loot!: Loot;
     lootSelectCard!: Card;
     mainTabCard!: TabCard;
     manager: SimManager;
@@ -3733,7 +3733,7 @@ class App {
                 this.setZoneInfoCard(
                     this.getDungeonName(dungeonID),
                     dungeonID,
-                    this.micsr.dungeons.getObjectByID(dungeonID).media,
+                    this.micsr.dungeons.getObjectByID(dungeonID)!.media,
                     this.simulator.dungeonSimData[dungeonID]
                 );
             } else if (
@@ -3759,7 +3759,7 @@ class App {
                 this.setZoneInfoCard(
                     this.getMonsterName(monsterID),
                     monsterID,
-                    this.micsr.monsters.getObjectByID(monsterID).media,
+                    this.micsr.monsters.getObjectByID(monsterID)!.media,
                     this.simulator.monsterSimData[
                         this.simulator.simID(
                             monsterID,

@@ -44,6 +44,10 @@ class SimGame extends Game {
             };
             this.petManager.unlockPet = () => null;
             this.bank.addItem = () => true;
+            this.gp.add = (amount) => {
+                // Store gp on the SimPlayer
+                this.combat.player.gp += amount;
+            }
         }
         // Fix SimPlayer object to match replaced Player object
         this.combat.player.registerStatProvider(this.petManager);

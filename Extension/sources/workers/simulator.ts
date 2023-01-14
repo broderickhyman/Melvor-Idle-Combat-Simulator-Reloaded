@@ -144,9 +144,9 @@
                 const cloneData = new CloneData();
                 cloneData.restoreModifierData();
                 SlayerTask.data = event.data.slayerTaskData;
-                logging.log("Creating exp");
-                const exp = new ExperienceCalculator();
-                logging.log("Creating game");
+                // Save off global object
+                // @ts-expect-error
+                self.exp = new ExperienceCalculator();
                 const full = event.data.dataPackage.Full;
                 const toth = event.data.dataPackage.TotH;
                 // @ts-expect-error
@@ -174,7 +174,6 @@
                 // @ts-expect-error
                 self.deleteScheduledPushNotification = () => {};
 
-                micsr.log("Creating MICSR");
                 combatSimulator = new CombatSimulator(micsr);
                 break;
             case "START_SIMULATION":
