@@ -77,6 +77,9 @@ export function setup(setupContext: Modding.ModContext) {
             ),
         };
         const micsr = new MICSR(isDev);
+        if(isDev){
+            localStorage.setItem("MICSR-gameVersion", gameVersion);
+        }
 
         // micsr.log('Loading sim with provided URLS');
         let tryLoad = true;

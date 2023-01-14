@@ -85,7 +85,7 @@ class MICSR {
         this.shortName = "Combat Simulator";
 
         // compatible game version
-        this.gameVersion = "v1.1.1";
+        this.gameVersion = "v1.0";
 
         // combat sim version
         this.majorVersion = 2;
