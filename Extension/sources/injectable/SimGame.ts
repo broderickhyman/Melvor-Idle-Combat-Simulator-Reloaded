@@ -4,25 +4,6 @@ class SimGame extends Game {
     combat: SimManager;
     isWebWorker: boolean;
 
-    static bannedSkills = [
-        "Woodcutting",
-        "Firemaking",
-        "Fishing",
-        "Mining",
-        "Cooking",
-        "Smithing",
-        "Farming",
-        "Summoning",
-        "Thieving",
-        "Fletching",
-        "Crafting",
-        "Runecrafting",
-        "Herblore",
-        "Agility",
-        "Astrology",
-        "Township",
-    ];
-
     constructor(micsr: MICSR, isWebWorker: boolean) {
         super();
         this.micsr = micsr;
@@ -78,7 +59,26 @@ class SimGame extends Game {
         // this.settings.onLoad();
     }
 
+    resetToBlankState() {
+        this.combat.player.resetToBlankState();
+    }
+
     constructEventMatcher(data: GameEventMatcherData): GameEventMatcher {
+        switch (data.type) {
+            case "EnemyAttack":
+            case "FoodEaten":
+            case "MonsterDrop":
+            case "MonsterKilled":
+            case "PlayerAttack":
+            case "PlayerHitpointRegeneration":
+            case "PlayerSummonAttack":
+            case "PotionChargeUsed":
+            case "PotionUsed":
+            case "PrayerPointConsumption":
+            case "RuneConsumption":
+            case "SummonTabletUsed":
+                return super.constructEventMatcher(data);
+        }
         return new CustomEventMatcher();
     }
 
@@ -125,7 +125,7 @@ class SimGame extends Game {
 
         const goodSkills = this.skills.filter(
             (x) =>
-                !SimGame.bannedSkills
+                !this.micsr.bannedSkills
                     .map((bannedSkill: string) => `melvorD:${bannedSkill}`)
                     .includes(x.id)
         );

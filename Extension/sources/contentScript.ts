@@ -110,8 +110,9 @@ export function setup(setupContext: Modding.ModContext) {
 
                 simGame.decode(reader, saveVersion);
                 simGame.onLoad();
+                simGame.resetToBlankState();
 
-                const app = new App(simGame);
+                const app = new App(game, simGame);
                 await app.initialize(urls);
                 if (wrongVersion) {
                     micsr.log(
@@ -131,12 +132,12 @@ export function setup(setupContext: Modding.ModContext) {
                     $("[id='MCS 1 Button']").trigger("click");
 
                     // Start sim all
-                    $("[id='MCS Simulate All Button']").trigger("click");
+                    // $("[id='MCS Simulate All Button']").trigger("click");
 
-                    // // Click monster
-                    // $($(".mcs-bar-container")[9]).trigger("click");
-                    // // Start sim selected
-                    // $("[id='MCS Simulate Selected Button']").trigger("click");
+                    // Click monster
+                    $($(".mcs-bar-container")[9]).trigger("click");
+                    // Start sim selected
+                    $("[id='MCS Simulate Selected Button']").trigger("click");
                 }
             } catch (error) {
                 micsr.warn(

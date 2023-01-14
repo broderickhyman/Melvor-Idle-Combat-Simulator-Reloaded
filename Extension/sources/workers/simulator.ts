@@ -234,16 +234,16 @@ class CombatSimulator {
         trials: number,
         maxTicks: number
     ) {
-        // this.micsr.log("Creating manager");
-        const reader = new SaveWriter("Read", 1);
-        // debugger;
-        const saveVersion = reader.setDataFromSaveString(saveString);
-        this.micsr.game.decodeSimple(reader, saveVersion);
-        this.micsr.game.onLoad();
-        this.micsr.game.combat.player.initForWebWorker();
-
-        // this.micsr.log("Finished setup");
         try {
+            // this.micsr.log("Creating manager");
+            const reader = new SaveWriter("Read", 1);
+            // debugger;
+            const saveVersion = reader.setDataFromSaveString(saveString);
+            this.micsr.game.decodeSimple(reader, saveVersion);
+            this.micsr.game.onLoad();
+            this.micsr.game.combat.player.initForWebWorker();
+
+            // this.micsr.log("Finished setup");
             return this.micsr.game.combat.convertSlowSimToResult(
                 this.micsr.game.combat.runTrials(
                     monsterID,
@@ -257,9 +257,13 @@ class CombatSimulator {
             this.micsr.error(
                 `Error while simulating monster ${monsterID} in dungeon ${dungeonID}: ${error}`
             );
+            let reason = "simulation error";
+            if(error instanceof Error){
+                reason += `: ${error.message}`;
+            }
             return {
                 simSuccess: false,
-                reason: "simulation error",
+                reason: reason,
             };
         }
     }

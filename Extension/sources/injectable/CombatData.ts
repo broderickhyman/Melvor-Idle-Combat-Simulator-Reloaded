@@ -139,8 +139,8 @@ class CombatData {
                 this.micsr.showModifiersInstance.getModifierValue(
                     modifiers,
                     "GPGlobal"
-                ) +
-                (this.player.isSlayerTask ? modifiers.summoningSynergy_0_12 : 0)
+                ) // +
+            // TODO (this.player.isSlayerTask ? modifiers.summoningSynergy_ : 0)
         );
 
         // attack speed without aurora
@@ -183,7 +183,7 @@ class CombatData {
      * */
     computePotionBonus() {
         this.luckyHerb = 0;
-        // if (this.player.potionSelected) {
+        // if (this.player.potion) {
         //     const potion =
         //     // @ts-expect-error TS(2304): Cannot find name 'items'.
         //         items[

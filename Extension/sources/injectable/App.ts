@@ -61,15 +61,11 @@ class App {
     loot!: Loot;
     lootSelectCard!: Card;
     mainTabCard!: TabCard;
-    manager: SimManager;
-    // manager: CombatManager;
     media: any;
     menuItemId: any;
     modalID: any;
     monsterToggleState: any;
     petSelectCard!: Card;
-    // player: Player;
-    player: SimPlayer;
     plotTypes: any;
     plotter!: Plotter;
     potionSelectCard!: Card;
@@ -98,12 +94,19 @@ class App {
     uniqueModifiers: any;
     viewedDungeonID: string | undefined;
     zoneInfoCard!: Card;
+    
     micsr: MICSR;
-
+    manager: SimManager;
+    player: SimPlayer;
+    game: SimGame;
+    actualGame: Game;
+    
     /**
      * Constructs an instance of mcsApp
      */
-    constructor(game: SimGame) {
+    constructor(actualGame: Game, game: SimGame) {
+        this.actualGame = actualGame;
+        this.game = game;
         this.micsr = game.micsr;
         this.manager = game.combat;
         this.player = this.manager.player;
@@ -767,7 +770,7 @@ class App {
         // only create buttons for purchased equipment sets
         let importButtonText = [];
         let importButtonFunc = [];
-        for (let i = 0; i < this.player.equipmentSets.length; i++) {
+        for (let i = 0; i < this.micsr.actualGame.combat.player.equipmentSets.length; i++) {
             importButtonText.push(`${i + 1}`);
             importButtonFunc.push(() => this.import.importButtonOnClick(i));
         }
@@ -2893,10 +2896,11 @@ class App {
      * @param {PotionItem} clickedPotion
      */
     potionImageButtonOnClick(event: any, clickedPotion: PotionItem) {
-        if (this.player.potionSelected) {
+        // Resolve clickedPotion to the SimGame instance
+        clickedPotion = this.micsr.game.items.potions.getObjectByID(clickedPotion.id)!;
+        if (this.player.potion) {
             if (this.player.potion === clickedPotion) {
                 // Deselect Potion
-                this.player.potionSelected = false;
                 this.player.potion = undefined;
                 this.unselectButton(event.currentTarget);
             } else {
@@ -2914,7 +2918,6 @@ class App {
             }
         } else {
             // Select Potion
-            this.player.potionSelected = true;
             this.player.potion = clickedPotion;
             this.selectButton(event.currentTarget);
         }

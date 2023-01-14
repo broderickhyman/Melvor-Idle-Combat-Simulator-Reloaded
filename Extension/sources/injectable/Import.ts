@@ -135,8 +135,12 @@ class Import {
             );
         });
         if (potion) {
-            potionID = potion.id;
             potionTier = potion.tier;
+            const recipe = this.micsr.actualGame.herblore.actions.find(recipe => recipe.potions.includes(potion!));
+            if(recipe){
+                // potionID is the base potion
+                potionID = recipe.potions[0].id;
+            }
         }
 
         // get foodSelected
@@ -447,21 +451,19 @@ class Import {
 
     importPotion(potionID: string | undefined, potionTier: number) {
         // Deselect potion if selected
-        if (this.player.potionSelected) {
+        if (this.player.potion) {
             this.app.unselectButton(
                 this.document.getElementById(
                     `MCS ${this.app.getPotionHtmlId(
-                        this.player.potion!
+                        this.player.potion
                     )} Button`
                 )
             );
-            this.player.potionSelected = false;
             this.player.potion = undefined;
         }
         // Select new potion if applicable
         if (potionID) {
             const potion = this.app.manager.game.items.potions.find((p) => p.id === potionID);
-            this.player.potionSelected = true;
             this.player.potion = potion;
             this.app.selectButton(
                 this.document.getElementById(

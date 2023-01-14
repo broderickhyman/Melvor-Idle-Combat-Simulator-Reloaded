@@ -112,28 +112,4 @@ class Util {
     static averageDoubleMultiplier(modifier: any) {
         return 1 + modifier / 100;
     }
-
-    /**
-     * Add agility course modifiers to `modifiers` object
-     */
-    static addAgilityModifiers(course: any, courseMastery: any, pillar: any, modifiers: any) {
-        let fullCourse = true
-        for (let i = 0; i < course.length; i++) {
-            if (course[i] < 0) {
-                fullCourse = false;
-                break;
-            }
-            if (courseMastery[i]) {
-                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-                modifiers.addModifiers(Agility.obstacles[course[i]].modifiers, 0.5);
-            } else {
-                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-                modifiers.addModifiers(Agility.obstacles[course[i]].modifiers);
-            }
-        }
-        if (fullCourse && pillar > -1) {
-            // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-            modifiers.addModifiers(Agility.passivePillars[pillar].modifiers);
-        }
-    }
 }

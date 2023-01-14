@@ -393,7 +393,7 @@ class SimManager extends CombatManager {
         this.isActive = false;
         this.endFight();
         if (this.spawnTimer.isActive) this.spawnTimer.stop();
-        if (this.enemy.state !== "Dead") this.enemy.processDeath();
+        if (this.enemy.state !== EnemyState.Dead) this.enemy.processDeath();
         this.loot.removeAll();
         this.selectedArea = undefined;
         if (this.paused) {

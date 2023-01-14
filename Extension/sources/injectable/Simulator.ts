@@ -516,23 +516,49 @@ class Simulator {
             MonsterKilledEvent,
             MonsterDropEvent,
             FoodEatenEvent,
-            // , SkillActionEventMatcher,
-
-            // WoodcuttingActionEventMatcher, FishingActionEventMatcher, FiremakingActionEventMatcher, BonfireLitEventMatcher,
-            // CookingActionEventMatcher, MiningActionEventMatcher, SmithingActionEventMatcher, ThievingActionEventMatcher,
-            // FarmingPlantActionEventMatcher, FarmingHarvestActionEventMatcher, FletchingActionEventMatcher,
-            // CraftingActionEventMatcher, RunecraftingActionEventMatcher, HerbloreActionEventMatcher,
-            // AgilityActionEventMatcher, SummoningActionEventMatcher, AstrologyActionEventMatcher,
-            // AltMagicActionEventMatcher, MonsterDropEventMatcher, PlayerAttackEventMatcher,
-            // EnemyAttackEventMatcher, FoodEatenEventMatcher, PrayerPointConsumptionEventMatcher,
-            // PlayerHitpointRegenerationMatcher, PlayerSummonAttackEventMatcher, RuneConsumptionEventMatcher,
-            // PotionUsedEventMatcher, PotionChargeUsedEventMatcher, MonsterKilledEventMatcher,
-            // ItemEquippedEventMatcher, FoodEquippedEventMatcher, ShopPurchaseMadeEventMatcher,
-            // SummonTabletUsedEventMatcher,
-
-            // MasteryAction, BasicSkillRecipe, ArtisanSkillRecipe, CategorizedArtisanRecipe, SingleProductArtisanSkillRecipe,
-
-            // CookingRecipe, SkillCategory, CookingCategory
+            SkillActionEventMatcher,
+            WoodcuttingActionEventMatcher,
+            FishingActionEventMatcher,
+            FiremakingActionEventMatcher,
+            BonfireLitEventMatcher,
+            CookingActionEventMatcher,
+            MiningActionEventMatcher,
+            SmithingActionEventMatcher,
+            ThievingActionEventMatcher,
+            FarmingPlantActionEventMatcher,
+            FarmingHarvestActionEventMatcher,
+            FletchingActionEventMatcher,
+            CraftingActionEventMatcher,
+            RunecraftingActionEventMatcher,
+            HerbloreActionEventMatcher,
+            AgilityActionEventMatcher,
+            SummoningActionEventMatcher,
+            AstrologyActionEventMatcher,
+            AltMagicActionEventMatcher,
+            MonsterDropEventMatcher,
+            PlayerAttackEventMatcher,
+            EnemyAttackEventMatcher,
+            FoodEatenEventMatcher,
+            PrayerPointConsumptionEventMatcher,
+            PlayerHitpointRegenerationMatcher,
+            PlayerSummonAttackEventMatcher,
+            RuneConsumptionEventMatcher,
+            PotionUsedEventMatcher,
+            PotionChargeUsedEventMatcher,
+            MonsterKilledEventMatcher,
+            ItemEquippedEventMatcher,
+            FoodEquippedEventMatcher,
+            ShopPurchaseMadeEventMatcher,
+            SummonTabletUsedEventMatcher,
+            MasteryAction,
+            BasicSkillRecipe,
+            ArtisanSkillRecipe,
+            CategorizedArtisanRecipe,
+            SingleProductArtisanSkillRecipe,
+            // CookingRecipe,
+            SkillCategory,
+            // CookingCategory,
+            HerbloreRecipe,
 
             // Combat sim classes
             MICSR,
@@ -765,7 +791,11 @@ class Simulator {
         }
         // Queue simulation of monsters in slayer areas
         this.micsr.slayerAreas.forEach((area) => {
-            if (!this.micsr.game.combat.player.checkRequirements(area.entryRequirements)) {
+            if (
+                !this.micsr.game.combat.player.checkRequirements(
+                    area.entryRequirements
+                )
+            ) {
                 const tryToSim = area.monsters.reduce(
                     (sim, monster) =>
                         (this.monsterSimFilter[monster.id] &&

@@ -75,6 +75,7 @@ class MICSR {
     attackStylesIdx: any;
     skillNamesLC!: { [index: string]: string };
     showModifiersInstance!: ShowModifiers;
+    bannedSkills: string[];
 
     constructor(isDev = false) {
         // TODO: Change to a setting
@@ -99,7 +100,7 @@ class MICSR {
 
         // simulation settings
         this.trials = 1e3;
-        if(isDev){
+        if (isDev) {
             // High trial count for development for consistent numbers
             this.trials = 2e4;
             // Low trial count for fast simulate all
@@ -120,6 +121,25 @@ class MICSR {
             // Full: {},
             // TotH: {}
         };
+
+        this.bannedSkills = [
+            "Woodcutting",
+            "Firemaking",
+            "Fishing",
+            "Mining",
+            "Cooking",
+            "Smithing",
+            "Farming",
+            "Summoning",
+            "Thieving",
+            "Fletching",
+            "Crafting",
+            "Runecrafting",
+            // "Herblore", // Need for potion recipe lookup
+            "Agility",
+            "Astrology",
+            "Township",
+        ];
     }
 
     async fetchData() {
@@ -221,46 +241,10 @@ class MICSR {
         this.dataPackage[id].data.shopUpgradeChains = undefined;
         this.dataPackage[id].modifications = undefined;
 
-        const includedCategories = ["Slayer", "General"];
-
-        this.dataPackage[id].data.shopPurchases = this.dataPackage[
-            id
-        ].data.shopPurchases.filter(
-            (x: any) =>
-                includedCategories
-                    .map(
-                        (includedCategory: string) =>
-                            `melvorF:${includedCategory}`
-                    )
-                    .includes(x.category) ||
-                includedCategories
-                    .map(
-                        (includedCategory: string) =>
-                            `melvorD:${includedCategory}`
-                    )
-                    .includes(x.category)
+        this.dataPackage[id].data.shopPurchases.forEach(
+            (x: any) => (x.purchaseRequirements = [])
         );
 
-        const bannedSkills = [
-            "Woodcutting",
-            "Firemaking",
-            "Fishing",
-            "Mining",
-            "Cooking",
-            "Smithing",
-            "Farming",
-            "Summoning",
-            "Thieving",
-            "Fletching",
-            "Crafting",
-            "Runecrafting",
-            "Herblore",
-            "Agility",
-            "Astrology",
-            "Township",
-            // "Magic",
-            // "Ranged",
-        ];
         let skillData: {
             skillID: string;
             data: {
@@ -269,7 +253,7 @@ class MICSR {
         }[] = this.dataPackage[id].data.skillData;
         skillData = skillData.filter(
             (skill) =>
-                !bannedSkills
+                !this.bannedSkills
                     .map((bannedSkill: string) => `melvorD:${bannedSkill}`)
                     .includes(skill.skillID)
         );
@@ -384,7 +368,7 @@ class MICSR {
     }
 
     isDungeonID(id: string | undefined) {
-        if(!id){
+        if (!id) {
             return false;
         }
         return this.dungeons?.getObjectByID(id) !== undefined;
