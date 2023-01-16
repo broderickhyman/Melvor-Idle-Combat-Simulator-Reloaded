@@ -24,6 +24,7 @@ type IDataPackage = {
 };
 
 class MICSR {
+    wrongVersion: boolean;
     isDev: boolean;
     isVerbose: boolean;
     name: string;
@@ -34,6 +35,7 @@ class MICSR {
     minorVersion: number;
     patchVersion: number;
     preReleaseVersion?: string;
+
     dataPackage: IDataPackage;
     trials: number;
     maxTicks: number;
@@ -82,6 +84,7 @@ class MICSR {
         // TODO: Change to a setting
         this.isDev = isDev;
         this.isVerbose = false;
+        this.wrongVersion = false;
         // combat sim name
         this.name = "Melvor Idle Combat Simulator Reloaded";
         this.shortName = "Combat Simulator";
@@ -135,6 +138,24 @@ class MICSR {
             "Astrology",
             "Township",
         ];
+    }
+
+    tryLoad() {
+        let wrongVersion = false;
+        if (
+            gameVersion !== this.gameVersion &&
+            gameVersion !== localStorage.getItem("MICSR-gameVersion")
+        ) {
+            wrongVersion = true;
+            return window.confirm(
+                `${this.name} ${this.version}\n` +
+                    `A different game version was detected (expected: ${this.gameVersion}).\n` +
+                    `Loading the combat sim may cause unexpected behaviour.\n` +
+                    `After a successful load, this popup will be skipped for Melvor ${gameVersion}\n` +
+                    `Try loading the simulator?`
+            );
+        }
+        return true;
     }
 
     async fetchData() {

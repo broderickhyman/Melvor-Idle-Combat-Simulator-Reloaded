@@ -55,7 +55,7 @@ async function loadScripts(ctx: Modding.ModContext) {
 }
 
 export function setup(setupContext: Modding.ModContext) {
-    const isDev = true;
+    const isDev = false;
     loadScripts(setupContext);
 
     setupContext.onCharacterSelectionLoaded(() => {
@@ -78,26 +78,13 @@ export function setup(setupContext: Modding.ModContext) {
             ),
         };
         const micsr = new MICSR(isDev);
-        if(isDev){
+        if (isDev) {
             localStorage.setItem("MICSR-gameVersion", gameVersion);
         }
+        // localStorage.removeItem("MICSR-gameVersion");
 
         // micsr.log('Loading sim with provided URLS');
-        let tryLoad = true;
-        let wrongVersion = false;
-        if (
-            gameVersion !== micsr.gameVersion &&
-            gameVersion !== localStorage.getItem("MICSR-gameVersion")
-        ) {
-            wrongVersion = true;
-            tryLoad = window.confirm(
-                `${micsr.name} ${micsr.version}\n` +
-                    `A different game version was detected (expected: ${micsr.gameVersion}).\n` +
-                    `Loading the combat sim may cause unexpected behaviour.\n` +
-                    `After a successful load, this popup will be skipped for Melvor ${gameVersion}\n` +
-                    `Try loading the simulator?`
-            );
-        }
+        let tryLoad = micsr.tryLoad();
         if (tryLoad) {
             try {
                 // debugger;
@@ -115,7 +102,7 @@ export function setup(setupContext: Modding.ModContext) {
 
                 const app = new App(game, simGame);
                 await app.initialize(urls);
-                if (wrongVersion) {
+                if (micsr.wrongVersion) {
                     micsr.log(
                         `${micsr.name} ${micsr.version} loaded, but simulation results may be inaccurate due to game version incompatibility.`
                     );
@@ -131,13 +118,13 @@ export function setup(setupContext: Modding.ModContext) {
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
                     // $("[id='MCS 1 Button']").trigger("click");
-                    
+
                     // Start sim all
                     // Low trial count for fast simulate all
                     micsr.trials = 1e2;
                     $("[id='MCS # Trials Input'").val(micsr.trials);
                     // $("[id='MCS Simulate All Button']").trigger("click");
-                    
+
                     // High trial count for development for consistent numbers
                     // micsr.trials = 2e4;
                     // $("[id='MCS # Trials Input'").val(micsr.trials);
