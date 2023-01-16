@@ -59,6 +59,40 @@ class SimGame extends Game {
         };
     }
 
+    postDataRegistration() {
+        this.combatAreas.forEach((area) => {
+          area.monsters.forEach((monster) => this.monsterAreas.set(monster, area));
+        });
+        this.slayerAreas.forEach((area) => {
+          area.monsters.forEach((monster) => this.monsterAreas.set(monster, area));
+          const slayerLevelReq = area.entryRequirements.find((req) => {
+            return req.type === "SkillLevel" && req.skill === this.slayer;
+          }) as SkillLevelRequirement;
+          if (slayerLevelReq !== undefined)
+            area.slayerLevelRequired = slayerLevelReq.level;
+        });
+        this.skills.filter(s => !this.micsr.bannedSkills.includes(s.localID)).forEach((skill) => skill.postDataRegistration());
+        this.shop.postDataRegistration();
+        // this.golbinRaid.postDataRegistration();
+        this.combat.postDataRegistration();
+        // @ts-expect-error
+        this._passiveTickers = this.passiveActions.allObjects;
+        // this.pages.forEach((page) => {
+        //   if (page.action !== undefined) this.actionPageMap.set(page.action, page);
+        //   if (page.skills !== undefined) {
+        //     page.skills.forEach((skill) => {
+        //       const pageArray = this.skillPageMap.get(skill);
+        //       if (pageArray !== undefined) {
+        //         pageArray.push(page);
+        //       } else {
+        //         this.skillPageMap.set(skill, [page]);
+        //       }
+        //     });
+        //   }
+        // });
+        // this.settings.postDataRegistration();
+      }
+
     onLoad() {
         // this.completion.onLoad();
         // this.bank.onLoad();

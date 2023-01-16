@@ -25,6 +25,7 @@ interface ISimData {
     petRolls?: {
         other: any[];
     };
+    adjustedRates: any;
 }
 
 interface ISimSave {
@@ -129,6 +130,7 @@ class Simulator {
         const data: ISimData = {
             simSuccess: false,
             reason: this.notSimulatedReason,
+            adjustedRates: {}
         };
         if (isMonster) {
             data.inQueue = false;
@@ -245,6 +247,7 @@ class Simulator {
             "PrayerStats",
             "SlayerStats",
             "HerbloreStats",
+            "SummoningStats",
             "StatCategories",
             "DotTypeIDs",
             // these objects are implicitly set to undefined
@@ -295,6 +298,8 @@ class Simulator {
             "rollInteger",
             "readAttackEffect",
             "getRandomArrayElement",
+            "sortRecipesByCategoryAndLevel",
+            "checkBooleanCondition"
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
@@ -342,7 +347,6 @@ class Simulator {
             Minibar,
             Settings,
             SkillRenderQueue,
-            CompletionMap,
             AltMagicRenderQueue,
             PrayerRenderQueue,
             ArtisanSkillRenderQueue,
@@ -361,18 +365,21 @@ class Simulator {
             TownshipRenderQueue,
             MasteryLevelUnlock,
             CustomSkillMilestone,
+            SlayerAreaMilestone,
             BankRenderQueue,
             ItemUpgrade,
             TutorialRenderQueue,
             ShopRenderQueue,
         ].forEach((clas: any) =>
-            classNames.push({ name: clas.name, data: emptyClass })
+        classNames.push({ name: clas.name, data: emptyClass })
         );
         // these classes are copied from the game
         [
             Bank,
             BankItem,
-
+            
+            SparseNumericMap,
+            CompletionMap,
             NamespaceMap,
             NamespaceRegistry,
             NamespacedObject,
@@ -414,9 +421,12 @@ class Simulator {
             Summoning,
             Astrology,
             Township,
+
+            AgilityObstacleMilestone,
+            EquipItemMilestone,
+
             // items
             Item,
-            EquipItemMilestone,
             EquipmentItem,
             WeaponItem,
             FoodItem,
@@ -434,7 +444,6 @@ class Simulator {
             Dungeon,
             StackingEffect,
             TownshipMap,
-            SparseNumericMap,
             SpecialAttack,
             ItemEffectAttack,
             Currency,
@@ -520,6 +529,7 @@ class Simulator {
             FoodEatenEvent,
             PotionUsedEvent,
             RuneConsumptionEvent,
+            SummonTabletUsedEvent,
 
             // Matchers
             SkillActionEventMatcher,
@@ -568,6 +578,8 @@ class Simulator {
             SkillCategory,
             // CookingCategory,
             HerbloreRecipe,
+            SummoningRecipe,
+            SummoningSynergy,
 
             // Combat sim classes
             MICSR,
@@ -616,6 +628,7 @@ class Simulator {
             // TODO: This might also be sent with the MICSR object
             slayerTaskData: SlayerTask.data,
             dataPackage: this.micsr.dataPackage,
+            SummoningMarkLevels: Summoning.markLevels
         });
     }
 

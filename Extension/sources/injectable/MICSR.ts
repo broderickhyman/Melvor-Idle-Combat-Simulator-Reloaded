@@ -124,7 +124,7 @@ class MICSR {
             "Cooking",
             "Smithing",
             "Farming",
-            "Summoning",
+            // "Summoning", // Need for summoning xp calculation
             "Thieving",
             "Fletching",
             "Crafting",
@@ -163,6 +163,7 @@ class MICSR {
         if (this.cloudManager.hasTotHEntitlement) {
             game.registerDataPackage(this.dataPackage["TotH"]);
         }
+        game.postDataRegistration();
         this.setupGame(game, actualGame);
         this.showModifiersInstance = new ShowModifiers(
             this,

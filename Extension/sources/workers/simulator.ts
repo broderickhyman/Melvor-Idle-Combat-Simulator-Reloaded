@@ -168,6 +168,10 @@
                 if (cloudManager.hasTotHEntitlement) {
                     micsr.cleanupDataPackage("TotH");
                 }
+
+                // @ts-expect-error
+                Summoning.markLevels = event.data.SummoningMarkLevels;
+
                 await micsr.initialize(simGame, simGame as any);
 
                 // @ts-expect-error

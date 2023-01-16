@@ -662,7 +662,6 @@ class App {
             this.media.synergyLock,
             "Summoning Synergy",
             () => {
-                //this.player.summoningSynergy = !this.player.summoningSynergy;
                 this.setSummoningSynergyText();
                 this.updateCombatStats();
             },

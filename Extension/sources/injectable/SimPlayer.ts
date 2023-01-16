@@ -34,7 +34,6 @@ class SimPlayer extends Player {
     autoEatTier: number;
     canAurora: any;
     canCurse: any;
-    chargesUsed: any;
     combinations: string[];
     cookingMastery: boolean;
     cookingPool: boolean;
@@ -285,6 +284,21 @@ class SimPlayer extends Player {
 
     // replace globals with properties
     initialize() {
+        this.equipmentSets.forEach((e) => {
+            e.equipment.removeQuantityFromSlot = (
+                slot: SlotTypes,
+                quantity: number
+            ): boolean => {
+                switch (slot) {
+                    case "Summon1":
+                    case "Summon2":
+                        this.chargesUsed[slot] += quantity;
+                        break;
+                }
+                return false;
+            };
+        });
+
         this.currentGamemodeID = this.micsr.game.currentGamemode.id;
         this.combinations = this.game.runecrafting.actions
             .filter((x) => x.category.localID === "CombinationRunes")
@@ -296,6 +310,7 @@ class SimPlayer extends Player {
         this.equipment.unequipAll();
         this.unequipFood();
         this.activePrayers.clear();
+        this.setPotion(undefined);
     }
 
     rollForSummoningMarks() {}
@@ -629,17 +644,6 @@ class SimPlayer extends Player {
         this.equipment.unequipItem(slot);
         this.updateForEquipmentChange();
         return true;
-    }
-
-    removeSummonCharge(slot: any, charges = 1) {
-        if (
-            !rollPercentage(
-                this.modifiers.increasedSummoningChargePreservation -
-                    this.modifiers.decreasedSummoningChargePreservation
-            )
-        ) {
-            this.chargesUsed[slot] += charges;
-        }
     }
 
     // don't disable selected spells

@@ -109,7 +109,6 @@ class SimManager extends CombatManager {
     // detach globals attached by parent constructor
     detachGlobals() {
         this.loot.render = () => undefined;
-        this.player.detachGlobals();
     }
 
     addItemStat() {}

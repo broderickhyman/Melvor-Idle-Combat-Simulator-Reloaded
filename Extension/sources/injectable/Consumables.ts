@@ -283,8 +283,10 @@ class Consumables {
     }
 
     updateSingleResult(data: any) {
+        if(!data.simSuccess){
+            return;
+        }
         const factor = this.computeFactor(data);
-        data.adjustedRates = {};
         [
             // xp rates
             'xpPerSecond',
@@ -309,15 +311,15 @@ class Consumables {
         // compute factor
         let factor = 1;
         // pp
-        if (data.ppConsumedPerSecond > 0) {
+        if (data.ppConsumedPerSecond && data.ppConsumedPerSecond > 0) {
             factor += data.ppConsumedPerSecond * this.getConsumableCostInSeconds('pp');
         }
         // potion
-        if (data.potionsUsedPerSecond > 0) {
+        if (data.potionsUsedPerSecond && data.potionsUsedPerSecond > 0) {
             factor += data.potionsUsedPerSecond * this.getConsumableCostInSeconds(this.player.potion!.id);
         }
         // food
-        if (data.atePerSecond > 0) {
+        if (data.atePerSecond && data.atePerSecond > 0) {
             const foodID = this.player.food.currentSlot.item.id;
             factor += data.atePerSecond * this.getConsumableCostInSeconds(foodID);
         }
@@ -328,12 +330,12 @@ class Consumables {
             }
         }
         // ammo
-        if (data.ammoUsedPerSecond > 0) {
+        if (data.ammoUsedPerSecond && data.ammoUsedPerSecond > 0) {
             const ammoID = this.player.equipmentID(equipmentSlotData.Quiver.id);
             factor += data.ammoUsedPerSecond * this.getConsumableCostInSeconds(ammoID);
         }
         // familiars
-        if (data.tabletsUsedPerSecond > 0) {
+        if (data.tabletsUsedPerSecond && data.tabletsUsedPerSecond > 0) {
             [
                 this.app.player.equipmentID(EquipmentSlots.Summon1),
                 this.app.player.equipmentID(EquipmentSlots.Summon2),
