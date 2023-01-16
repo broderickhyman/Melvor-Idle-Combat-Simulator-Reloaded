@@ -41,6 +41,13 @@ class SimGame extends Game {
     detachGlobals() {
         this.township.tasks.updateMonsterTasks = () => null;
         this.completion.updatePet = () => null;
+        this.completion.updateSkill = (skill: AnySkill) => null;
+        this.completion.updateSkillMastery = (
+            skill: SkillWithMastery<MasteryAction, MasterySkillData>
+        ) => null;
+        this.completion.updateItem = (item: AnyItem) => null;
+        this.completion.updateMonster = (monster: Monster) => null;
+        this.completion.updatePet = (pet: Pet) => null;
         this.petManager.unlockPet = () => null;
         this.bank.addItem = () => true;
         this.bank.hasItem = () => true;
@@ -63,14 +70,11 @@ class SimGame extends Game {
             }
         };
         this.bank.checkForItems = (costs: AnyItemQuantity[]): boolean => {
-            if (
-                costs.find((x) => x.item.type === "Rune") !==
-                undefined
-            ) {
+            if (costs.find((x) => x.item.type === "Rune") !== undefined) {
                 return this.combat.player.hasRunes;
             }
             return true;
-        }
+        };
         this.gp.add = (amount) => {
             // Store gp on the SimPlayer
             this.combat.player.gp += amount;
@@ -79,17 +83,23 @@ class SimGame extends Game {
 
     postDataRegistration() {
         this.combatAreas.forEach((area) => {
-          area.monsters.forEach((monster) => this.monsterAreas.set(monster, area));
+            area.monsters.forEach((monster) =>
+                this.monsterAreas.set(monster, area)
+            );
         });
         this.slayerAreas.forEach((area) => {
-          area.monsters.forEach((monster) => this.monsterAreas.set(monster, area));
-          const slayerLevelReq = area.entryRequirements.find((req) => {
-            return req.type === "SkillLevel" && req.skill === this.slayer;
-          }) as SkillLevelRequirement;
-          if (slayerLevelReq !== undefined)
-            area.slayerLevelRequired = slayerLevelReq.level;
+            area.monsters.forEach((monster) =>
+                this.monsterAreas.set(monster, area)
+            );
+            const slayerLevelReq = area.entryRequirements.find((req) => {
+                return req.type === "SkillLevel" && req.skill === this.slayer;
+            }) as SkillLevelRequirement;
+            if (slayerLevelReq !== undefined)
+                area.slayerLevelRequired = slayerLevelReq.level;
         });
-        this.skills.filter(s => !this.micsr.bannedSkills.includes(s.localID)).forEach((skill) => skill.postDataRegistration());
+        this.skills
+            .filter((s) => !this.micsr.bannedSkills.includes(s.localID))
+            .forEach((skill) => skill.postDataRegistration());
         this.shop.postDataRegistration();
         // this.golbinRaid.postDataRegistration();
         this.combat.postDataRegistration();
@@ -109,7 +119,15 @@ class SimGame extends Game {
         //   }
         // });
         // this.settings.postDataRegistration();
-      }
+    }
+
+    // Override to prevent saving
+    clearActiveAction(save?: boolean): void {
+        if (!this.disableClearOffline) {
+            firstSkillAction = true;
+            this.activeAction = undefined;
+        }
+    }
 
     onLoad() {
         // this.completion.onLoad();
@@ -158,6 +176,41 @@ class SimGame extends Game {
                 return super.constructEventMatcher(data);
         }
         return new CustomEventMatcher();
+    }
+
+    checkRequirements(
+        requirements: AnyRequirement[],
+        notifyOnFailure?: boolean,
+        slayerLevelReq?: number
+    ): boolean {
+        return requirements.every((req: any) =>
+            this.checkRequirement(req, notifyOnFailure)
+        );
+    }
+
+    checkRequirement(
+        requirement: AnyRequirement,
+        notifyOnFailure?: boolean,
+        slayerLevelReq?: number
+    ): boolean {
+        switch (requirement.type) {
+            case "SkillLevel":
+                return (
+                    this.combat.player.skillLevel.get(requirement.skill.id)! >=
+                    requirement.level
+                );
+            case "SlayerItem":
+                return super.checkRequirement(
+                    requirement,
+                    false,
+                    slayerLevelReq
+                );
+            case "Completion":
+            case "DungeonCompletion":
+            case "ShopPurchase":
+                return true;
+        }
+        return false;
     }
 
     generateSaveStringSimple(): string {

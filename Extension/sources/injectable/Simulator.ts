@@ -210,6 +210,7 @@ class Simulator {
             { name: "COMBAT_TRIANGLE_IDS", data: COMBAT_TRIANGLE_IDS },
             { name: "combatTriangle", data: combatTriangle },
             { name: "numberMultiplier", data: numberMultiplier },
+            
             { name: "burnEffect", data: burnEffect },
             { name: "poisonEffect", data: poisonEffect },
             { name: "rageEffect", data: rageEffect },
@@ -218,6 +219,18 @@ class Simulator {
             { name: "deadlyPoisonEffect", data: deadlyPoisonEffect },
             { name: "afflictionEffect", data: afflictionEffect },
             { name: "frostBurnEffect", data: frostBurnEffect },
+            { name: "bleedReflectEffect", data: bleedReflectEffect },
+            { name: "decreasedEvasionStackingEffect", data: decreasedEvasionStackingEffect },
+            { name: "absorbingSkinEffect", data: absorbingSkinEffect },
+            { name: "darkBladeEffect", data: darkBladeEffect },
+            { name: "assassinEffect", data: assassinEffect },
+            { name: "growingMadnessEffect", data: growingMadnessEffect },
+            { name: "momentInTimeEffect", data: momentInTimeEffect },
+            { name: "reignOverTimeEffect", data: reignOverTimeEffect },
+            { name: "shadowCloakEffect", data: shadowCloakEffect },
+            { name: "increased5DROnHitEffect", data: increased5DROnHitEffect },
+            { name: "elementalEffects", data: elementalEffects },
+
             { name: "effectMedia", data: {} },
             { name: "combatMenus", data: {} },
             { name: "loadingOfflineProgress", data: undefined },
@@ -438,6 +451,8 @@ class Simulator {
             ItemEffect,
             DeadlyPoisonEffect,
             CurseEffect,
+            EndOfTurnEvasionEffect,
+            StickyWebs,
 
             // Items
             Item,
@@ -790,7 +805,7 @@ class Simulator {
             // check if the area is accessible, this only works for auto slayer
             // without auto slayer you can get some tasks for which you don't wear/own the gear
             let area = this.micsr.actualGame.getMonsterArea(monster.id);
-            if (!this.parent.player.checkRequirements(area.entryRequirements)) {
+            if (!this.parent.game.checkRequirements(area.entryRequirements)) {
                 return;
             }
             // all checks passed
@@ -823,7 +838,7 @@ class Simulator {
         // Queue simulation of monsters in slayer areas
         this.micsr.slayerAreas.forEach((area) => {
             if (
-                !this.micsr.game.combat.player.checkRequirements(
+                !this.micsr.game.checkRequirements(
                     area.entryRequirements
                 )
             ) {
@@ -1383,7 +1398,7 @@ class Simulator {
             // push `canEnter` for every monster in this zone
             for (const monster of area.monsters) {
                 enterSet.push(
-                    this.parent.player.checkRequirements(area.entryRequirements)
+                    this.parent.game.checkRequirements(area.entryRequirements)
                 );
             }
         }

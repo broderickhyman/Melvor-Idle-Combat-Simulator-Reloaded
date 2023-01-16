@@ -404,7 +404,7 @@ class SimManager extends CombatManager {
         }
         const totalTickLimit = trials * tickLimit;
         // debugger;
-        const success = this.player.checkRequirements(
+        const success = this.game.checkRequirements(
             areaData.entryRequirements,
             true
         );

@@ -657,7 +657,7 @@ class SimPlayer extends Player {
 
     rollToHit(target: any, attack: any) {
         return (
-            this.checkRequirements(this.manager.areaRequirements) &&
+            this.game.checkRequirements(this.manager.areaRequirements) &&
             super.rollToHit(target, attack)
         );
     }
@@ -688,40 +688,6 @@ class SimPlayer extends Player {
             this.game.potions.removePotion(this.potion.action);
         }
         this.potion = newPotion;
-    }
-
-    checkRequirements(
-        requirements: AnyRequirement[],
-        notifyOnFailure?: boolean,
-        slayerLevelReq?: number
-    ): boolean {
-        return requirements.every((req: any) =>
-            this.checkRequirement(req, notifyOnFailure)
-        );
-    }
-
-    checkRequirement(
-        requirement: AnyRequirement,
-        notifyOnFailure?: boolean,
-        slayerLevelReq?: number
-    ): boolean {
-        switch (requirement.type) {
-            case "SkillLevel":
-                return (
-                    this.skillLevel.get(requirement.skill.id)! >=
-                    requirement.level
-                );
-            case "SlayerItem":
-                return (
-                    this.equipment.checkForItem(requirement.item) ||
-                    this.modifiers.bypassSlayerItems > 0
-                );
-            case "Completion":
-            case "DungeonCompletion":
-            case "ShopPurchase":
-                return true;
-        }
-        return false;
     }
 
     getSpellFromType(spellType: string) {
