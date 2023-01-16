@@ -34,7 +34,7 @@ async function loadScripts(ctx: Modding.ModContext) {
         "Consumables",
         "DataExport",
         "Import",
-        // "ExportCheat",
+        "ExportCheat",
         "Loot",
         "Plotter",
         "Menu",

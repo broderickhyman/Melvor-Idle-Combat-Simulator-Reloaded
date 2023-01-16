@@ -2023,6 +2023,17 @@ class App {
         this.simOptionsCard.addButton("Export Data", () =>
             this.exportDataOnClick()
         );
+        if (this.micsr.isDev) {
+            this.simOptionsCard.addButton("CHEAT REAL GAME", () => {
+                if (
+                    window.confirm(
+                        "This cheats the current character in a destructive irreversible manner! Proceed?"
+                    )
+                ) {
+                    new ExportCheat(this).cheat();
+                }
+            });
+        }
     }
 
     createCompareCard() {

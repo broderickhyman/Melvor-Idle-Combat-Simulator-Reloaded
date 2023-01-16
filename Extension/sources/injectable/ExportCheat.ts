@@ -22,7 +22,6 @@
 /**
  * Class to handle exporting to the game, this cheats the current character in a destructive irreversible manner!
  */
-/*
 class ExportCheat extends Import {
     actualApp: App;
 
@@ -30,13 +29,12 @@ class ExportCheat extends Import {
         super(app);
         this.actualApp = app;
         this.micsr = app.micsr;
-        // @ts-expect-error TS(2663): Cannot find name 'player'. Did you mean the instan... Remove this comment to see the full error message
-        this.player = player;
         this.document = {
             getElementById: () => {
                 return {};
-            }
+            },
         };
+        /*
         this.app = {
             setEquipmentImage: () => {
             },
@@ -56,21 +54,17 @@ class ExportCheat extends Import {
             },
             notify: (...args: any[]) => this.actualApp.notify(...args),
         };
+        */
     }
 
     cheat() {
         // add some bank space
-        // @ts-expect-error TS(2304): Cannot find name 'addShopPurchase'.
-        addShopPurchase('General', 0, 1e3);
+        //// @ts-expect-error TS(2304): Cannot find name 'addShopPurchase'.
+        // addShopPurchase('General', 0, 1e3);
         this.player.computeAllStats();
         // add some runes, in case we need them
-        // @ts-expect-error TS(2304): Cannot find name 'items'.
-        items.filter((x: any) => x.type === 'Rune').forEach((x: any) => addItemToBank(x.id, Number.MAX_SAFE_INTEGER, true, false, true));
-        // set levels and completion to 100%
-        // @ts-expect-error TS(2304): Cannot find name 'skillLevel'.
-        skillLevel.fill(99)
-        // @ts-expect-error TS(2304): Cannot find name 'completionStats'.
-        completionStats = 100;
+        //// @ts-expect-error TS(2304): Cannot find name 'items'.
+        // items.filter((x: any) => x.type === 'Rune').forEach((x: any) => addItemToBank(x.id, Number.MAX_SAFE_INTEGER, true, false, true));
         // export settings
         const settings = this.actualApp.import.exportSettings();
         // cheat settings to game
@@ -83,16 +77,19 @@ class ExportCheat extends Import {
         // do nothing
     }
 
-    importLevels(levels: any) {
-        // @ts-expect-error TS(2304): Cannot find name 'skillLevel'.
-        skillLevel = [...levels];
+    importLevels(levels: Map<string, number>) {
+        levels.forEach((v, k) => {
+            const skill = this.actualApp.actualGame.skills.getObjectByID(k);
+            skill?.setXP(exp.level_to_xp(v) + 1);
+        });
     }
 
     importSpells(spellSelection: any) {
-        this.player.spellSelection = spellSelection;
+        // this.player.spellSelection = spellSelection;
     }
 
-    importPotion(potionID: any, potionTier: any) {
+    importPotion(potionID: string | undefined) {
+        /*
         // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
         if (Herblore.potions[potionID] === undefined) {
             // @ts-expect-error TS(2304): Cannot find name 'herbloreBonuses'.
@@ -109,12 +106,22 @@ class ExportCheat extends Import {
         addItemToBank(id, 1000000, true, false, true)
         // @ts-expect-error TS(2304): Cannot find name 'usePotion'.
         usePotion(id, false, true);
+        */
     }
 
-    importPets(petUnlocked: Pet[]) {
-    }
+    importPets(petUnlocked: Pet[]) {}
 
-    importAutoEat(autoEatTier: any, foodSelected: any, cookingPool: any, cookingMastery: any) {
+    importStyle(styles: any): void {}
+
+    importPrayers(prayerSelected: string[]): void {}
+
+    importAutoEat(
+        autoEatTier: any,
+        foodSelected: any,
+        cookingPool: any,
+        cookingMastery: any
+    ) {
+        /*
         // clear AE purchases
         // @ts-expect-error TS(2304): Cannot find name 'shopItemsPurchased'.
         this.autoEatTiers.forEach((aet: any) => shopItemsPurchased.delete(`General:${aet}`));
@@ -138,6 +145,7 @@ class ExportCheat extends Import {
         // set cooking mastery
         // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
         MASTERY[Skills.Cooking].xp.fill(cookingMastery * 14e6)
+        */
     }
 
     importManualEating(isManualEating: any) {
@@ -149,6 +157,7 @@ class ExportCheat extends Import {
     }
 
     importSlayerTask(isSlayerTask: any) {
+        /*
         if (isSlayerTask && !this.actualApp.barSelected || !this.actualApp.barIsMonster(this.actualApp.selectedBar)) {
             this.actualApp.notify('No monster selected, not setting slayer task !', 'danger');
             isSlayerTask = false;
@@ -159,46 +168,56 @@ class ExportCheat extends Import {
             this.micsr.actualGame.combat.slayerTask.monster = this.micsr.monsters.getObjectByID(this.actualApp.barMonsterIDs[this.actualApp.selectedBar]);
         }
         this.micsr.actualGame.combat.slayerTask.killsLeft = isSlayerTask * Number.MAX_SAFE_INTEGER;
+        */
     }
 
     importGameMode(currentGamemode: any) {
+        /*
         if ((window as any).currentGamemode !== currentGamemode) {
             this.actualApp.notify('Game mode changed, SAVE AND RELOAD !', 'danger');
             (window as any).currentGamemode = currentGamemode;
         }
+        */
     }
 
     importSummoningSynergy(summoningSynergy: any) {
+        /*
         // @ts-expect-error TS(2304): Cannot find name 'summoningData'.
         summoningData.MarksDiscovered[this.player.equipment.slots.Summon1.item.summoningID] = 3 * summoningSynergy;
         // @ts-expect-error TS(2304): Cannot find name 'summoningData'.
         summoningData.MarksDiscovered[this.player.equipment.slots.Summon2.item.summoningID] = 3 * summoningSynergy;
+        */
     }
 
     importUseCombinationRunes(useCombinationRunes: any) {
+        /*
         (window as any).useCombinationRunes = useCombinationRunes;
+        */
     }
 
     importAgilityCourse(course: any, masteries: any, pillar: any) {
+        /*
         // @ts-expect-error TS(2304): Cannot find name 'chosenAgilityObstacles'.
         chosenAgilityObstacles = course;
         // @ts-expect-error TS(2304): Cannot find name 'MASTERY'.
         MASTERY[this.micsr.skillIDs.Agility].xp = MASTERY[this.micsr.skillIDs.Agility].xp.map((_: any, i: any) => masteries[i] * 14e6);
         // @ts-expect-error TS(2304): Cannot find name 'agilityPassivePillarActive'.
         agilityPassivePillarActive = pillar;
+        */
     }
 
     importAstrology(astrologyModifiers: any) {
+        /*
         // @ts-expect-error TS(2304): Cannot find name 'activeAstrologyModifiers'.
         activeAstrologyModifiers = astrologyModifiers.map((x: any) => {
             return Object.getOwnPropertyNames(x).map(m => {
                 return { [m]: x[m] }
             });
         });
+        */
     }
 
     checkRadio(baseID: any, check: any) {
         // do nothing
     }
 }
-*/
