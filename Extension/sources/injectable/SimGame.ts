@@ -14,31 +14,49 @@ class SimGame extends Game {
         this.detachGlobals();
 
         // Fix SimPlayer object to match replaced Player object
-        this.combat.player.registerStatProvider(this.petManager);
+        // TODO: Re-enable this when we manage pets directly
+        // this.combat.player.registerStatProvider(this.petManager);
         this.combat.player.registerStatProvider(this.shop);
         this.combat.player.registerStatProvider(this.potions);
     }
 
     detachGlobals() {
-        if (this.isWebWorker) {
-            // Fake the township item
-            this.township = {
-                // @ts-expect-error
-                tasks: {
-                    updateMonsterTasks: () => null,
-                },
-            };
-            // @ts-expect-error
-            this.completion = {
-                updatePet: () => null,
-            };
-            this.petManager.unlockPet = () => null;
-            this.bank.addItem = () => true;
-            this.gp.add = (amount) => {
-                // Store gp on the SimPlayer
-                this.combat.player.gp += amount;
-            };
+        this.township.tasks.updateMonsterTasks = () => null;
+        this.completion.updatePet = () => null;
+        this.petManager.unlockPet = () => null;
+        this.bank.addItem = () => true;
+        this.bank.hasItem = () => true;
+        this.bank.getQty = () => 1e6;
+        this.bank.removeItemQuantity = (
+            item: AnyItem,
+            quantity: number,
+            removeItemCharges: boolean
+        ): void => {
+            switch (item.type) {
+                case "Potion":
+                    this.combat.player.usedPotions += quantity;
+                    break;
+                case "Rune":
+                    if (this.combat.player.usedRunes[item.id] === undefined) {
+                        this.combat.player.usedRunes[item.id] = 0;
+                    }
+                    this.combat.player.usedRunes[item.id] += quantity;
+                    break;
+            }
+        };
+        this.bank.checkForItems = (costs: AnyItemQuantity[]): boolean => {
+            if (
+                costs.find((x) => x.item.type === "Rune") !==
+                undefined
+            ) {
+                return this.combat.player.hasRunes;
+            }
+            return true;
         }
+        this.gp.add = (amount) => {
+            // Store gp on the SimPlayer
+            this.combat.player.gp += amount;
+        };
     }
 
     onLoad() {
@@ -57,6 +75,11 @@ class SimGame extends Game {
         // this.township.postStatLoad();
         // this.township.tasks.onLoad();
         // this.settings.onLoad();
+
+        const potion = this.combat.player.potion;
+        if (potion && !this.potions.autoReusePotionsForAction(potion.action)) {
+            this.potions.toggleAutoReusePotion(potion.action);
+        }
     }
 
     resetToBlankState() {
@@ -111,7 +134,7 @@ class SimGame extends Game {
         this.shop.encode(writer);
         // this.itemCharges.encode(writer);
         this.tutorial.encode(writer);
-        // this.potions.encode(writer);
+        this.potions.encode(writer);
         // this.stats.encode(writer);
         // this.settings.encode(writer);
         // this.gp.encode(writer);
@@ -171,7 +194,7 @@ class SimGame extends Game {
         this.shop.decode(reader, version);
         // this.itemCharges.decode(reader, version);
         this.tutorial.decode(reader, version);
-        // this.potions.decode(reader, version);
+        this.potions.decode(reader, version);
         // this.stats.decode(reader, version);
         // this.settings.decode(reader, version);
         // this.gp.decode(reader, version);

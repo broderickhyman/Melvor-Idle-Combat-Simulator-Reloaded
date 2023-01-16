@@ -68,6 +68,7 @@ class App {
     petSelectCard!: Card;
     plotTypes: any;
     plotter!: Plotter;
+    potionTier: number;
     potionSelectCard!: Card;
     prayerSelectCard!: Card;
     savedSimulations: ISimSave[];
@@ -94,13 +95,13 @@ class App {
     uniqueModifiers: any;
     viewedDungeonID: string | undefined;
     zoneInfoCard!: Card;
-    
+
     micsr: MICSR;
     manager: SimManager;
     player: SimPlayer;
     game: SimGame;
     actualGame: Game;
-    
+
     /**
      * Constructs an instance of mcsApp
      */
@@ -137,6 +138,7 @@ class App {
                 scale: scale && isTime,
             });
         };
+        this.potionTier = 0;
         // xp gains
         addPlotOption("XP per ", true, "xpPerSecond", "XP/");
         addPlotOption("HP XP per ", true, "hpXpPerSecond", "HP XP/");
@@ -512,7 +514,7 @@ class App {
             } Label`
         )!.textContent =
             this.loot.petSkill + " Pet (%)/" + this.selectedTimeShorthand;
-        this.updateUi()
+        this.updateUi();
         // TODO this.toggleAstrologySelectCard();
         // slayer sim is off by default, so toggle auto slayer off
         this.toggleSlayerSims(!this.slayerToggleState, false);
@@ -520,7 +522,7 @@ class App {
         this.consumables.loadRates();
     }
 
-    updateUi(){
+    updateUi() {
         this.updateSpellOptions();
         this.updatePrayerOptions();
         this.updateCombatStats();
@@ -770,7 +772,11 @@ class App {
         // only create buttons for purchased equipment sets
         let importButtonText = [];
         let importButtonFunc = [];
-        for (let i = 0; i < this.micsr.actualGame.combat.player.equipmentSets.length; i++) {
+        for (
+            let i = 0;
+            i < this.micsr.actualGame.combat.player.equipmentSets.length;
+            i++
+        ) {
             importButtonText.push(`${i + 1}`);
             importButtonFunc.push(() => this.import.importButtonOnClick(i));
         }
@@ -999,7 +1005,11 @@ class App {
         this.combatStatCard.addSectionTitle("Plot Options");
         this.plotter.addToggles(this.combatStatCard);
         this.combatStatCard.addSectionTitle("");
-        // this.combatStatCard.addButton('Simulate BLOCKING', () => this.blockingSimulateButtonOnClick());
+        if (this.micsr.isDev) {
+            this.combatStatCard.addButton("Simulate BLOCKING", () =>
+                this.blockingSimulateButtonOnClick()
+            );
+        }
         this.combatStatCard.addButton("Simulate All", () =>
             this.simulateButtonOnClick(false)
         );
@@ -1278,13 +1288,13 @@ class App {
         this.combatPotionRecipes = [];
         this.micsr.herblorePotionRecipes.forEach((herblorePotionRecipe) => {
             if (herblorePotionRecipe.category.localID === "CombatPotions") {
-                const potion = herblorePotionRecipe.potions[0];
-                potionSources.push(potion.media);
-                potionNames.push(this.getPotionHtmlId(potion));
+                const basePotion = herblorePotionRecipe.potions[0];
+                potionSources.push(basePotion.media);
+                potionNames.push(this.getPotionHtmlId(basePotion));
                 potionCallbacks.push((e: any) =>
-                    this.potionImageButtonOnClick(e, potion)
+                    this.potionImageButtonOnClick(e, herblorePotionRecipe)
                 );
-                tooltips.push(this.getPotionTooltip(potion));
+                tooltips.push(this.getPotionTooltip(herblorePotionRecipe));
                 this.combatPotionRecipes.push(herblorePotionRecipe);
             }
         });
@@ -2779,10 +2789,12 @@ class App {
      * @memberof McsApp
      */
     updateStyleDropdowns() {
+        // TODO: When player equipment is changed
+        // const item = this.player.equipment.slots.Weapon.item as WeaponItem;
         const itemID = this.player.equipmentID(
             this.micsr.equipmentSlotData.Weapon.id
         );
-        const item = this.micsr.items.getObjectByID(itemID);
+        const item = this.micsr.items.getObjectByID(itemID) as WeaponItem;
         this.disableStyleDropdown("melee");
         this.disableStyleDropdown("ranged");
         this.disableStyleDropdown("magic");
@@ -2885,42 +2897,49 @@ class App {
         const potionTier = parseInt(
             event.currentTarget.selectedOptions[0].value
         );
-        this.player.potionTier = potionTier;
-        this.updateCombatStats();
+        if (this.player.potion) {
+            const recipe = this.game.herblore.actions.find((r) =>
+                r.potions.includes(this.player.potion!)
+            );
+            if (!recipe) {
+                throw new Error("Could not find recipe.");
+            }
+            const newPotion = recipe.potions[potionTier];
+            this.player.setPotion(newPotion);
+        }
         this.updatePotionTier(potionTier);
+        this.updateCombatStats();
     }
 
     /**
      * Callback for when a potion button is clicked
      * @param {MouseEvent} event The onclick event for a button
-     * @param {PotionItem} clickedPotion
+     * @param {HerbloreRecipe} recipe
      */
-    potionImageButtonOnClick(event: any, clickedPotion: PotionItem) {
-        // Resolve clickedPotion to the SimGame instance
-        clickedPotion = this.micsr.game.items.potions.getObjectByID(clickedPotion.id)!;
-        if (this.player.potion) {
-            if (this.player.potion === clickedPotion) {
-                // Deselect Potion
-                this.player.potion = undefined;
-                this.unselectButton(event.currentTarget);
-            } else {
-                // Change Potion
-                if (this.player.potion) {
-                    const button = document.getElementById(
-                        `MCS ${this.getPotionHtmlId(this.player.potion)} Button`
-                    );
-                    if (button) {
-                        this.unselectButton(button);
-                    }
-                }
-                this.selectButton(event.currentTarget);
-                this.player.potion = clickedPotion;
-            }
+    potionImageButtonOnClick(event: any, recipe: HerbloreRecipe) {
+        // Resolve recipe to the SimGame instance
+        recipe = this.micsr.game.herblore.actions.getObjectByID(recipe.id)!;
+        const clickedPotion = recipe.potions[this.potionTier];
+        let newPotion: PotionItem | undefined = undefined;
+
+        if (this.player.potion === clickedPotion) {
+            // Deselect Potion
+            newPotion = undefined;
+            this.unselectButton(event.currentTarget);
         } else {
-            // Select Potion
-            this.player.potion = clickedPotion;
+            if (this.player.potion) {
+                // Change Potion
+                const button = document.getElementById(
+                    `MCS ${this.getPotionHtmlId(this.player.potion)} Button`
+                );
+                if (button) {
+                    this.unselectButton(button);
+                }
+            }
+            newPotion = clickedPotion;
             this.selectButton(event.currentTarget);
         }
+        this.player.setPotion(newPotion);
         this.updateCombatStats();
     }
 
@@ -3237,34 +3256,36 @@ class App {
         }
     }
 
-    // blockingSimulateButtonOnClick() {
-    //     const startTimeStamp = performance.now();
-    //     // queue the desired monsters
-    //     this.simulator.setupCurrentSim(true);
-    //     const ids = this.simulator.currentSim.ids;
-    //     this.simulator.simulationQueue.forEach((queueItem: any) => {
-    //         const simStats = this.manager.runTrials(
-    //             queueItem.monsterID,
-    //             ids.dungeonID,
-    //             this.micsr.trials,
-    //             this.micsr.maxTicks,
-    //             true
-    //         );
-    //         const simID = this.simulator.simID(
-    //             queueItem.monsterID,
-    //             ids.dungeonID
-    //         );
-    //         this.simulator.monsterSimData[simID] =
-    //             this.manager.convertSlowSimToResult(
-    //                 simStats,
-    //                 this.micsr.trials
-    //             );
-    //     });
-    //     this.simulator.performPostSimAnalysis(true);
-    //     this.updateDisplayPostSim();
-    //     const processingTime = performance.now() - startTimeStamp;
-    //     this.micsr.log(`Simulation took ${processingTime / 1000}s.`);
-    // }
+    blockingSimulateButtonOnClick() {
+        if (!this.micsr.isDev) {
+            throw new Error("Can only use in dev mode.");
+        }
+        const startTimeStamp = performance.now();
+        // queue the desired monsters
+        this.simulator.setupCurrentSim(true);
+        const ids = this.simulator.currentSim.ids;
+        this.simulator.simulationQueue.forEach((queueItem: any) => {
+            const simStats = this.manager.runTrials(
+                queueItem.monsterID,
+                ids.dungeonID,
+                this.micsr.trials,
+                this.micsr.maxTicks,
+                true
+            );
+            const simID = this.simulator.simID(
+                queueItem.monsterID,
+                ids.dungeonID
+            );
+            Object.assign(
+                this.simulator.monsterSimData[simID],
+                this.manager.convertSlowSimToResult(simStats, this.micsr.trials)
+            );
+        });
+        this.simulator.performPostSimAnalysis(true);
+        this.updateDisplayPostSim();
+        const processingTime = performance.now() - startTimeStamp;
+        this.micsr.log(`Simulation took ${processingTime / 1000}s.`);
+    }
 
     exportSettingButtonOnClick() {
         const settings = this.import.exportSettings();
@@ -3702,18 +3723,17 @@ class App {
         this.setTooltipById(`MCS prayerXpPerSecond Output`, tooltip);
     }
 
-    setRuneTooltip(runesUsed: any, killTimeS: any) {
+    setRuneTooltip(runesUsed: { [index: string]: number }, killTimeS: number) {
         let dataMultiplier = this.timeMultiplier;
         if (dataMultiplier === -1) {
             dataMultiplier = killTimeS;
         }
         let tooltip = "";
         for (const id in runesUsed) {
-            tooltip += `<img class="skill-icon-xs" src="${this.getItemMedia(
-                id
-            )}"><span>${(runesUsed[id] * dataMultiplier).toFixed(
-                2
-            )}</span><br/>`;
+            const rune = this.game.items.getObjectByID(id)!;
+            tooltip += `<img class="skill-icon-xs" src="${rune.media}"><span>${(
+                runesUsed[id] * dataMultiplier
+            ).toFixed(2)}</span><br/>`;
         }
         if (tooltip.length > 0) {
             tooltip = `<div className="text-center">Runes / ${this.selectedTime}<br/>${tooltip}</div>`;
@@ -4021,23 +4041,29 @@ class App {
      * @param {number} potionTier The new potion tier
      */
     updatePotionTier(potionTier: number) {
+        this.potionTier = potionTier;
+        (
+            document.getElementById(
+                "MCS Potion Tier Dropdown"
+            )! as unknown as HTMLOptionsCollection
+        ).selectedIndex = potionTier;
         this.combatPotionRecipes.forEach((recipe: HerbloreRecipe) => {
             const potion = recipe.potions[potionTier];
             const img = document.getElementById(
                 `MCS ${this.getPotionHtmlId(potion)} Button Image`
-            );
-            (img as any).src = potion.media;
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
-            this.setTooltip(img.parentElement, this.getPotionTooltip(potion));
+            ) as HTMLImageElement;
+            img.src = potion.media;
+            this.setTooltip(img.parentElement, this.getPotionTooltip(recipe));
         });
     }
 
     /**
      * Gets the content for the tooltip of a potion
-     * @param potion The potion object to get the tooltip for
+     * @param recipe
      * @returns {string} The tooltip content
      */
-    getPotionTooltip(potion: PotionItem) {
+    getPotionTooltip(recipe: HerbloreRecipe) {
+        const potion = recipe.potions[this.potionTier];
         return (
             `<div class="text-center">${potion.name}<small>` +
             `<br><span class='text-info'>${potion.description.replace(
@@ -4126,10 +4152,6 @@ class App {
      */
     getPrayerName(prayer: ActivePrayer) {
         return this.replaceApostrophe(prayer.name);
-    }
-
-    getItemMedia(itemID: number | string) {
-        return this.micsr.items[itemID].media;
     }
 
     /**

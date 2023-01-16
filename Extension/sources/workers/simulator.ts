@@ -237,7 +237,6 @@ class CombatSimulator {
         try {
             // this.micsr.log("Creating manager");
             const reader = new SaveWriter("Read", 1);
-            // debugger;
             const saveVersion = reader.setDataFromSaveString(saveString);
             this.micsr.game.decodeSimple(reader, saveVersion);
             this.micsr.game.onLoad();
@@ -258,7 +257,7 @@ class CombatSimulator {
                 `Error while simulating monster ${monsterID} in dungeon ${dungeonID}: ${error}`
             );
             let reason = "simulation error";
-            if(error instanceof Error){
+            if (error instanceof Error) {
                 reason += `: ${error.message}`;
             }
             return {

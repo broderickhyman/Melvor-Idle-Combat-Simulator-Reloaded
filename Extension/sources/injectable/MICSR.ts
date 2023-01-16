@@ -100,12 +100,6 @@ class MICSR {
 
         // simulation settings
         this.trials = 1e3;
-        if (isDev) {
-            // High trial count for development for consistent numbers
-            this.trials = 2e4;
-            // Low trial count for fast simulate all
-            this.trials = 1e2;
-        }
         this.maxTicks = 1e3;
         // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
         this.cloudManager = cloudManager;
@@ -355,7 +349,7 @@ class MICSR {
         this.prayers = this.actualGame.prayers;
         // attackStyles
         this.attackStylesIdx = {};
-        this.actualGame.attackStyles.allObjects.forEach((x: any, i: number) => {
+        this.actualGame.attackStyles.allObjects.forEach((x, i: number) => {
             let j = i;
             if (j > 3) {
                 j -= 3;
@@ -363,7 +357,7 @@ class MICSR {
             if (j > 2) {
                 j -= 2;
             }
-            this.attackStylesIdx[x] = j;
+            this.attackStylesIdx[x.id] = j;
         });
     }
 

@@ -52,7 +52,6 @@ class SimPlayer extends Player {
     //// @ts-expect-error HACK
     // equipment: any;
     // equipmentSets: any;
-    food: any;
     gp: number;
     hasRunes: boolean;
     heal: any;
@@ -67,7 +66,6 @@ class SimPlayer extends Player {
     petUnlocked: Pet[];
     pillar: number;
     potion: PotionItem | undefined;
-    potionTier: number;
     runesProvided: any;
     skillLevel: Map<string, number>;
     skillXP: Map<string, number>;
@@ -78,9 +76,9 @@ class SimPlayer extends Player {
     useCombinationRunesFlag: boolean;
     usedAmmo: number;
     usedFood: number;
-    usedPotionCharges: number;
+    usedPotions: number;
     usedPrayerPoints: number;
-    usedRunes: any;
+    usedRunes: { [index: string]: number };
     // @ts-expect-error HACK
     usingAncient: any;
     activeSummoningSynergy: any;
@@ -97,7 +95,9 @@ class SimPlayer extends Player {
         this.detachGlobals();
 
         // skillLevel
-        this.skillLevel = new Map(this.game.skills.allObjects.map((skill) => [skill.id, 1]));
+        this.skillLevel = new Map(
+            this.game.skills.allObjects.map((skill) => [skill.id, 1])
+        );
         this.skillLevel.set(this.game.hitpoints.id, 10);
         this.skillXP = new Map(
             this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
@@ -111,7 +111,6 @@ class SimPlayer extends Player {
         this.courseMastery = Array(10).fill(false);
         this.pillar = -1;
         // herbloreBonuses
-        this.potionTier = 0;
         this.potion = undefined;
         // isSynergyUnlocked
         this.summoningSynergy = true;
@@ -139,7 +138,7 @@ class SimPlayer extends Player {
         this.usedAmmo = 0;
         this.usedFood = 0;
         this.usedRunes = {};
-        this.usedPotionCharges = 0;
+        this.usedPotions = 0;
         this.usedPrayerPoints = 0;
         this.chargesUsed = {
             Summon1: 0,
@@ -149,8 +148,10 @@ class SimPlayer extends Player {
         // remove standard spell selection
         this.spellSelection.standard = undefined;
         // overwrite food consumption
-        this.food.consume = (quantity = 1) => {
-            this.usedFood += quantity;
+        this.food.consume = (quantity?: number) => {
+            if (quantity) {
+                this.usedFood += quantity;
+            }
         };
         // data names for serialization
         this.dataNames = {
@@ -168,7 +169,6 @@ class SimPlayer extends Player {
             ],
             numbers: [
                 "pillar",
-                "potionTier",
                 "autoEatTier",
                 "activeAstrologyModifiers", // this is an array of dictionaries, but it (de)serializes fine
             ],
@@ -297,9 +297,7 @@ class SimPlayer extends Player {
     setCallbacks() {}
 
     processDeath() {
-        // @ts-ignore
         this.removeAllEffects(true);
-        // @ts-ignore
         this.setHitpoints(Math.floor(this.stats.maxHitpoints * 0.2));
         // heal after death if required
         while (
@@ -314,13 +312,13 @@ class SimPlayer extends Player {
     // replace globals with properties
     initialize() {
         this.currentGamemodeID = this.micsr.game.currentGamemode.id;
-        this.combinations = this.micsr.items
-            .filter((x: any) => x.type === "Rune" && x.providesRune)
-            .map((x: any) => x.id);
+        this.combinations = this.game.runecrafting.actions
+            .filter((x) => x.category.localID === "CombinationRunes")
+            .map((x) => x.product.id);
         this.resetGains();
     }
 
-    resetToBlankState(){
+    resetToBlankState() {
         this.equipment.unequipAll();
         this.unequipFood();
         this.activePrayers.clear();
@@ -338,7 +336,7 @@ class SimPlayer extends Player {
         this.usedAmmo = 0;
         this.usedFood = 0;
         this.usedRunes = {};
-        this.usedPotionCharges = 0;
+        this.usedPotions = 0;
         this.usedPrayerPoints = 0;
         this.chargesUsed = {
             Summon1: 0,
@@ -359,14 +357,13 @@ class SimPlayer extends Player {
     getGainsPerSecond(ticks: any): ISimGains {
         // debugger;
         const seconds = ticks / 20;
-        const usedRunesBreakdown = {};
+        const usedRunesBreakdown: { [index: string]: number } = {};
         let usedRunes = 0;
         let usedCombinationRunes = 0;
         for (const id in this.usedRunes) {
             const amt = this.usedRunes[id] / seconds;
-            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             usedRunesBreakdown[id] = amt;
-            if (this.combinations.includes(Number(id))) {
+            if (this.combinations.includes(id)) {
                 usedCombinationRunes += amt;
             } else {
                 usedRunes += amt;
@@ -400,7 +397,7 @@ class SimPlayer extends Player {
             usedRunes: usedRunes,
             usedCombinationRunes: usedCombinationRunes,
             usedFood: this.usedFood / seconds,
-            usedPotionCharges: this.usedPotionCharges / seconds,
+            usedPotions: this.usedPotions / seconds,
             usedPrayerPoints: this.usedPrayerPoints / seconds,
             usedSummoningCharges: usedSummoningCharges / seconds,
             highestDamageTaken: this.highestDamageTaken,
@@ -515,48 +512,11 @@ class SimPlayer extends Player {
     }
 
     computeModifiers() {
-        this.modifiers.reset();
+        super.computeModifiers();
         // Custom
-        this.addPotionModifiers();
         this.addPetModifiers();
         // this.addAgilityModifiers();
         // this.addAstrologyModifiers();
-
-        // Core
-        // this.addProviderModifiers();
-        this.addEquippedItemModifiers();
-        this.addConditionalModifiers();
-        this.addAttackStyleModifiers();
-        this.addPassiveModifiers();
-        this.addTargetModifiers();
-        this.addPrayerModifiers();
-        this.addGamemodeModifiers();
-        this.checkMagicUsage();
-        this.addAuroraModifiers();
-        this.addCurseModifiers();
-        this.addMiscModifiers();
-        // @ts-ignore private
-        this.addSummonSynergyModifiers();
-        this.addEffectModifiers();
-        // @ts-ignore private
-        this.addMiscSummoningModifiers();
-        this.addCombatAreaEffectModifiers();
-        this.computeTargetModifiers();
-    }
-
-    addPotionModifiers() {
-        debugger;
-        const basePotion = this.potion;
-        if (basePotion && basePotion.modifiers !== undefined) {
-            const recipe = this.game.herblore.actions.find((recipe) =>
-                recipe.potions.includes(basePotion)
-            );
-            if (!recipe) {
-                throw new Error("Could not find recipe");
-            }
-            const potionTier = recipe.potions[this.potionTier];
-            this.modifiers.addModifiers(potionTier.modifiers);
-        }
     }
 
     addPetModifiers() {
@@ -605,40 +565,11 @@ class SimPlayer extends Player {
         }
     }
 
-    // addMiscModifiers() {
-    //     // Knight's Defender
-    //     if (this.equipment.checkForItemID("melvorF:Knights_Defender" /* ItemIDs.Knights_Defender */) && this.attackType === 'melee') {
-    //         this.modifiers.addModifiers({
-    //             decreasedAttackInterval: 100,
-    //             decreasedDamageReduction: 3,
-    //         });
-    //     }
-    //     if (this.modifiers.increasedNonMagicPoisonChance > 0 && this.attackType !== 'magic') {
-    //         this.modifiers.addModifiers({
-    //             increasedChanceToApplyPoison: this.modifiers.increasedNonMagicPoisonChance,
-    //         });
-    //     }
-    // }
-
-    // addShopModifiers() {
-    //     // auto eat modifiers
-    //     for (let tier = 0; tier <= this.autoEatTier; tier++) {
-    //         // @ts-expect-error TS(2304): Cannot find name 'SHOP'.
-    //         this.modifiers.addModifiers(SHOP.General[1 + tier].contains.modifiers);
-    //     }
-
-    //     // other shop modifiers are not relevant for combat sim at this point
-    // }
-
-    equipmentID(slotID: any) {
+    equipmentID(slotID: EquipmentSlots) {
         return this.equipment.slotArray[slotID].item.id;
     }
 
-    // equipmentIDs() {
-    //     return this.equipment.slotArray.map((x: any) => x.item.id);
-    // }
-
-    equipmentOccupiedBy(slotID: any) {
+    equipmentOccupiedBy(slotID: EquipmentSlots) {
         return this.equipment.slotArray[slotID].occupiedBy;
     }
 
@@ -681,57 +612,17 @@ class SimPlayer extends Player {
         }
     }
 
-    // track ammo usage instead of consuming
-    consumeAmmo() {
-        if (!rollPercentage(this.modifiers.ammoPreservationChance)) {
-            this.usedAmmo++;
-        }
+    removeFromQuiver(qty: number) {
+        this.usedAmmo += qty;
     }
 
-    consumeQuiver(type: any) {
-        if (this.equipment.slots.Quiver.item.consumesOn === type) {
-            this.usedAmmo++;
-        }
-    }
-
-    getRuneCosts(spell: any) {
-        const spellCost: any = [];
-        if (spell === undefined) {
-            return spellCost;
-        }
-        let runeCost = spell.runesRequired;
-        if (this.useCombinationRunes && spell.runesRequiredAlt !== undefined) {
-            runeCost = spell.runesRequiredAlt;
-        }
-        runeCost.forEach((cost: any) => {
-            const reducedCost =
-                cost.qty - (this.runesProvided.get(cost.id) | 0);
-            if (reducedCost > 0) {
-                spellCost.push({
-                    itemID: cost.id,
-                    qty: reducedCost,
-                });
-            }
-        });
-        return spellCost;
-    }
-
-    // track rune usage instead of consuming
-    consumeRunes(costs: any) {
-        if (!rollPercentage(this.modifiers.runePreservationChance)) {
-            costs.forEach((cost: any) => {
-                if (this.usedRunes[cost.itemID] === undefined) {
-                    this.usedRunes[cost.itemID] = 0;
-                }
-                this.usedRunes[cost.itemID] += cost.qty;
-            });
-        }
+    removeFromConsumable(qty: number) {
+        // TODO
     }
 
     onMagicAttackFailure() {}
 
     updateForEquipmentChange() {
-        // @ts-ignore
         this.computeAllStats();
         this.interruptAttack();
         if (this.manager.fightInProgress) {
@@ -861,6 +752,15 @@ class SimPlayer extends Player {
                 this.hitpoints
             );
         }
+    }
+
+    setPotion(newPotion: PotionItem | undefined) {
+        if (newPotion) {
+            this.game.potions.usePotion(newPotion);
+        } else if (this.potion) {
+            this.game.potions.removePotion(this.potion.action);
+        }
+        this.potion = newPotion;
     }
 
     checkRequirements(
@@ -1020,6 +920,10 @@ class SimPlayer extends Player {
         this.micsr.logVerbose("encode skillLevel", this.skillLevel);
         writer.writeString(this.potion?.id || "");
         this.micsr.logVerbose("encode potion id", this.potion?.id);
+        writer.writeArray(this.petUnlocked, (p, w) =>
+            w.writeNamespacedObject(p)
+        );
+        this.micsr.logVerbose("encode petUnlocked", this.petUnlocked);
         return writer;
     }
 
@@ -1027,7 +931,7 @@ class SimPlayer extends Player {
     decode(reader: SaveWriter, version: number) {
         // debugger;
         super.decode(reader, version);
-        // We don't need these extra values when creating the duplicate SimGame on the game side
+        // We don't have these extra values when creating the SimGame on the game side
         if (!this.manager.game.isWebWorker) {
             return;
         }
@@ -1086,6 +990,10 @@ class SimPlayer extends Player {
             this.potion = this.game.items.potions.getObjectByID(potionId);
         }
         this.micsr.logVerbose("decode potion id", potionId);
+        this.petUnlocked = reader.getArray(
+            (r) => r.getNamespacedObject(this.game.pets) as Pet
+        );
+        this.micsr.logVerbose("decode petUnlocked", this.petUnlocked);
         // after reading the data, recompute stats and reset gains
         super.computeAllStats();
         this.resetGains();

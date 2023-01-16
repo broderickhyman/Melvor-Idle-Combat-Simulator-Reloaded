@@ -42,12 +42,10 @@
 //     curse: undefined,
 //     foodSelected: undefined,
 //     healAfterDeath: true,
-//     isAncient: false,
 //     isManualEating: false,
 //     isSlayerTask: false,
 //     pillar: undefined,
 //     potionID: undefined,
-//     potionTier: 0,
 //     standard: 0,
 //     summoningSynergy: true,
 //     useCombinationRunes: false,
@@ -80,12 +78,10 @@ interface IImportSettings {
     curse: any;
     foodSelected: FoodItem;
     healAfterDeath: any;
-    isAncient: boolean;
     isManualEating: boolean;
     isSlayerTask: boolean;
     pillar: any;
     potionID: string | undefined;
-    potionTier: number;
     prayerSelected: string[];
     standard: any;
     summoningSynergy: any;
@@ -127,7 +123,6 @@ class Import {
     importButtonOnClick(setID: any) {
         // get potion
         let potionID: string | undefined = undefined;
-        let potionTier = -1;
         let potion = this.micsr.actualGame.items.potions.find((potion) => {
             return (
                 potion.action.localID === "Combat" &&
@@ -135,12 +130,7 @@ class Import {
             );
         });
         if (potion) {
-            potionTier = potion.tier;
-            const recipe = this.micsr.actualGame.herblore.actions.find(recipe => recipe.potions.includes(potion!));
-            if(recipe){
-                // potionID is the base potion
-                potionID = recipe.potions[0].id;
-            }
+            potionID = potion.id;
         }
 
         // get foodSelected
@@ -214,8 +204,9 @@ class Import {
             }
         }
          */
-        const equipment =
-            this.micsr.actualGame.combat.player.equipmentSets[setID].equipment;
+        const equipmentSet =
+            this.micsr.actualGame.combat.player.equipmentSets[setID];
+        const equipment = equipmentSet.equipment;
 
         // create settings object
         const settings: IImportSettings = {
@@ -239,27 +230,27 @@ class Import {
             ),
             // objects
             styles: {
-                magic: this.micsr.actualGame.combat.player.attackStyles.magic
-                    .id,
-                melee: this.micsr.actualGame.combat.player.attackStyles.melee
-                    .id,
-                ranged: this.micsr.actualGame.combat.player.attackStyles.ranged
-                    .id,
+                magic: this.micsr.actualGame.attackStyles.find(
+                    (style) => style.attackType === "magic"
+                )!.id,
+                melee: this.micsr.actualGame.attackStyles.find(
+                    (style) => style.attackType === "melee"
+                )!.id,
+                ranged: this.micsr.actualGame.attackStyles.find(
+                    (style) => style.attackType === "ranged"
+                )!.id,
             },
             // simple values
-            ancient: this.micsr.actualGame.combat.player.spellSelection.ancient,
-            archaic: this.micsr.actualGame.combat.player.spellSelection.archaic,
-            aurora: this.micsr.actualGame.combat.player.spellSelection.aurora,
+            ancient: equipmentSet.spellSelection.ancient,
+            archaic: equipmentSet.spellSelection.archaic,
+            aurora: equipmentSet.spellSelection.aurora,
             autoEatTier: autoEatTier,
             cookingMastery: cookingMastery,
             cookingPool: cookingPool,
             currentGamemode: this.micsr.actualGame.currentGamemode,
-            curse: this.micsr.actualGame.combat.player.spellSelection.curse,
+            curse: equipmentSet.spellSelection.curse,
             foodSelected: foodSelected,
             healAfterDeath: this.player.healAfterDeath,
-            isAncient:
-                this.micsr.actualGame.combat.player.spellSelection.ancient !==
-                undefined,
             isManualEating: this.player.isManualEating,
             isSlayerTask: this.player.isSlayerTask,
             pillar:
@@ -267,13 +258,13 @@ class Import {
                     ? -1
                     : this.micsr.game.agility.builtPassivePillar.id,
             potionID: potionID,
-            potionTier: potionTier,
-            prayerSelected: Array.from(this.micsr.actualGame.combat.player.activePrayers).map((p) => p.id),
-            standard:
-                this.micsr.actualGame.combat.player.spellSelection.standard,
+            prayerSelected: Array.from(equipmentSet.prayerSelection).map(
+                (p) => p.id
+            ),
+            standard: equipmentSet.spellSelection.standard,
             summoningSynergy: this.player.summoningSynergy, // TODO: import mark levels
             useCombinationRunes:
-                this.micsr.actualGame.combat.player.useCombinationRunes,
+                this.micsr.actualGame.settings.useCombinationRunes,
         };
 
         // import settings
@@ -300,7 +291,9 @@ class Import {
             petUnlocked: [...this.player.petUnlocked],
             // objects
             styles: { ...this.player.attackStyles },
-            prayerSelected: Array.from(this.player.activePrayers).map((p) => p.id),
+            prayerSelected: Array.from(this.player.activePrayers).map(
+                (p) => p.id
+            ),
             // simple values
             ancient: this.player.spellSelection.ancient,
             archaic: this.player.spellSelection.archaic,
@@ -312,12 +305,10 @@ class Import {
             curse: this.player.spellSelection.curse,
             foodSelected: this.player.food.currentSlot.item,
             healAfterDeath: this.player.healAfterDeath,
-            isAncient: this.player.spellSelection.ancient > -1,
             isManualEating: this.player.isManualEating,
             isSlayerTask: this.player.isSlayerTask,
             pillar: this.player.pillar,
             potionID: this.player.potion?.id,
-            potionTier: this.player.potionTier,
             standard: this.player.spellSelection.standard,
             summoningSynergy: this.player.summoningSynergy,
             useCombinationRunes: this.player.useCombinationRunes,
@@ -351,7 +342,7 @@ class Import {
             standard: settings.standard,
         });
         this.importPrayers(settings.prayerSelected);
-        this.importPotion(settings.potionID, settings.potionTier);
+        this.importPotion(settings.potionID);
         this.importPets(settings.petUnlocked);
         this.importAutoEat(
             settings.autoEatTier,
@@ -410,11 +401,11 @@ class Import {
 
     importStyle(styles: any) {
         ["melee", "ranged", "magic"].forEach((cbStyle) => {
-            const attackStyle =
-                this.micsr.actualGame.attackStyles.getObjectByID(
-                    styles[cbStyle]
-                );
-            const index = this.micsr.attackStylesIdx[cbStyle];
+            const attackStyle = this.micsr.game.attackStyles.getObjectByID(
+                styles[cbStyle]
+            )!;
+            const index = this.micsr.attackStylesIdx[attackStyle.id];
+            // @ts-expect-error
             this.player.setAttackStyle(cbStyle, attackStyle);
             this.document.getElementById(
                 `MCS ${cbStyle} Style Dropdown`
@@ -449,38 +440,32 @@ class Import {
         });
     }
 
-    importPotion(potionID: string | undefined, potionTier: number) {
+    importPotion(potionID: string | undefined) {
         // Deselect potion if selected
         if (this.player.potion) {
             this.app.unselectButton(
                 this.document.getElementById(
-                    `MCS ${this.app.getPotionHtmlId(
-                        this.player.potion
-                    )} Button`
+                    `MCS ${this.app.getPotionHtmlId(this.player.potion)} Button`
                 )
             );
             this.player.potion = undefined;
         }
         // Select new potion if applicable
         if (potionID) {
-            const potion = this.app.manager.game.items.potions.find((p) => p.id === potionID);
-            this.player.potion = potion;
-            this.app.selectButton(
-                this.document.getElementById(
-                    `MCS ${this.app.getPotionHtmlId(
-                        this.player.potion!
-                    )} Button`
-                )
+            const potion = this.app.manager.game.items.potions.find(
+                (p) => p.id === potionID
             );
-        }
-        // Set potion tier if applicable
-        if (potionTier !== -1) {
-            this.player.potionTier = potionTier;
-            this.app.updatePotionTier(potionTier);
-            // Set dropdown to correct option
-            this.document.getElementById(
-                "MCS Potion Tier Dropdown"
-            ).selectedIndex = potionTier;
+            this.player.potion = potion;
+            if (this.player.potion) {
+                this.app.selectButton(
+                    this.document.getElementById(
+                        `MCS ${this.app.getPotionHtmlId(
+                            this.player.potion
+                        )} Button`
+                    )
+                );
+                this.app.updatePotionTier(this.player.potion.tier);
+            }
         }
     }
 

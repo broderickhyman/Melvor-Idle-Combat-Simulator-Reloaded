@@ -26,7 +26,13 @@ class Consumables {
     app: App;
     applyRates: any;
     card: Card;
-    consumables: any;
+    consumables: {[index: string]: {
+        check: any,
+        name: string,
+        override: string,
+        seconds: number | undefined,
+        children: any[],
+    }};
     player: SimPlayer;
     runesInUse: any;
     showAll: any;
@@ -39,6 +45,7 @@ class Consumables {
         this.card = this.app.consumablesCard;
         this.player = this.app.player;
         this.simulator = this.app.simulator;
+        this.consumables = {};
         // add export and import
         this.card.addButton('Export Rates', () => this.exportConsumableData());
         this.card.addTextInput('Import Rates:', '', (event: any) => this.importConsumableData(event));
@@ -68,8 +75,6 @@ class Consumables {
     }
 
     initConsumables() {
-        // consumables list
-        this.consumables = {};
         // global costs
         this.card.addSectionTitle('Seconds per Consumable');
         // @ts-expect-error TS(2554): Expected 5 arguments, but got 4.
@@ -104,13 +109,13 @@ class Consumables {
         )
     }
 
-    addItemInput(card: any, itemID: any, check: any, override: any) {
+    addItemInput(card: any, itemID: string, check: any, override: string) {
         // @ts-expect-error TS(2304): Cannot find name 'items'.
         const item = items[itemID];
         this.addConsumableInput(card, itemID, item.name, check, override);
     }
 
-    addConsumableInput(card: any, id: any, name: any, check: any, override: any) {
+    addConsumableInput(card: any, id: string, name: any, check: any, override: string) {
         this.consumables[id] = {
             check: check,
             name: name,
@@ -130,7 +135,7 @@ class Consumables {
         }
     }
 
-    genericCheck(id: any) {
+    genericCheck(id: string) {
         const consumable = this.consumables[id];
         for (const childID of consumable.children) {
             if (this.genericCheck(childID)) {
@@ -151,7 +156,7 @@ class Consumables {
         }
     }
 
-    setConsumableSecondsFromEvent(event: any, id: any) {
+    setConsumableSecondsFromEvent(event: any, id: string) {
         let seconds = parseFloat(event.currentTarget.value);
         if (isNaN(seconds)) {
             // @ts-expect-error TS(2322): Type 'undefined' is not assignable to type 'number... Remove this comment to see the full error message
@@ -161,7 +166,7 @@ class Consumables {
         this.saveRates();
     }
 
-    setConsumableSeconds(id: any, seconds: any) {
+    setConsumableSeconds(id: string, seconds: any) {
         if (this.consumables[id] === undefined) {
             this.micsr.warn(`Unknown consumable id ${id} in Consumables.setConsumableSeconds`);
             return;
@@ -228,9 +233,8 @@ class Consumables {
         }
     }
 
-    // @ts-expect-error TS(7023): 'getConsumableCostInSeconds' implicitly has return... Remove this comment to see the full error message
-    getConsumableCostInSeconds(id: any) {
-        if (id === undefined || id === -1) {
+    getConsumableCostInSeconds(id: string): number {
+        if (!id) {
             return 0;
         }
         const consumable = this.consumables[id];
@@ -239,7 +243,7 @@ class Consumables {
             return 0;
         }
         if (consumable.seconds !== undefined) {
-            return consumable.seconds;
+            return consumable.seconds as number;
         }
         if (consumable.override !== undefined) {
             return this.getConsumableCostInSeconds(consumable.override);
@@ -310,14 +314,7 @@ class Consumables {
         }
         // potion
         if (data.potionsUsedPerSecond > 0) {
-            // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-            if (Herblore.potions[this.player.potion]) {
-                // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
-                const potionID = Herblore.potions[this.player.potion].potionIDs[0];
-                factor += data.potionsUsedPerSecond * this.getConsumableCostInSeconds(potionID);
-            } else {
-                this.micsr.warn(`Unknown potion id ${this.player.potion} in Consumables.computeFactor, with ${data.potionsUsedPerSecond} potions per second`);
-            }
+            factor += data.potionsUsedPerSecond * this.getConsumableCostInSeconds(this.player.potion!.id);
         }
         // food
         if (data.atePerSecond > 0) {

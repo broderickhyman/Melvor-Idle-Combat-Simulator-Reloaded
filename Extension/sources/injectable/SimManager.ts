@@ -24,11 +24,11 @@ interface ISimGains {
     petRolls: {};
     slayercoins: number;
     usedAmmo: number;
-    usedRunesBreakdown: {};
+    usedRunesBreakdown: {[index: string]: number};
     usedRunes: number;
     usedCombinationRunes: number;
     usedFood: number;
-    usedPotionCharges: number;
+    usedPotions: number;
     usedPrayerPoints: number;
     usedSummoningCharges: number;
     highestDamageTaken: number;
@@ -108,21 +108,6 @@ class SimManager extends CombatManager {
 
     // detach globals attached by parent constructor
     detachGlobals() {
-        this.bank = {
-            addItem: () => true,
-            checkForItems: (costs: any) => {
-                if (
-                    // @ts-expect-error TS(2304): Cannot find name 'items'.
-                    costs.find((x: any) => items[x.itemID].type === "Rune") !==
-                    undefined
-                ) {
-                    return this.player.hasRunes;
-                }
-                return true;
-            },
-            consumeItems: () => {},
-            getQty: () => 1e6,
-        };
         this.loot.render = () => undefined;
         this.player.detachGlobals();
     }
@@ -147,7 +132,6 @@ class SimManager extends CombatManager {
     createNewEnemy() {
         this.enemy = new SimEnemy(this, this.game);
         this.enemy.setMonster(this.selectedMonster);
-        // @ts-ignore
         if (
             this.selectedArea instanceof Dungeon &&
             this.selectedArea.nonBossPassives !== undefined &&
@@ -234,23 +218,7 @@ class SimManager extends CombatManager {
         }
         const killTimeS =
             simResult.tickCount / ticksPerSecond / simResult.simStats.killCount;
-        // compute potion use
-        let potionCharges = 1;
-        // if (this.player.potionID > -1) {
-        //     // @ts-expect-error TS(2304): Cannot find name 'items'.
-        //     const potion =
-        //         items[
-        //             Herblore.potions[this.player.potionID].potionIDs[
-        //                 this.player.potionTier
-        //             ]
-        //         ];
-        //     potionCharges =
-        //         potion.potionCharges +
-        //         this.micsr.showModifiersInstance.getModifierValue(
-        //             this.player.modifiers,
-        //             "PotionChargesFlat"
-        //         );
-        // }
+
         return {
             // success
             simSuccess: simResult.success,
@@ -273,7 +241,7 @@ class SimManager extends CombatManager {
             runesUsedPerSecond: gps.usedRunes,
             usedRunesBreakdown: gps.usedRunesBreakdown,
             combinationRunesUsedPerSecond: gps.usedCombinationRunes,
-            potionsUsedPerSecond: gps.usedPotionCharges / potionCharges, // TODO: divide by potion capacity
+            potionsUsedPerSecond: gps.usedPotions,
             tabletsUsedPerSecond: gps.usedSummoningCharges,
             atePerSecond: gps.usedFood,
             // survivability
@@ -338,7 +306,7 @@ class SimManager extends CombatManager {
     // rewardForEnemyDeath() {
     //     this.dropEnemyBones();
     //     this.dropSignetHalfB();
-    //     // @ts-ignore
+    //     // @ts-expect-error
     //     this.dropEnemyLoot();
     //     this.dropEnemyGP(this.enemy.monster);
     //     let slayerXPReward = 0;
@@ -356,7 +324,6 @@ class SimManager extends CombatManager {
     selectMonster(monster: any, areaData: any) {
         // clone of combatManager.selectMonster
         let slayerLevelReq = 0;
-        // @ts-ignore
         if (areaData instanceof SlayerArea) {
             slayerLevelReq = areaData.slayerLevelRequired;
         }
