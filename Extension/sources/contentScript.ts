@@ -55,18 +55,29 @@ async function loadScripts(ctx: Modding.ModContext) {
 }
 
 export function setup(setupContext: Modding.ModContext) {
-    const isDev = false;
     loadScripts(setupContext);
+    const general = setupContext.settings.section("General");
+    general.add({
+        type: "switch",
+        name: "development-mode",
+        label: "Development Mode Enabled",
+        default: false
+    } as unknown as Modding.Settings.SettingConfig);
 
     setupContext.onCharacterSelectionLoaded(() => {
-        if (isDev) {
-            console.clear();
-            // Load character
-            $("#save-slot-display-3")
+        try {
+            // @ts-expect-error
+            if (cloudManager.accountInfo.TitleInfo.DisplayName === "MyPickle") {
+                console.clear();
+                // Load character
+                $("#save-slot-display-3")
                 .find("button.btn-gamemode-standard")
                 .trigger("click");
-            // Accept warning
-            $("button.swal2-confirm").trigger("click");
+                // Accept warning
+                $("button.swal2-confirm").trigger("click");
+            }
+        } catch (error) {
+            // Do nothing, developer stuff
         }
     });
 
@@ -77,7 +88,7 @@ export function setup(setupContext: Modding.ModContext) {
                 "built/workers/simulator.js"
             ),
         };
-        debugger;
+        const isDev = general.get("development-mode") as boolean;
         const micsr = new MICSR(isDev);
         if (isDev) {
             localStorage.setItem("MICSR-gameVersion", gameVersion);
