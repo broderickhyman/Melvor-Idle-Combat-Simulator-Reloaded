@@ -311,7 +311,6 @@ class SimPlayer extends Player {
         this.equipment.unequipAll();
         this.unequipFood();
         this.activePrayers.clear();
-        this.setPotion(undefined);
     }
 
     rollForSummoningMarks() {}

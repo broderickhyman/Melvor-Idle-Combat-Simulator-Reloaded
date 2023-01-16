@@ -136,6 +136,9 @@ class SimGame extends Game {
 
     resetToBlankState() {
         this.combat.player.resetToBlankState();
+        // @ts-expect-error
+        this.potions.activePotions.clear();
+        this.combat.player.potion = undefined;
     }
 
     constructEventMatcher(data: GameEventMatcherData): GameEventMatcher {

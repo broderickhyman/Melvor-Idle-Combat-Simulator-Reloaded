@@ -102,6 +102,7 @@ class App {
     player: SimPlayer;
     game: SimGame;
     actualGame: Game;
+    initializing: boolean;
 
     /**
      * Constructs an instance of mcsApp
@@ -113,6 +114,7 @@ class App {
         this.manager = game.combat;
         this.player = this.manager.player;
         this.savedSimulations = [];
+        this.initializing = true;
         // Combat Data Object
         this.combatData = new CombatData(this.manager);
         // prepare tooltips
@@ -521,6 +523,7 @@ class App {
         this.toggleSlayerSims(!this.slayerToggleState, false);
         // load from local storage
         this.consumables.loadRates();
+        this.initializing = false;
     }
 
     updateUi() {
@@ -2976,7 +2979,7 @@ class App {
         }
         this.player.disableSpellFromType(spellType);
         // send message if required
-        if (message) {
+        if (message && !this.initializing) {
             this.micsr.imageNotify(this.media.magic, message, "danger");
         }
     }

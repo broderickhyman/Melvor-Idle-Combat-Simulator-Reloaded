@@ -130,7 +130,7 @@ export function setup(setupContext: Modding.ModContext) {
                     // Auto open the combat sim menu
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
-                    $("[id='MCS 1 Button']").trigger("click");
+                    // $("[id='MCS 1 Button']").trigger("click");
                     
                     // Start sim all
                     // Low trial count for fast simulate all
@@ -142,9 +142,10 @@ export function setup(setupContext: Modding.ModContext) {
                     // micsr.trials = 2e4;
                     // $("[id='MCS # Trials Input'").val(micsr.trials);
                     // Click monster
-                    $($(".mcs-bar-container")[9]).trigger("click");
+                    $($(".mcs-bar-container")[0]).trigger("click");
+                    // $($(".mcs-bar-container")[9]).trigger("click");
                     // Start sim selected
-                    // $("[id='MCS Simulate Selected Button']").trigger("click");
+                    $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");
                 }
             } catch (error) {
