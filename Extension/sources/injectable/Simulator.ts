@@ -229,6 +229,7 @@ class Simulator {
             { name: "modifierData", data: this.cloner.modifierData() },
             { name: "SlayerTierID", data: SlayerTierID },
             { name: "AttackTypeID", data: AttackTypeID },
+            { name: "ArchaicSpellTypeID", data: ArchaicSpellTypeID },
             { name: "RaidStats", data: RaidStats },
         ];
         [
@@ -426,7 +427,19 @@ class Simulator {
             AgilityObstacleMilestone,
             EquipItemMilestone,
 
-            // items
+            // Attacks
+            SpecialAttack,
+
+            ItemEffectAttack,
+            StackingEffect,
+            SlowEffect,
+            BurnEffect,
+            PoisonEffect,
+            ItemEffect,
+            DeadlyPoisonEffect,
+            CurseEffect,
+
+            // Items
             Item,
             EquipmentItem,
             WeaponItem,
@@ -443,10 +456,7 @@ class Simulator {
             EventManager,
             CombatArea,
             Dungeon,
-            StackingEffect,
             TownshipMap,
-            SpecialAttack,
-            ItemEffectAttack,
             Currency,
             DataReader,
             Equipment,
@@ -472,7 +482,6 @@ class Simulator {
             SaveWriter,
             Shop,
             SlayerTask,
-            SlowEffect,
             SplashManager,
             CombatModifiers,
             PlayerModifiers,
@@ -506,8 +515,6 @@ class Simulator {
             ShopPurchase,
             ShopUpgradeChain,
             DummyShopPurchase,
-            BurnEffect,
-            PoisonEffect,
             SlayerArea,
             StatTracker,
             MappedStatTracker,
@@ -517,7 +524,8 @@ class Simulator {
             ControlledAffliction,
             ActivePrayer,
             ItemSynergy,
-            ItemEffect,
+
+            // Events
             GameEvent,
             PlayerAttackEvent,
             EnemyAttackEvent,
