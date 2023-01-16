@@ -1,6 +1,4 @@
 # Melvor Idle Combat Simulator Reloaded
-[![Mozilla Firefox](https://img.shields.io/amo/v/combat-simulator-reloaded?label=Get%20MICSR%20for%20Firefox&logo=firefox)](https://addons.mozilla.org/en-US/firefox/addon/combat-simulator-reloaded/)
-[![Google Chrome](https://img.shields.io/chrome-web-store/v/cgggfndkphggbgeimpplooflemnfndok?label=Get%20MICSR%20for%20Chrome&logo=Google%20Chrome)](https://chrome.google.com/webstore/detail/melvor-idle-combat-simula/cgggfndkphggbgeimpplooflemnfndok)
 
 A browser extension for the game [Melvor Idle](http://www.melvoridle.com/).
 
@@ -8,8 +6,6 @@ A fork of the great but no longer maintained [Melvor Idle Combat Simulator](http
 
 ## Before you start
 - Create a backup of your save file before using this extension, in particular after a recent game or extension update.
-- After installing the extension, a refresh of the game may be required.
-- Do not activate multiple instances of the extension at once.
 
 ## Bug reports
 Raise an [issue](/../../issues) here on GitHub, or visit the #scripting-and-extensions channel on the [official Melvor Idle Discord](https://discord.gg/melvoridle).  
@@ -18,22 +14,8 @@ When reporting bugs please include:
 - any console errors
 
 ## Installation
-### Firefox:
-Get the add-on [on AMO](https://addons.mozilla.org/en-US/firefox/addon/combat-simulator-reloaded/).
-
-### Chromium-based browsers:
-**(Chromium, Google Chrome, Microsoft Edge, Brave, Opera, Kiwi Browser, etc.)**  
-Get the extension [on the Chrome Web Store](https://chrome.google.com/webstore/detail/melvor-idle-combat-simula/cgggfndkphggbgeimpplooflemnfndok).  
-For some of the chromium-based browsers (e.g. Microsoft Edge) you have to specifically allow "extensions from other stores".
-
-### Install a pre-release, or install any version from source
-1. Download the version of your choice (clone the repo; [latest master source](/../../archive/refs/heads/master.zip); [latest version](/../../releases/latest); etc.)
-2. If zipped, extract the files.
-3. Install the extension: [chromium instructions](https://developer.chrome.com/docs/extensions/mv3/getstarted/#unpacked), [firefox instructions](https://www.youtube.com/watch?v=J7el77F1ckg)  
-   Depending on your browser you will have to point to the manifest file directly or to the Extension directory containing it.
-
-### Mobile
-The Melvor Idle mobile app does not support extensions. However, some mobile browsers allow extensions from the chrome web store (e.g. Kiwi Browser on Android), in these browser you can then use the simulator.
+### Mod Manager:
+Url TBD
 
 ## Quick Guide
 The combat simulator allows you to configure a combat setup and simulate monsters, dungeons, and auto-slayer.
@@ -220,6 +202,3 @@ The stat card shows combat stats out of combat, i.e. before the combat triangle 
  - Colours are a gradient between blue (0% estimated death rate) to red (100% estimated death rate).
  - The highest scoring entity for the selected metric is highlighted in yellow (with a similar gradient based on death rate).
 </details>
-
-## Notes for Mozilla Reviewers
-> This add-on is a simulation tool for a browser game (Melvor Idle). We run "eval" on some functions and classes in a web worker, these functions and classes are part of the page where the content script is injected, some of these are modified by the script before passing them to the web worker. Here, "eval" is used to recreate a modified version of the game environment in web workers. This functionality can not be replicated with "window.Function". The performance hit is minimal, since this environment only has to be created once at the start of the session.
