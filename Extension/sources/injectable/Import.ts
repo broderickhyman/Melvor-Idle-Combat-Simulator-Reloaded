@@ -84,7 +84,6 @@ interface IImportSettings {
     potionID: string | undefined;
     prayerSelected: string[];
     standard: any;
-    summoningSynergy: any;
     useCombinationRunes: any;
 }
 
@@ -230,15 +229,12 @@ class Import {
             ),
             // objects
             styles: {
-                magic: this.micsr.actualGame.attackStyles.find(
-                    (style) => style.attackType === "magic"
-                )!.id,
-                melee: this.micsr.actualGame.attackStyles.find(
-                    (style) => style.attackType === "melee"
-                )!.id,
-                ranged: this.micsr.actualGame.attackStyles.find(
-                    (style) => style.attackType === "ranged"
-                )!.id,
+                magic: this.micsr.actualGame.combat.player.attackStyles.magic
+                    .id,
+                melee: this.micsr.actualGame.combat.player.attackStyles.melee
+                    .id,
+                ranged: this.micsr.actualGame.combat.player.attackStyles.ranged
+                    .id,
             },
             // simple values
             ancient: equipmentSet.spellSelection.ancient,
@@ -262,7 +258,6 @@ class Import {
                 (p) => p.id
             ),
             standard: equipmentSet.spellSelection.standard,
-            summoningSynergy: this.player.summoningSynergy, // TODO: import mark levels
             useCombinationRunes:
                 this.micsr.actualGame.settings.useCombinationRunes,
         };
@@ -310,7 +305,6 @@ class Import {
             pillar: this.player.pillar,
             potionID: this.player.potion?.id,
             standard: this.player.spellSelection.standard,
-            summoningSynergy: this.player.summoningSynergy,
             useCombinationRunes: this.player.useCombinationRunes,
         };
     }
@@ -356,7 +350,6 @@ class Import {
         this.importGameMode(settings.currentGamemode);
         this.importUseCombinationRunes(settings.useCombinationRunes);
         // TODO this.importAgilityCourse(settings.course, settings.courseMastery, settings.pillar);
-        this.importSummoningSynergy(settings.summoningSynergy);
         // TODO this.importAstrology(settings.astrologyModifiers);
 
         // update and compute values
@@ -382,7 +375,7 @@ class Import {
             }
             this.app.equipItem(
                 slotID,
-                this.micsr.items.getObjectByID(itemID),
+                this.micsr.game.items.getObjectByID(itemID),
                 false
             );
         }
@@ -529,11 +522,6 @@ class Import {
         );
         this.document.getElementById("MCS Game Mode Dropdown").selectedIndex =
             index;
-    }
-
-    importSummoningSynergy(summoningSynergy: any) {
-        // Update summoningSynergy
-        this.player.summoningSynergy = summoningSynergy;
     }
 
     importUseCombinationRunes(useCombinationRunes: boolean) {

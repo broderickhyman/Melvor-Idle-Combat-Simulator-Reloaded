@@ -70,7 +70,6 @@ class SimPlayer extends Player {
     skillLevel: Map<string, number>;
     skillXP: Map<string, number>;
     slayercoins: any;
-    summoningSynergy: boolean;
     target: any;
     timers: any;
     useCombinationRunesFlag: boolean;
@@ -81,7 +80,6 @@ class SimPlayer extends Player {
     usedRunes: { [index: string]: number };
     // @ts-expect-error HACK
     usingAncient: any;
-    activeSummoningSynergy: any;
 
     // @ts-expect-error Force SimGame type
     game!: SimGame;
@@ -112,8 +110,6 @@ class SimPlayer extends Player {
         this.pillar = -1;
         // herbloreBonuses
         this.potion = undefined;
-        // isSynergyUnlocked
-        this.summoningSynergy = true;
         // shopItemsPurchased
         this.autoEatTier = -1;
         // cooking MASTERY
@@ -158,7 +154,6 @@ class SimPlayer extends Player {
             booleanArrays: ["courseMastery"],
             numberArrays: ["course"],
             booleans: [
-                "summoningSynergy",
                 "cookingPool",
                 "cookingMastery",
                 "useCombinationRunesFlag",
@@ -227,27 +222,6 @@ class SimPlayer extends Player {
 
     get allowRegen() {
         return this.gamemode.hasRegen;
-    }
-
-    get synergyDescription() {
-        const synergy = this.equippedSummoningSynergy;
-        if (synergy !== undefined) {
-            // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
-            if (this.isSynergyActive(synergy)) {
-                return synergy.langDescription;
-            } else {
-                return getLangString("MENU_TEXT", "LOCKED");
-            }
-        } else {
-            return "";
-        }
-    }
-
-    get equippedSummoningSynergy() {
-        return this.getSynergyData(
-            this.equipment.slots.Summon1.item.id,
-            this.equipment.slots.Summon2.item.id
-        );
     }
 
     static newFromPlayerString(manager: SimManager, playerString: string) {
@@ -655,57 +629,6 @@ class SimPlayer extends Player {
         this.equipment.unequipItem(slot);
         this.updateForEquipmentChange();
         return true;
-    }
-
-    computeSummoningSynergy() {
-        this.activeSummoningSynergy = this.getUnlockedSynergyData(
-            this.equipment.slots.Summon1.item,
-            this.equipment.slots.Summon2.item
-        );
-    }
-
-    getSynergyData(summon1: any, summon2: any) {
-        let _a;
-        return (_a = this.micsr.game.summoning.synergiesByItem.get(summon1)) ===
-            null || _a === void 0
-            ? void 0
-            : _a.get(summon2);
-    }
-
-    getUnlockedSynergyData(summon1: any, summon2: any) {
-        if (!this.summoningSynergy) {
-            return undefined;
-        }
-        const synergyData = this.getSynergyData(summon1, summon2);
-        if (synergyData !== undefined) {
-            return synergyData;
-        }
-        return undefined;
-    }
-
-    isCombatSynergyEquipped() {
-        if (this.activeSummonSlots.length < 2) return false;
-        return (
-            this.getUnlockedSynergyData(
-                this.equipment.slots[this.activeSummonSlots[0]].item.id,
-                this.equipment.slots[this.activeSummonSlots[1]].item.id
-            ) !== undefined
-        );
-    }
-
-    isSynergyActive(summonID1: any, summonID2: any) {
-        if (!this.summoningSynergy) {
-            return false;
-        }
-        // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-        const itemID1 = Summoning.marks[summonID1].itemID;
-        // @ts-expect-error TS(2304): Cannot find name 'Summoning'.
-        const itemID2 = Summoning.marks[summonID2].itemID;
-        return (
-            this.getUnlockedSynergyData(itemID1, itemID2) !== undefined &&
-            this.equipment.checkForItemID(itemID1) &&
-            this.equipment.checkForItemID(itemID2)
-        );
     }
 
     removeSummonCharge(slot: any, charges = 1) {

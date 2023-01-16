@@ -589,7 +589,8 @@ class App {
         if (!img) {
             return;
         }
-        if (this.player.equippedSummoningSynergy) {
+        const synergy = this.player.equippedSummoningSynergy;
+        if (synergy) {
             (img as any).src = this.media.synergy;
         } else {
             (img as any).src = this.media.synergyLock;
@@ -599,11 +600,10 @@ class App {
         if (!text) {
             return;
         }
-        if (!this.player.equippedSummoningSynergy) {
+        if (!synergy) {
             text.textContent = "Synergy locked";
             return;
         }
-        const synergy = this.player.equippedSummoningSynergy;
         if (synergy) {
             text.textContent = synergy.description;
             return;

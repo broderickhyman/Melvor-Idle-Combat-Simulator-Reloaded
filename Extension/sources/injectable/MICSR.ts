@@ -349,15 +349,14 @@ class MICSR {
         this.prayers = this.actualGame.prayers;
         // attackStyles
         this.attackStylesIdx = {};
-        this.actualGame.attackStyles.allObjects.forEach((x, i: number) => {
-            let j = i;
-            if (j > 3) {
-                j -= 3;
+        const attackStyleGrouping: {[index: string]: number} = {};
+        this.actualGame.attackStyles.allObjects.forEach((a, i) => {
+            let index = attackStyleGrouping[a.attackType];
+            if(!index){
+                index = 0;
             }
-            if (j > 2) {
-                j -= 2;
-            }
-            this.attackStylesIdx[x.id] = j;
+            this.attackStylesIdx[a.id] = index;
+            attackStyleGrouping[a.attackType] = index + 1;
         });
     }
 
