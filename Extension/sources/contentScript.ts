@@ -77,6 +77,7 @@ export function setup(setupContext: Modding.ModContext) {
                 "built/workers/simulator.js"
             ),
         };
+        debugger;
         const micsr = new MICSR(isDev);
         if (isDev) {
             localStorage.setItem("MICSR-gameVersion", gameVersion);
@@ -87,7 +88,6 @@ export function setup(setupContext: Modding.ModContext) {
         let tryLoad = micsr.tryLoad();
         if (tryLoad) {
             try {
-                // debugger;
                 const saveString = game.generateSaveString();
                 const reader = new SaveWriter("Read", 1);
                 const saveVersion = reader.setDataFromSaveString(saveString);

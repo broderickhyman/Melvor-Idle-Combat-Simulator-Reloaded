@@ -141,12 +141,11 @@ class MICSR {
     }
 
     tryLoad() {
-        let wrongVersion = false;
         if (
             gameVersion !== this.gameVersion &&
             gameVersion !== localStorage.getItem("MICSR-gameVersion")
         ) {
-            wrongVersion = true;
+            this.wrongVersion = true;
             return window.confirm(
                 `${this.name} ${this.version}\n` +
                     `A different game version was detected (expected: ${this.gameVersion}).\n` +

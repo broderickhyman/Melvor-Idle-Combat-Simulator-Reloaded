@@ -415,7 +415,7 @@ class Card {
      * @param {string} titleText The text for the title
      * @param {string} titleID An optional id for the title, if left as '' an ID will not be assigned
      */
-    addSectionTitle(titleText: any, titleID = undefined) {
+    addSectionTitle(titleText: string, titleID: string | undefined = undefined) {
         const newSectionTitle = document.createElement('div');
         if (titleID) {
             newSectionTitle.id = titleID;
