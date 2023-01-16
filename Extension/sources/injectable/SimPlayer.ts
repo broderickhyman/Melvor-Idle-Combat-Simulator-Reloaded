@@ -483,7 +483,7 @@ class SimPlayer extends Player {
 
     autoEat() {
         if (this.emptyAutoHeal) {
-            this.usedFood = Number.MAX_SAFE_INTEGER;
+            this.usedFood = 0;
         } else {
             super.autoEat();
         }
