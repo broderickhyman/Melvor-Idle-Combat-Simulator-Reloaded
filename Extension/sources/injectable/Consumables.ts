@@ -26,12 +26,12 @@
 class Consumables {
     app: App;
     applyRates: any;
-    card: Card;
+    card: TabCard;
     consumables: {[index: string]: {
         check: any,
         name: string,
         override: string,
-        seconds: number | undefined,
+        seconds?: number,
         children: any[],
     }};
     player: SimPlayer;

@@ -24,7 +24,7 @@
  * A single instance of this is initiated on load.
  */
 class App {
-    agilityCourse: any;
+    agilityCourse!: AgilityCourse;
     agilitySelectCard!: Card;
     astrologySelectCard!: Card;
     astrologySelected: any;
@@ -41,7 +41,7 @@ class App {
     constellationContainers: any;
     constellationModifierContainers: any;
     consumables: any;
-    consumablesCard!: Card;
+    consumablesCard!: TabCard;
     dataExport: any;
     defaultSpell: any;
     dropListFilters: any;
@@ -79,7 +79,7 @@ class App {
     simOptionsCard!: Card;
     simulator!: Simulator;
     skillKeys: string[];
-    skipConstellations: any;
+    skipConstellations: number[];
     slayerToggleState: any;
     spellSelectCard!: TabCard;
     subInfoCard!: Card;
@@ -94,7 +94,7 @@ class App {
     topContent: any;
     trackHistory: any;
     uniqueModifiers: any;
-    viewedDungeonID: string | undefined;
+    viewedDungeonID?: string;
     zoneInfoCard!: Card;
 
     micsr: MICSR;
@@ -142,6 +142,8 @@ class App {
             });
         };
         this.potionTier = 0;
+        this.astrologySelected = undefined;
+        this.skipConstellations = [0, 2, 7];
         // xp gains
         addPlotOption("XP per ", true, "xpPerSecond", "XP/");
         addPlotOption("HP XP per ", true, "hpXpPerSecond", "HP XP/");
@@ -426,8 +428,8 @@ class App {
         this.createPrayerSelectCard();
         this.createPotionSelectCard();
         this.createPetSelectCard();
-        //TODO this.createAgilitySelectCard();
-        //TODO this.createAstrologySelectCard();
+        this.createAgilitySelectCard();
+        // this.createAstrologySelectCard();
         this.createLootOptionsCard();
         this.createSimulationAndExportCard();
         this.createCompareCard();
@@ -757,10 +759,10 @@ class App {
             gameModeValues,
             "MCS Game Mode Dropdown",
             (event: any) => {
-                this.player.currentGamemode =
+                this.player.currentGamemodeID =
                     this.micsr.gamemodes[
                         parseInt(event.currentTarget.selectedOptions[0].value)
-                    ];
+                    ].id;
             }
         );
         const gameModeContainer = this.equipmentSelectCard.createCCContainer();
@@ -899,10 +901,11 @@ class App {
         this.equipmentSelectCard.container.appendChild(this.foodCCContainer);
     }
 
-    equipFood(item: any) {
+    equipFood(itemID: string) {
+        const item = this.game.items.food.getObjectByID(itemID)!;
         this.player.equipFood(item, Number.MAX_SAFE_INTEGER);
         const img = document.getElementById("MCS Food Image");
-        if (item === "melvorD:Empty_Equipment") {
+        if (item.id === "melvorD:Empty_Equipment") {
             (img as any).src = "assets/media/skills/combat/food_empty.svg";
             // @ts-expect-error TS(2531): Object is possibly 'null'.
             img.style.border = "1px solid red";
@@ -1384,21 +1387,19 @@ class App {
                 "",
                 "100px"
             );
-            this.astrologySelected = undefined;
-            this.skipConstellations = [0, 2, 7];
             initial = true;
             this.uniqueModifiers = [];
-            // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-            for (const constellation of Astrology.constellations) {
-                const uniques = {};
-                for (const modifiers of constellation.uniqueModifiers) {
-                    for (const modifier of modifiers) {
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        uniques[modifier] = true;
+            this.actualGame.astrology.actions.allObjects.forEach(
+                (constellation) => {
+                    const uniques: any = {};
+                    for (const modifiers of constellation.uniqueModifiers) {
+                        for (const modifier of modifiers.modifiers) {
+                            uniques[modifier.key] = true;
+                        }
                     }
+                    this.uniqueModifiers.push(uniques);
                 }
-                this.uniqueModifiers.push(uniques);
-            }
+            );
         } else {
             this.astrologySelectCard.clearContainer();
         }
@@ -1406,86 +1407,93 @@ class App {
         this.constellationContainers = [];
         this.constellationModifierContainers = [];
         const card = this.astrologySelectCard;
-        let index = 0;
-        // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-        for (const constellation of Astrology.constellations) {
-            const constellationIndex = index;
-            index += 1;
-            // create constellation modifier object
-            let activeConstellationModifiers = {};
-            if (initial) {
-                this.player.activeAstrologyModifiers.push(
-                    activeConstellationModifiers
-                );
-            } else {
-                activeConstellationModifiers =
-                    this.player.activeAstrologyModifiers[constellationIndex];
+        this.actualGame.astrology.actions.allObjects.forEach(
+            (constellation, index) => {
+                // create constellation modifier object
+                let activeConstellationModifiers = {};
+                if (initial) {
+                    this.player.activeAstrologyModifiers.push(
+                        activeConstellationModifiers
+                    );
+                } else {
+                    activeConstellationModifiers =
+                        this.player.activeAstrologyModifiers[index];
+                }
+                // create constellation container
+                const cc = card.createCCContainer();
+                this.constellationContainers.push(cc);
+                if (this.skipConstellations.includes(index)) {
+                    this.constellationModifierContainers.push([]);
+                } else {
+                    // constellation symbol and skills
+                    const constellationImage = card.createImageButton(
+                        constellation.media,
+                        `constellation-${index}`,
+                        () => {},
+                        "Small"
+                    );
+                    cc.appendChild(
+                        card.createLabel(
+                            `${constellation.name} (${constellation.level})`
+                        )
+                    );
+                    cc.appendChild(constellationImage);
+                    cc.appendChild(
+                        card.createImage(constellation.skills[0].media, 20)
+                    );
+                    cc.appendChild(
+                        card.createImage(constellation.skills[1].media, 20)
+                    );
+                    const standardLabel = card.createLabel(`+0%`);
+                    standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
+                    cc.appendChild(standardLabel);
+                    cc.appendChild(
+                        card.container.appendChild(
+                            card.createImage(this.media.standardStar, 20)
+                        )
+                    );
+                    const uniqueLabel = card.createLabel(`+0%`);
+                    uniqueLabel.id = `MICSR-${constellation.name}-unique-percentage`;
+                    cc.appendChild(uniqueLabel);
+                    cc.appendChild(
+                        card.container.appendChild(
+                            card.createImage(this.media.uniqueStar, 20)
+                        )
+                    );
+                    // add constellation to astrology card
+                    card.container.appendChild(cc);
+                    constellationImage.parentElement!.onclick = () =>
+                        this.toggleAstrologySelectCard(index);
+                    // image buttons to open modifier selection
+                    let elementList: any = [];
+                    const standardStar = card.createImage(
+                        this.media.standardStar,
+                        40
+                    );
+                    standardStar.id = `MICSR-${constellation.name}-Standard-Image`;
+                    card.container.appendChild(standardStar);
+                    this.createStandardAstrologyModifiers(
+                        card,
+                        elementList,
+                        constellation,
+                        activeConstellationModifiers
+                    );
+                    const uniqueStar = card.createImage(
+                        this.media.uniqueStar,
+                        40
+                    );
+                    uniqueStar.id = `MICSR-${constellation.name}-Unique-Image`;
+                    card.container.appendChild(uniqueStar);
+                    this.createUniqueAstrologyModifiers(
+                        card,
+                        elementList,
+                        constellation,
+                        activeConstellationModifiers
+                    );
+                    this.constellationModifierContainers.push(elementList);
+                }
             }
-            // create constellation container
-            const cc = card.createCCContainer();
-            this.constellationContainers.push(cc);
-            if (this.skipConstellations.includes(constellationIndex)) {
-                this.constellationModifierContainers.push([]);
-                continue;
-            }
-            // constellation symbol and skills
-            const constellationImage = card.createImageButton(
-                constellation.media,
-                `constellation-${constellationIndex}`,
-                () => {},
-                "Small"
-            );
-            cc.appendChild(
-                card.createLabel(
-                    `${constellation.name} (${constellation.level})`
-                )
-            );
-            cc.appendChild(constellationImage);
-            cc.appendChild(card.createImage(constellation.skills[0].media, 20));
-            cc.appendChild(card.createImage(constellation.skills[1].media, 20));
-            const standardLabel = card.createLabel(`+0%`);
-            standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
-            cc.appendChild(standardLabel);
-            cc.appendChild(
-                card.container.appendChild(
-                    card.createImage(this.media.standardStar, 20)
-                )
-            );
-            const uniqueLabel = card.createLabel(`+0%`);
-            uniqueLabel.id = `MICSR-${constellation.name}-unique-percentage`;
-            cc.appendChild(uniqueLabel);
-            cc.appendChild(
-                card.container.appendChild(
-                    card.createImage(this.media.uniqueStar, 20)
-                )
-            );
-            // add constellation to astrology card
-            card.container.appendChild(cc);
-            // @ts-expect-error TS(2345): Argument of type 'number' is not assignable to par... Remove this comment to see the full error message
-            constellationImage.parentElement.onclick = () =>
-                this.toggleAstrologySelectCard(constellationIndex);
-            // image buttons to open modifier selection
-            let elementList: any = [];
-            const standardStar = card.createImage(this.media.standardStar, 40);
-            standardStar.id = `MICSR-${constellation.name}-Standard-Image`;
-            card.container.appendChild(standardStar);
-            this.createStandardAstrologyModifiers(
-                card,
-                elementList,
-                constellation,
-                activeConstellationModifiers
-            );
-            const uniqueStar = card.createImage(this.media.uniqueStar, 40);
-            uniqueStar.id = `MICSR-${constellation.name}-Unique-Image`;
-            card.container.appendChild(uniqueStar);
-            this.createUniqueAstrologyModifiers(
-                card,
-                elementList,
-                constellation,
-                activeConstellationModifiers
-            );
-            this.constellationModifierContainers.push(elementList);
-        }
+        );
         this.astrologySelectCard.addButton("Clear All Star Modifiers", () =>
             this.clearAstrology()
         );
@@ -1493,20 +1501,18 @@ class App {
 
     clearAstrology() {
         // set modifiers to 0
-        this.player.activeAstrologyModifiers.forEach(
-            (constellation: any, idx: any) => {
-                if (this.skipConstellations.includes(idx)) {
-                    return;
-                }
-                for (const modifier in constellation) {
-                    if (constellation[modifier].push) {
-                        constellation[modifier].forEach((x: any) => (x[1] = 0));
-                    } else {
-                        constellation[modifier] = 0;
-                    }
+        this.player.activeAstrologyModifiers.forEach((constellation, idx) => {
+            if (this.skipConstellations.includes(idx)) {
+                return;
+            }
+            for (const modifier in constellation) {
+                if (constellation[modifier].push) {
+                    constellation[modifier].forEach((x: any) => (x[1] = 0));
+                } else {
+                    constellation[modifier] = 0;
                 }
             }
-        );
+        });
         // set UI to 0
         this.constellationModifierContainers.forEach((containers: any) =>
             containers.forEach(
@@ -1519,55 +1525,52 @@ class App {
         this.updateCombatStats();
     }
 
-    toggleAstrologySelectCard(selected = undefined) {
+    toggleAstrologySelectCard(selected?: number) {
         this.astrologySelected =
             this.astrologySelected === selected ? undefined : selected;
         if (this.astrologySelected === undefined) {
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
             document.getElementById(
                 "MCS Clear All Star Modifiers Button"
-            ).style.display = "block";
+            )!.style.display = "block";
         } else {
-            // @ts-expect-error TS(2531): Object is possibly 'null'.
             document.getElementById(
                 "MCS Clear All Star Modifiers Button"
-            ).style.display = "none";
+            )!.style.display = "none";
         }
-        // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-        Astrology.constellations.forEach((constellation: any, index: any) => {
-            if (this.skipConstellations.includes(index)) {
-                return;
-            }
-            if (
-                this.astrologySelected !== undefined &&
-                this.astrologySelected !== index
-            ) {
-                this.constellationContainers[index].style.display = "none";
-            } else {
-                this.constellationContainers[index].style.display = "block";
-            }
-            const els = [
-                document.getElementById(
-                    `MICSR-${constellation.name}-Standard-Image`
-                ),
-                document.getElementById(
-                    `MICSR-${constellation.name}-Unique-Image`
-                ),
-            ];
-            for (const id of this.constellationModifierContainers[index]) {
-                const el = document.getElementById(id).parentElement;
-                els.push(el);
-            }
-            for (const el of els) {
-                if (this.astrologySelected !== index) {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    el.style.display = "none";
+        this.actualGame.astrology.actions.allObjects.forEach(
+            (constellation, index) => {
+                if (this.skipConstellations.includes(index)) {
+                    return;
+                }
+                if (
+                    this.astrologySelected !== undefined &&
+                    this.astrologySelected !== index
+                ) {
+                    this.constellationContainers[index].style.display = "none";
                 } else {
-                    // @ts-expect-error TS(2531): Object is possibly 'null'.
-                    el.style.display = "flex";
+                    this.constellationContainers[index].style.display = "block";
+                }
+                const els = [
+                    document.getElementById(
+                        `MICSR-${constellation.name}-Standard-Image`
+                    )!,
+                    document.getElementById(
+                        `MICSR-${constellation.name}-Unique-Image`
+                    )!,
+                ];
+                for (const id of this.constellationModifierContainers[index]) {
+                    const el = document.getElementById(id).parentElement!;
+                    els.push(el);
+                }
+                for (const el of els) {
+                    if (this.astrologySelected !== index) {
+                        el.style.display = "none";
+                    } else {
+                        el.style.display = "flex";
+                    }
                 }
             }
-        });
+        );
     }
 
     createStandardAstrologyModifiers(
@@ -1591,7 +1594,6 @@ class App {
                 return;
             }
             // for other combat skills all modifiers are relevant
-            // @ts-expect-error TS(2304): Cannot find name 'modifierData'.
             constellation.standardModifiers[idx].forEach((modifier: any) =>
                 stdMod.push([
                     modifierData[modifier].isSkill ? skillID : undefined,
@@ -1708,20 +1710,20 @@ class App {
 
     updateAstrologySummary() {
         this.player.activeAstrologyModifiers.forEach(
-            (constellation: any, idx: any) => {
+            (constellationModifiers: any, idx) => {
                 if (this.skipConstellations.includes(idx)) {
                     return;
                 }
                 let standard = 0;
                 let unique = 0;
-                for (const modifier in constellation) {
+                for (const modifier in constellationModifiers) {
                     let val = 0;
-                    if (constellation[modifier].push) {
-                        constellation[modifier].forEach(
+                    if (constellationModifiers[modifier].push) {
+                        constellationModifiers[modifier].forEach(
                             (x: any) => (val += x[1])
                         );
                     } else {
-                        val += constellation[modifier];
+                        val += constellationModifiers[modifier];
                     }
                     if (this.uniqueModifiers[idx][modifier]) {
                         unique += val;
@@ -1729,13 +1731,17 @@ class App {
                         standard += val;
                     }
                 }
+                const constellation =
+                    this.actualGame.astrology.actions.allObjects.find(
+                        (_, i) => i === idx
+                    )!;
                 // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(
-                    `MICSR-${Astrology.constellations[idx].name}-standard-percentage`
+                    `MICSR-${constellation.name}-standard-percentage`
                 ).textContent = `+${standard}%`;
                 // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(
-                    `MICSR-${Astrology.constellations[idx].name}-unique-percentage`
+                    `MICSR-${constellation.name}-unique-percentage`
                 ).textContent = `+${unique}%`;
             }
         );
@@ -1790,7 +1796,7 @@ class App {
             droppedItems.map((itemID) =>
                 itemID === "micsr:none"
                     ? "None"
-                    : this.micsr.items.getObjectByID(itemID).name
+                    : this.micsr.items.getObjectByID(itemID)!.name
             ),
             droppedItems,
             (event: any) => this.dropChanceOnChange(event)
@@ -1870,7 +1876,7 @@ class App {
                 if (this.barIsDungeon(this.selectedBar)) {
                     const dungeonID = this.barMonsterIDs[this.selectedBar];
                     const monsters =
-                        this.micsr.dungeons.getObjectByID(dungeonID).monsters;
+                        this.micsr.dungeons.getObjectByID(dungeonID)!.monsters;
                     const boss = monsters[monsters.length - 1];
                     lootMap = this.addToLootMap(boss, lootMap);
                 } else if (this.barIsTask(this.selectedBar)) {
@@ -1920,8 +1926,8 @@ class App {
         return [
             "micsr:none",
             ...lootList.sort((a, b) =>
-                this.micsr.items.getObjectByID(a).name >
-                this.micsr.items.getObjectByID(b).name
+                this.micsr.items.getObjectByID(a)!.name >
+                this.micsr.items.getObjectByID(b)!.name
                     ? 1
                     : -1
             ),
@@ -1940,7 +1946,7 @@ class App {
         }
         const item = this.micsr.items.getObjectByID(
             this.combatData.dropSelected
-        );
+        )!;
         return `${item.name}/${this.selectedTimeShorthand}`;
     }
 
@@ -2103,7 +2109,7 @@ class App {
                 "100%",
                 "150px"
             )
-        );
+        ) as TabCard;
         this.consumables = new Consumables(this);
     }
 
@@ -2597,7 +2603,7 @@ class App {
     /**
      * Equips an item to an equipment slot
      */
-    equipItem(slotID: any, item: any, sanityCheck = true) {
+    equipItem(slotID: any, item: any, updateStats = true) {
         let slot = EquipmentSlots[slotID];
         // determine equipment slot
         if (item.occupiesSlots && item.occupiesSlots.includes(slot)) {
@@ -2625,8 +2631,14 @@ class App {
         this.player.equipItem(item, 0, slot);
         this.setEquipmentImage(slotID, item);
         // update stats
+        if (updateStats) {
+            this.updateEquipmentStats();
+        }
+    }
+
+    updateEquipmentStats(){
         this.updateStyleDropdowns();
-        this.updateSpellOptions(sanityCheck);
+        this.updateSpellOptions();
         this.updateCombatStats();
     }
 
@@ -2672,9 +2684,9 @@ class App {
 
         if (item.hasSpecialAttack) {
             for (let special of item.specialAttacks) {
-                // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
                 tooltip += `<span class='text-danger'>${special.name} (${
                     special.defaultChance
+                    // @ts-expect-error TS(2304): Cannot find name 'describeAttack'.
                 }%): </span><span class='text-warning'>${describeAttack(
                     special,
                     youNoun,
@@ -2971,11 +2983,7 @@ class App {
         this.updateCombatStats();
     }
 
-    disableSpell(
-        spellType: string,
-        spell: CombatSpell | undefined,
-        message: string | undefined = undefined
-    ) {
+    disableSpell(spellType: string, spell?: CombatSpell, message?: string) {
         // do nothing
         if (
             spell === undefined ||
@@ -2995,11 +3003,7 @@ class App {
         }
     }
 
-    enableSpell(
-        spellType: string,
-        spell: CombatSpell,
-        message: string | undefined = undefined
-    ) {
+    enableSpell(spellType: string, spell: CombatSpell, message?: string) {
         // do nothing
         if (spell === undefined) {
             return;
@@ -3401,7 +3405,7 @@ class App {
         this.updateZoneInfoCard();
     }
 
-    notify(message: any, type = "success") {
+    notify(message: string, type: StandardTheme = "success") {
         let img = this.media.combat;
         this.micsr.imageNotify(img, message, type);
     }
@@ -3862,14 +3866,12 @@ class App {
     /**
      * Updates the list of options in the spell menus, based on if the player can use it
      */
-    updateSpellOptions(sanityCheck = true) {
+    updateSpellOptions() {
         this.player.computeAttackType();
         this.player.checkMagicUsage();
         this.checkForSpellLevel();
         this.checkForSpellItem();
-        if (sanityCheck) {
-            this.spellSanityCheck();
-        }
+        this.spellSanityCheck();
     }
 
     /**
@@ -4000,18 +4002,17 @@ class App {
      * Updates the text fields for the computed combat stats
      */
     updateCombatStats() {
+        debugger;
         // first update the values
         this.combatData.updateCombatStats();
         // second update the view
         this.combatStatKeys.forEach((key: any) => {
             if (key === "attackSpeed") {
                 const attackSpeed = this.combatData.playerAttackSpeed();
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(`MCS ${key} CS Output`).textContent =
+                document.getElementById(`MCS ${key} CS Output`)!.textContent =
                     attackSpeed.toLocaleString();
             } else {
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(`MCS ${key} CS Output`).textContent =
+                document.getElementById(`MCS ${key} CS Output`)!.textContent =
                     this.combatData.combatStats[key].toLocaleString();
             }
         });
@@ -4135,7 +4136,7 @@ class App {
     getDungeonName(dungeonID: any) {
         let name = undefined;
         if (this.micsr.dungeons.getObjectByID(dungeonID)) {
-            name = this.micsr.dungeons.getObjectByID(dungeonID).name;
+            name = this.micsr.dungeons.getObjectByID(dungeonID)!.name;
         } else if (dungeonID && dungeonID.name) {
             name = dungeonID.name;
         }
@@ -4174,7 +4175,7 @@ class App {
      * @return {string} the name of a monster
      */
     getMonsterName(monsterID: any) {
-        const monster = this.micsr.monsters.getObjectByID(monsterID);
+        const monster = this.micsr.monsters.getObjectByID(monsterID)!;
         const name = monster.name;
         if (name === undefined) {
             this.micsr.error(`Unknown monster in getMonsterName ${monsterID}`);

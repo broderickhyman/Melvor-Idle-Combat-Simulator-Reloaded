@@ -128,7 +128,7 @@ export function setup(setupContext: Modding.ModContext) {
                     // Auto open the combat sim menu
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
-                    // $("[id='MCS 1 Button']").trigger("click");
+                    $("[id='MCS 1 Button']").trigger("click");
 
                     // Start sim all
                     // Low trial count for fast simulate all

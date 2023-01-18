@@ -56,12 +56,12 @@
 interface IImportSettings {
     version: any;
     // lists
-    //TODO astrologyModifiers: any;
-    //TODO course: any;
-    courseMastery: any;
+    astrologyModifiers: {}[];
+    course: number[];
+    courseMastery: boolean[];
     equipment: any;
     levels: Map<string, number>;
-    petUnlocked: Pet[];
+    petUnlocked: string[];
     // objects
     styles: {
         magic: any;
@@ -75,14 +75,15 @@ interface IImportSettings {
     autoEatTier: number;
     cookingMastery: boolean;
     cookingPool: boolean;
-    currentGamemode: any;
+    currentGamemodeID: string;
     curse: any;
-    foodSelected: FoodItem;
+    foodSelected: string;
     healAfterDeath: any;
     isManualEating: boolean;
     isSlayerTask: boolean;
-    pillar: any;
-    potionID: string | undefined;
+    pillarID: string;
+    pillarEliteID: string;
+    potionID?: string;
     prayerSelected: string[];
     standard: any;
     useCombinationRunes: any;
@@ -120,7 +121,7 @@ class Import {
      * Callback for when the import button is clicked
      * @param {number} setID Index of equipmentSets from 0-2 to import
      */
-    importButtonOnClick(setID: any) {
+    importButtonOnClick(setID: number) {
         // get potion
         let potionID: string | undefined = undefined;
         let potion = this.micsr.actualGame.items.potions.find((potion) => {
@@ -152,58 +153,66 @@ class Import {
             this.autoEatTiers.filter((x: any) =>
                 this.micsr.actualGame.shop.isUpgradePurchased(x)
             ).length;
-        /* TODO
+
         // get the active astrology modifiers
-        const astrologyModifiers = [];
-        // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
-        for (const constellation of Astrology.constellations) {
-            const constellationModifiers = this.micsr.game.astrology.constellationModifiers.get(constellation);
-            const modifiers = {};
-            if (constellationModifiers) {
-                for (const m of [...constellationModifiers.standard, ...constellationModifiers.unique]) {
-                    if (m.value === undefined) {
-                        if (m.values.length === 0) {
-                            continue;
-                        }
-                        const skillID = m.values[0][0];
-                        const value = m.values[0][1];
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        modifiers[m.key] = modifiers[m.key] ?? [];
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        const index = modifiers[m.key].findIndex((x: any) => x[0] === skillID);
-                        if (index === -1) {
-                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                            modifiers[m.key] = modifiers[m.key] ?? [];
-                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                            modifiers[m.key].push([skillID, value]);
-                        } else {
-                            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                            modifiers[m.key][index][1] += value;
-                        }
-                    } else {
-                        if (m.value === 0) {
-                            continue;
-                        }
-                        // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                        modifiers[m.key] = (modifiers[m.key] ?? 0) + m.value;
-                    }
+        const astrologyModifiers: {}[] = [];
+        // for (const constellation of this.micsr.actualGame.astrology.actions.allObjects) {
+
+        //     const modifiers = {};
+        //         for (const m of [
+        //             ...constellation.standardModifiers,
+        //             ...constellation.uniqueModifiers,
+        //         ]) {
+        //             if (m.value === undefined) {
+        //                 if (m.values.length === 0) {
+        //                     continue;
+        //                 }
+        //                 const skillID = m.values[0][0];
+        //                 const value = m.values[0][1];
+        //                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+        //                 modifiers[m.key] = modifiers[m.key] ?? [];
+        //                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+        //                 const index = modifiers[m.key].findIndex(
+        //                     (x: any) => x[0] === skillID
+        //                 );
+        //                 if (index === -1) {
+        //                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+        //                     modifiers[m.key] = modifiers[m.key] ?? [];
+        //                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+        //                     modifiers[m.key].push([skillID, value]);
+        //                 } else {
+        //                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+        //                     modifiers[m.key][index][1] += value;
+        //                 }
+        //             } else {
+        //                 if (m.value === 0) {
+        //                     continue;
+        //                 }
+        //                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
+        //                 modifiers[m.key] = (modifiers[m.key] ?? 0) + m.value;
+        //             }
+        //         }
+        //     astrologyModifiers.push(modifiers);
+        // }
+
+        // get the chosen agility obstacles
+        const chosenAgilityObstacles = new Array(
+            this.app.actualGame.agility.maxObstacles
+        ).fill(-1);
+        const courseMastery = new Array(
+            this.app.actualGame.agility.maxObstacles
+        ).fill(false);
+        this.app.actualGame.agility.actions.allObjects.forEach(
+            (obstacle, i) => {
+                if (this.app.actualGame.agility.isObstacleBuilt(obstacle)) {
+                    chosenAgilityObstacles[obstacle.category] = i;
+                }
+                if(this.app.actualGame.agility.getMasteryLevel(obstacle) >= 99){
+                    courseMastery[obstacle.category] = true;
                 }
             }
-            astrologyModifiers.push(modifiers);
-        }
-         */
+        );
 
-        /* TODO
-        // get the chosen agility obstacles
-        // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-        const chosenAgilityObstacles = Array(1 + Math.max(...Agility.obstacles.map((x: any) => x.category))).fill(-1);
-        for (let i = 0; i < chosenAgilityObstacles.length; i++) {
-            const obstacle = this.micsr.game.agility.builtObstacles.get(i);
-            if (obstacle !== undefined) {
-                chosenAgilityObstacles[i] = obstacle.id;
-            }
-        }
-         */
         const equipmentSet =
             this.micsr.actualGame.combat.player.equipmentSets[setID];
         const equipment = equipmentSet.equipment;
@@ -212,12 +221,9 @@ class Import {
         const settings: IImportSettings = {
             version: this.micsr.version,
             // lists
-            //TODO astrologyModifiers: astrologyModifiers,
-            //TODO course: chosenAgilityObstacles,
-            courseMastery: this.micsr.actualGame.agility.actions.allObjects.map(
-                (action) =>
-                    this.micsr.actualGame.agility.getMasteryLevel(action) >= 99
-            ),
+            astrologyModifiers: astrologyModifiers,
+            course: chosenAgilityObstacles,
+            courseMastery: courseMastery,
             equipment: equipment.slotArray.map((x) => x.item.id),
             levels: new Map(
                 this.micsr.actualGame.skills.allObjects.map((skill) => [
@@ -225,9 +231,11 @@ class Import {
                     skill.level,
                 ])
             ),
-            petUnlocked: this.micsr.actualGame.pets.allObjects.filter((pet) =>
-                this.micsr.actualGame.petManager.isPetUnlocked(pet)
-            ),
+            petUnlocked: this.micsr.actualGame.pets.allObjects
+                .filter((pet) =>
+                    this.micsr.actualGame.petManager.isPetUnlocked(pet)
+                )
+                .map((pet) => pet.id),
             // objects
             styles: {
                 magic: this.micsr.actualGame.combat.player.attackStyles.magic
@@ -244,16 +252,15 @@ class Import {
             autoEatTier: autoEatTier,
             cookingMastery: cookingMastery,
             cookingPool: cookingPool,
-            currentGamemode: this.micsr.actualGame.currentGamemode,
+            currentGamemodeID: this.micsr.actualGame.currentGamemode.id,
             curse: equipmentSet.spellSelection.curse,
-            foodSelected: foodSelected,
+            foodSelected: foodSelected.id,
             healAfterDeath: this.player.healAfterDeath,
             isManualEating: this.player.isManualEating,
             isSlayerTask: this.player.isSlayerTask,
-            pillar:
-                this.micsr.game.agility.builtPassivePillar === undefined
-                    ? -1
-                    : this.micsr.game.agility.builtPassivePillar.id,
+            pillarID: this.micsr.actualGame.agility.builtPassivePillar?.id,
+            pillarEliteID:
+                this.micsr.actualGame.agility.builtElitePassivePillar?.id,
             potionID: potionID,
             prayerSelected: Array.from(equipmentSet.prayerSelection).map(
                 (p) => p.id
@@ -268,25 +275,24 @@ class Import {
     }
 
     exportSettings(): IImportSettings {
-        const courseMastery = {};
-        this.player.course.forEach(
-            (o: any, i: any) =>
-                // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-                (courseMastery[o] = this.player.courseMastery[i])
-        );
+        const courseMastery = this.player.courseMastery;
         return {
             version: this.micsr.version,
             // lists
             astrologyModifiers: this.player.activeAstrologyModifiers,
-            course: [...this.player.course],
+            course: this.player.course,
             courseMastery: courseMastery,
             equipment: this.player.equipment.slotArray.map(
                 (x: any) => x.item.id
             ),
             levels: this.player.skillLevel,
-            petUnlocked: [...this.player.petUnlocked],
+            petUnlocked: this.player.petUnlocked.map((pet) => pet.id),
             // objects
-            styles: { ...this.player.attackStyles },
+            styles: {
+                magic: this.player.attackStyles.magic.id,
+                melee: this.player.attackStyles.melee.id,
+                ranged: this.player.attackStyles.ranged.id,
+            },
             prayerSelected: Array.from(this.player.activePrayers).map(
                 (p) => p.id
             ),
@@ -297,13 +303,14 @@ class Import {
             autoEatTier: this.player.autoEatTier,
             cookingMastery: this.player.cookingMastery,
             cookingPool: this.player.cookingPool,
-            currentGamemode: this.player.currentGamemode,
+            currentGamemodeID: this.player.currentGamemodeID,
             curse: this.player.spellSelection.curse,
-            foodSelected: this.player.food.currentSlot.item,
+            foodSelected: this.player.food.currentSlot.item.id,
             healAfterDeath: this.player.healAfterDeath,
             isManualEating: this.player.isManualEating,
             isSlayerTask: this.player.isSlayerTask,
-            pillar: this.player.pillar,
+            pillarID: this.player.pillarID,
+            pillarEliteID: this.player.pillarEliteID,
             potionID: this.player.potion?.id,
             standard: this.player.spellSelection.standard,
             useCombinationRunes: this.player.useCombinationRunes,
@@ -348,10 +355,14 @@ class Import {
         this.importManualEating(settings.isManualEating);
         this.importHealAfterDeath(settings.healAfterDeath);
         this.importSlayerTask(settings.isSlayerTask);
-        this.importGameMode(settings.currentGamemode);
+        this.importGameMode(settings.currentGamemodeID);
         this.importUseCombinationRunes(settings.useCombinationRunes);
-        // TODO this.importAgilityCourse(settings.course, settings.courseMastery, settings.pillar);
-        // TODO this.importAstrology(settings.astrologyModifiers);
+        this.importAgilityCourse(
+            settings.course,
+            settings.courseMastery,
+            settings.pillarID
+        );
+        // this.importAstrology(settings.astrologyModifiers);
 
         // update and compute values
         this.app.updateUi();
@@ -380,8 +391,7 @@ class Import {
                 false
             );
         }
-        // update style drop down
-        this.app.updateStyleDropdowns();
+        this.app.updateEquipmentStats();
     }
 
     importLevels(levels: Map<string, number>) {
@@ -434,7 +444,7 @@ class Import {
         });
     }
 
-    importPotion(potionID: string | undefined) {
+    importPotion(potionID?: string) {
         // Deselect potion if selected
         if (this.player.potion) {
             this.app.unselectButton(
@@ -463,7 +473,7 @@ class Import {
         }
     }
 
-    importPets(petUnlocked: Pet[]) {
+    importPets(petUnlocked: string[]) {
         this.player.petUnlocked = [];
         this.app.micsr.pets.forEach((pet) => {
             this.app.unselectButton(
@@ -471,7 +481,8 @@ class Import {
             );
         });
         // Import pets
-        petUnlocked.forEach((pet: Pet) => {
+        petUnlocked.forEach((petID) => {
+            const pet = this.app.game.pets.getObjectByID(petID)!;
             this.player.petUnlocked.push(pet);
             this.app.selectButton(
                 this.document.getElementById(`MCS ${pet.name} Button`)
@@ -483,7 +494,7 @@ class Import {
 
     importAutoEat(
         autoEatTier: number,
-        foodSelected: FoodItem,
+        foodSelected: string,
         cookingPool: boolean,
         cookingMastery: boolean
     ) {
@@ -516,10 +527,10 @@ class Import {
         this.app.slayerTaskSimsToggle();
     }
 
-    importGameMode(gamemode: any) {
-        this.player.currentGamemode = gamemode;
+    importGameMode(gamemodeID: string) {
+        this.player.currentGamemodeID = gamemodeID;
         const index = this.micsr.gamemodes.findIndex(
-            (x: any) => x.id === gamemode.id
+            (x) => x.id === gamemodeID
         );
         this.document.getElementById("MCS Game Mode Dropdown").selectedIndex =
             index;
@@ -531,54 +542,62 @@ class Import {
         this.player.useCombinationRunes = useCombinationRunes;
     }
 
-    importAgilityCourse(course: any, masteries: any, pillar: any) {
-        this.app.agilityCourse.importAgilityCourse(course, masteries, pillar);
+    importAgilityCourse(
+        course: number[],
+        masteries: boolean[],
+        pillarID: string
+    ) {
+        this.app.agilityCourse.importAgilityCourse(course, masteries, pillarID);
     }
 
     importAstrology(astrologyModifiers: any) {
         this.player.activeAstrologyModifiers.forEach(
-            (constellation: any, idx: any) => {
-                for (const modifier in constellation) {
+            (constellationModifiers: any, idx) => {
+                const constellation =
+                    this.app.game.astrology.actions.allObjects.find(
+                        (_, i) => i === idx
+                    )!;
+                for (const modifier in constellationModifiers) {
                     // import values and set rest to 0
                     if (
                         astrologyModifiers[idx] !== undefined &&
                         astrologyModifiers[idx][modifier] !== undefined
                     ) {
-                        constellation[modifier] =
+                        constellationModifiers[modifier] =
                             astrologyModifiers[idx][modifier];
-                        if (constellation[modifier].push) {
+                        if (constellationModifiers[modifier].push) {
                             // filter non combat skill modifiers
-                            constellation[modifier] = constellation[
-                                modifier
-                            ].filter((x: any) =>
-                                this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(
-                                    x[0]
-                                )
-                            );
+                            constellationModifiers[modifier] =
+                                constellationModifiers[modifier].filter(
+                                    (x: any) =>
+                                        this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(
+                                            x[0]
+                                        )
+                                );
                         }
-                    } else if (constellation[modifier].push) {
+                    } else if (constellationModifiers[modifier].push) {
                         // keep entries per skill, but set value to 0
-                        constellation[modifier] = constellation[modifier].map(
-                            (x: any) => [x[0], 0]
-                        );
+                        constellationModifiers[modifier] =
+                            constellationModifiers[modifier].map((x: any) => [
+                                x[0],
+                                0,
+                            ]);
                     } else {
-                        constellation[modifier] = 0;
+                        constellationModifiers[modifier] = 0;
                     }
                     // update input fields
-                    if (constellation[modifier].push) {
-                        constellation[modifier].forEach((x: any) => {
-                            // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
+                    if (constellationModifiers[modifier].push) {
+                        constellationModifiers[modifier].forEach((x: any) => {
                             this.document.getElementById(
-                                `MCS ${Astrology.constellations[idx].name}-${
+                                `MCS ${constellation.name}-${
                                     Skills[x[0]]
                                 }-${modifier} Input`
                             ).value = x[1];
                         });
                     } else {
-                        // @ts-expect-error TS(2304): Cannot find name 'Astrology'.
                         this.document.getElementById(
-                            `MCS ${Astrology.constellations[idx].name}-${modifier} Input`
-                        ).value = constellation[modifier];
+                            `MCS ${constellation.name}-${modifier} Input`
+                        ).value = constellationModifiers[modifier];
                     }
                 }
             }

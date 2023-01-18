@@ -76,18 +76,18 @@ class Loot {
      * @param {number} monsterID
      * @return {number}
      */
-    computeLootChance(monsterID: any) {
+    computeLootChance(monsterID: string) {
         const lootChance =
-            this.micsr.monsters.getObjectByID(monsterID).lootChance;
+            this.micsr.monsters.getObjectByID(monsterID)!.lootChance;
         return lootChance !== undefined ? lootChance / 100 : 1;
     }
 
     /**
      * Computes the value of a monsters drop table respecting the loot sell settings
      */
-    computeMonsterLootTableValue(monsterID: any) {
+    computeMonsterLootTableValue(monsterID: string) {
         const lootTable =
-            this.micsr.monsters.getObjectByID(monsterID).lootTable;
+            this.micsr.monsters.getObjectByID(monsterID)!.lootTable;
         let gpWeight = 0;
         lootTable.drops.forEach((drop: any) => {
             let avgQty = this.avgQuantity(drop);
@@ -137,7 +137,7 @@ class Loot {
      * @param {number} monsterID
      * @return {number}
      */
-    computeMonsterValue(monsterID: any) {
+    computeMonsterValue(monsterID: string) {
         const monster = this.micsr.monsters.getObjectByID(monsterID);
         // compute value from selling drops
         let monsterValue = 0;
@@ -160,7 +160,7 @@ class Loot {
         }
         monsterValue *= this.computeLootChance(monsterID);
         // bones drops are not affected by loot chance
-        const bones = this.micsr.monsters.getObjectByID(monsterID).bones;
+        const bones = this.micsr.monsters.getObjectByID(monsterID)!.bones;
         if (this.sellBones && !this.modifiers.autoBurying && bones) {
             monsterValue +=
                 this.getItemValue(bones.item) * this.lootBonus * bones.quantity;
@@ -173,18 +173,18 @@ class Loot {
      * @param {number} monsterID
      * @return {number}
      */
-    computeDungeonMonsterValue(monsterID: any) {
+    computeDungeonMonsterValue(monsterID: string) {
         let gpPerKill = 0;
         if (this.godDungeonIDs.includes(this.app.viewedDungeonID)) {
             const boneQty =
-                this.micsr.monsters.getObjectByID(monsterID).boneQty ?? 1;
-            const shardID = this.micsr.monsters.getObjectByID(monsterID).bones;
+                this.micsr.monsters.getObjectByID(monsterID)!.boneQty ?? 1;
+            const shardID = this.micsr.monsters.getObjectByID(monsterID)!.bones;
             if (this.convertShards) {
                 // @ts-expect-error TS(2304): Cannot find name 'items'.
                 const chestID = items[shardID].trimmedItemID;
-                // @ts-expect-error TS(2304): Cannot find name 'items'.
                 gpPerKill +=
-                    ((boneQty * this.lootBonus) /
+                ((boneQty * this.lootBonus) /
+                // @ts-expect-error TS(2304): Cannot find name 'items'.
                         items[chestID].itemsRequired[0][1]) *
                     this.computeChestOpenValue(chestID);
             } else {
@@ -201,7 +201,7 @@ class Loot {
      * @return {number}
      */
     computeDungeonValue(dungeonID: any) {
-        const dungeon = this.micsr.dungeons.getObjectByID(dungeonID);
+        const dungeon = this.micsr.dungeons.getObjectByID(dungeonID)!;
         let dungeonValue = 0;
         dungeon.rewards.forEach((reward: any) => {
             if (reward.canOpen) {
@@ -253,7 +253,7 @@ class Loot {
         if (willAlch) {
             return this.micsr.actualGame.altMagic.actions.getObjectByID(
                 "melvorF:ItemAlchemyIII"
-            ).productionRatio;
+            )!.productionRatio;
             // TODO this.micsr.actualGame.altMagic.actions.getObjectByID('melvorTotH:ItemAlchemyIV').productionRatio;
         }
         return value;
@@ -302,9 +302,9 @@ class Loot {
         ) {
             const dungeonID = this.app.viewedDungeonID;
             this.micsr.dungeons
-                .getObjectByID(dungeonID)
-                .monsters.forEach((monsterID: any) => {
-                    const simID = this.simulator.simID(dungeonID, monsterID);
+                .getObjectByID(dungeonID)!
+                .monsters.forEach((monsterID: string) => {
+                    const simID = this.simulator.simID(monsterID, dungeonID);
                     if (!this.monsterSimData[simID]) {
                         return;
                     }
@@ -315,7 +315,7 @@ class Loot {
                     );
                 });
         } else {
-            const updateMonsterGP = (monsterID: any) => {
+            const updateMonsterGP = (monsterID: string) => {
                 if (!this.monsterSimData[monsterID]) {
                     return;
                 }
@@ -328,7 +328,7 @@ class Loot {
                 }
             };
             // Regular monsters
-            this.micsr.monsterIDs.forEach((monsterID: any) =>
+            this.micsr.monsterIDs.forEach((monsterID: string) =>
                 updateMonsterGP(monsterID)
             );
             // Dungeons
@@ -359,7 +359,7 @@ class Loot {
      * Updates the chance to receive your selected loot when killing monsters
      */
     updateDropChance() {
-        const updateMonsterDropChance = (monsterID: any, data: any) => {
+        const updateMonsterDropChance = (monsterID: string, data: any) => {
             if (!data) {
                 return;
             }
@@ -369,7 +369,7 @@ class Loot {
         };
 
         // Set data for monsters in combat zones
-        this.micsr.monsterIDs.forEach((monsterID: any) =>
+        this.micsr.monsterIDs.forEach((monsterID: string) =>
             updateMonsterDropChance(monsterID, this.monsterSimData[monsterID])
         );
         // compute dungeon drop rates
@@ -459,8 +459,8 @@ class Loot {
         return expected;
     }
 
-    getAverageRegularDropAmt(monsterId: any) {
-        const monster = this.micsr.monsters.getObjectByID(monsterId);
+    getAverageRegularDropAmt(monsterID: string) {
+        const monster = this.micsr.monsters.getObjectByID(monsterID)!;
         // get expected loot per drop
         const expected = this.addLoot(monster.lootTable);
         // compute drop rate based on monster loot chance
@@ -468,8 +468,8 @@ class Loot {
         return expected * lootChance;
     }
 
-    getAverageBoneDropAmt(monsterId: any) {
-        const monsterData = this.micsr.monsters.getObjectByID(monsterId);
+    getAverageBoneDropAmt(monsterID: string) {
+        const monsterData = this.micsr.monsters.getObjectByID(monsterID)!;
         const bones = monsterData.bones;
         if (bones === undefined) {
             return 0;
@@ -482,12 +482,12 @@ class Loot {
         // TODO: some bones are upgradable, e.g. Earth_Shard
     }
 
-    getAverageDropAmt(monsterId: any) {
+    getAverageDropAmt(monsterID: string) {
         let averageDropAmt = 0;
         // regular drops
-        averageDropAmt += this.getAverageRegularDropAmt(monsterId);
+        averageDropAmt += this.getAverageRegularDropAmt(monsterID);
         // bone drops
-        averageDropAmt += this.getAverageBoneDropAmt(monsterId);
+        averageDropAmt += this.getAverageBoneDropAmt(monsterID);
         return averageDropAmt;
     }
 
@@ -500,7 +500,7 @@ class Loot {
             this.micsr.isDungeonID(this.app.viewedDungeonID)
         ) {
             this.micsr.dungeons
-                .getObjectByID(this.app.viewedDungeonID)
+                .getObjectByID(this.app.viewedDungeonID)!
                 .monsters.forEach((monster: any) => {
                     if (!this.monsterSimData[monster.id]) {
                         return;
@@ -508,7 +508,7 @@ class Loot {
                     this.monsterSimData[monster.id].signetChance = 0;
                 });
         } else {
-            const updateMonsterSignetChance = (monsterID: any, data: any) => {
+            const updateMonsterSignetChance = (monsterID: string, data: any) => {
                 if (!data) {
                     return;
                 }
@@ -530,7 +530,7 @@ class Loot {
                 }
             };
             // Set data for monsters in combat zones
-            this.micsr.monsterIDs.forEach((monsterID: any) =>
+            this.micsr.monsterIDs.forEach((monsterID: string) =>
                 updateMonsterSignetChance(
                     monsterID,
                     this.monsterSimData[monsterID]
@@ -557,9 +557,9 @@ class Loot {
      * @param {number} monsterID The index of this.micsr.monsters
      * @return {number}
      */
-    getSignetDropRate(monsterID: any) {
-        // @ts-expect-error TS(2304): Cannot find name 'getMonsterCombatLevel'.
+    getSignetDropRate(monsterID: string) {
         return (
+            // @ts-expect-error TS(2304): Cannot find name 'getMonsterCombatLevel'.
             (getMonsterCombatLevel(monsterID) *
                 this.computeLootChance(monsterID)) /
             500000
@@ -621,7 +621,7 @@ class Loot {
             this.micsr.dungeons.forEach((dungeon: any, dungeonID: string) => {
                 const dungeonResult = this.dungeonSimData[dungeonID];
                 let chanceToNotGet = 1;
-                dungeon.monsters.forEach((monsterID: any) => {
+                dungeon.monsters.forEach((monsterID: string) => {
                     const simID = this.simulator.simID(monsterID, dungeonID);
                     const simResult = this.monsterSimData[simID];
                     const timeMultiplier =
@@ -647,7 +647,7 @@ class Loot {
                     this.simulator.slayerTaskMonsters[taskID].length;
                 let chanceToNotGet = 1;
                 this.simulator.slayerTaskMonsters[taskID].forEach(
-                    (monsterID: any) => {
+                    (monsterID: string) => {
                         const simResult = this.monsterSimData[monsterID];
                         const timeMultiplier =
                             this.app.timeMultiplier === -1

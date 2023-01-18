@@ -24,7 +24,7 @@
  */
 class SimPlayer extends Player {
     _slayercoins: any;
-    activeAstrologyModifiers: any;
+    activeAstrologyModifiers: any[];
     activeDOTs: any;
     activeItemSynergies: any;
     activeSummonSlots: any;
@@ -40,7 +40,7 @@ class SimPlayer extends Player {
     cookingPool: boolean;
     course: number[];
     courseMastery: boolean[];
-    currentGamemodeID: any;
+    currentGamemodeID: string;
     dataNames: {
         booleanArrays: string[];
         numberArrays: string[];
@@ -64,8 +64,9 @@ class SimPlayer extends Player {
     lowestHitpoints: any;
     petRolls: any;
     petUnlocked: Pet[];
-    pillar: number;
-    potion: PotionItem | undefined;
+    pillarID: string;
+    pillarEliteID: string;
+    potion?: PotionItem;
     runesProvided: any;
     skillLevel: Map<string, number>;
     skillXP: Map<string, number>;
@@ -105,9 +106,10 @@ class SimPlayer extends Player {
         // petUnlocked
         this.petUnlocked = [];
         // chosenAgilityObstacles, agility MASTERY, agilityPassivePillarActive
-        this.course = Array(10).fill(-1);
-        this.courseMastery = Array(10).fill(false);
-        this.pillar = -1;
+        this.course = [];
+        this.courseMastery = [];
+        this.pillarID = "";
+        this.pillarEliteID = "";
         // herbloreBonuses
         this.potion = undefined;
         // shopItemsPurchased
@@ -163,7 +165,8 @@ class SimPlayer extends Player {
                 "hasRunes",
             ],
             numbers: [
-                "pillar",
+                "pillarID",
+                "pillarEliteID",
                 "autoEatTier",
                 "activeAstrologyModifiers", // this is an array of dictionaries, but it (de)serializes fine
             ],
@@ -419,7 +422,7 @@ class SimPlayer extends Player {
             return;
         }
         // don't eat outside combat
-        if (!this.manager.isInCombat) {
+        if (!this.manager.paused) {
             return;
         }
         // check dotDamage
@@ -436,6 +439,7 @@ class SimPlayer extends Player {
             return;
         }
         // number of ticks until the enemy attacks
+        // @ts-expect-error
         const tLeft = enemy.timers.act.ticksLeft;
         if (tLeft < 0) {
             return;
@@ -504,8 +508,8 @@ class SimPlayer extends Player {
         super.computeModifiers();
         // Custom
         this.addPetModifiers();
-        // this.addAgilityModifiers();
-        // this.addAstrologyModifiers();
+        this.addAgilityModifiers();
+        this.addAstrologyModifiers();
     }
 
     addPetModifiers() {
@@ -528,22 +532,24 @@ class SimPlayer extends Player {
                 break;
             }
             if (this.courseMastery[i]) {
-                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 this.modifiers.addModifiers(
-                    Agility.obstacles[course[i]].modifiers,
+                    this.game.agility.actions.allObjects.find((_, i) => i === this.course[i])!.modifiers,
                     0.5
                 );
             } else {
-                // @ts-expect-error TS(2304): Cannot find name 'Agility'.
                 this.modifiers.addModifiers(
-                    Agility.obstacles[course[i]].modifiers
+                    this.game.agility.actions.allObjects.find((_, i) => i === this.course[i])!.modifiers
                 );
             }
         }
-        if (fullCourse && this.pillar > -1) {
-            // @ts-expect-error TS(2304): Cannot find name 'Agility'.
+        if (fullCourse && this.pillarID) {
             this.modifiers.addModifiers(
-                Agility.passivePillars[pillar].modifiers
+                this.game.agility.pillars.allObjects.find((p) => p.id === this.pillarID)!.modifiers
+            );
+        }
+        if (fullCourse && this.pillarEliteID) {
+            this.modifiers.addModifiers(
+                this.game.agility.elitePillars.allObjects.find((p) => p.id === this.pillarEliteID)!.modifiers
             );
         }
     }

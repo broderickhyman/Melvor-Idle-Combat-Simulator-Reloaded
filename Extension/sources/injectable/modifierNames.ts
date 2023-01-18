@@ -892,7 +892,6 @@ class ShowModifiers {
     }
 
     replaceRelevantModifiersHtml(modifiers: any, text: any, tag: any) {
-        // @ts-expect-error TS(2581): Cannot find name '$'. Do you need to install type ... Remove this comment to see the full error message
         $('#show-modifiers').replaceWith(this.printRelevantModifiersHtml(modifiers, text, tag));
     }
 

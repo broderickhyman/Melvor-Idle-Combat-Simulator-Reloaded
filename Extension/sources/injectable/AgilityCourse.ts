@@ -17,26 +17,43 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+interface IObstacle {
+    [index: string]: any;
+    category: ObstacleCategories | -1;
+    id: number;
+    description: string;
+    media: string;
+    modifiers: any;
+    name: string;
+    requirements: any;
+}
+
+interface IAgilityFilter {
+    tag: string;
+    text: string;
+    media: string;
+}
+
 /**
  * Class for the cards in the bottom of the ui
  */
 class AgilityCourse {
-    agilityCategories: any;
-    agilityObstacles: any;
-    agilityPillars: any;
-    data: Player;
-    filter: any;
-    filters: any;
+    agilityCategories: number;
+    agilityObstacles: IObstacle[];
+    agilityPillars: IObstacle[];
+    player: SimPlayer;
+    filter: IAgilityFilter;
+    filters: IAgilityFilter[];
     id: any;
     media: any;
     parent: App;
     tmpModifiers: any;
     micsr: MICSR;
 
-    constructor(parent: App, data: Player, filters: any) {
+    constructor(parent: App, player: SimPlayer, filters: IAgilityFilter[]) {
         this.parent = parent;
         this.micsr = parent.micsr;
-        this.data = data;
+        this.player = player;
         this.filters = filters;
         this.filter = this.filters[0];
         this.id = Date.now();
@@ -44,58 +61,103 @@ class AgilityCourse {
 
         // icons
         this.media = {
-            combat: 'assets/media/skills/combat/combat.svg',
-            gp: 'assets/media/main/coins.svg',
-            mastery: 'assets/media/main/mastery_header.svg',
-            stamina: 'assets/media/main/stamina.svg',
-            statistics: 'assets/media/main/statistics_header.svg',
+            combat: "assets/media/skills/combat/combat.svg",
+            gp: "assets/media/main/coins.svg",
+            mastery: "assets/media/main/mastery_header.svg",
+            stamina: "assets/media/main/stamina.svg",
+            statistics: "assets/media/main/statistics_header.svg",
         };
 
         // copy obstacles
-        this.agilityCategories = 10;
-        const noObstacle = {
+        this.agilityCategories = this.parent.actualGame.agility.maxObstacles;
+        const noObstacle: IObstacle = {
             category: -1,
             id: -1,
-            cost: {},
-            description: '',
+            description: "",
             media: this.media.stamina,
             modifiers: {},
-            name: 'None',
+            name: "None",
             requirements: {},
-        }
-        // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-        this.agilityObstacles = [noObstacle, ...Agility.obstacles.map((x: any, id: any) => {
-            const obstacle = { ...x };
-            obstacle.id = id;
-            this.filters.forEach((filter: any) => obstacle[filter.tag] = this.micsr.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
-            return obstacle;
-        })];
-        // @ts-expect-error TS(2304): Cannot find name 'Agility'.
-        this.agilityPillars = [noObstacle, ...Agility.passivePillars.map((x: any, id: any) => {
-            const pillar = { ...x };
-            pillar.id = id;
-            pillar.media = [this.media.combat, this.media.statistics, this.media.gp][id]
-            this.filters.forEach((filter: any) => pillar[filter.tag] = this.micsr.showModifiersInstance.printRelevantModifiers(x.modifiers, filter.tag).length > 0);
-            return pillar;
-        })];
+        };
+        this.agilityObstacles = [
+            noObstacle,
+            ...this.parent.actualGame.agility.actions.allObjects.map(
+                (x, id) => {
+                    const obstacle: IObstacle = {
+                        category: x.category,
+                        description: "",
+                        id: id,
+                        media: x.media,
+                        modifiers: {},
+                        name: x.name,
+                        requirements: x.skillRequirements,
+                    };
+                    this.filters.forEach(
+                        (filter) =>
+                            (obstacle[filter.tag] =
+                                this.micsr.showModifiersInstance.printRelevantModifiers(
+                                    x.modifiers,
+                                    filter.tag
+                                ).length > 0)
+                    );
+                    return obstacle;
+                }
+            ),
+        ];
+        this.agilityPillars = [
+            noObstacle,
+            ...this.parent.actualGame.agility.pillars.allObjects.map(
+                (x, id) => {
+                    const pillar: IObstacle = {
+                        category: -1,
+                        description: "",
+                        id: id,
+                        media: [
+                            this.media.combat,
+                            this.media.statistics,
+                            this.media.gp,
+                            this.media.stamina
+                        ][id],
+                        modifiers: {},
+                        name: x.name,
+                        requirements: {},
+                    };
+                    this.filters.forEach(
+                        (filter: any) =>
+                            (pillar[filter.tag] =
+                                this.micsr.showModifiersInstance.printRelevantModifiers(
+                                    x.modifiers,
+                                    filter.tag
+                                ).length > 0)
+                    );
+                    return pillar;
+                }
+            ),
+        ];
     }
 
-    createAgilityCourseContainer(card: any, filter: any) {
+    createAgilityCourseContainer(card: Card, filter: IAgilityFilter) {
         this.filter = filter;
-        card.addSectionTitle('Agility Course');
+        card.addSectionTitle("Agility Course");
 
         let i = 0;
-        for (; i <= this.agilityCategories; i++) {
+        for (; i <= this.agilityCategories + 1; i++) {
             const category = i;
             const obstacleSelectionContainer = card.createCCContainer();
             // mastery button
-            if (category < this.agilityCategories) {
-                const masteryButton = card.createImageButton(this.media.mastery, `Agility Mastery ${category} ${this.id} Toggle`, (event: any) => this.agilityMasteryOnClick(event, category), 'Small', '99 Mastery');
-                masteryButton.className += ' col-3';
+            if (category < this.agilityCategories + 1) {
+                const masteryButton = card.createImageButton(
+                    this.media.mastery,
+                    `Agility Mastery ${category} ${this.id} Toggle`,
+                    (event) => this.agilityMasteryOnClick(event, category),
+                    "Small",
+                    "99 Mastery"
+                );
+                masteryButton.className += " col-3";
                 obstacleSelectionContainer.appendChild(masteryButton);
             } else {
-                const emptyDiv = document.createElement('div');
-                emptyDiv.className += ' col-3';
+                const emptyDiv = document.createElement("div");
+                emptyDiv.className += " col-3";
                 obstacleSelectionContainer.appendChild(emptyDiv);
             }
             // popup
@@ -103,20 +165,20 @@ class AgilityCourse {
                 [this.media.stamina],
                 [`MICSR Obstacle ${category} ${this.id} Image`],
                 [this.createAgilityPopup(category, filter)],
-                ['None'],
-                obstacleSelectionContainer,
+                ["None"],
+                obstacleSelectionContainer
             );
-            obstacleSelectionContainer.lastChild.className += ' col-3';
+            (
+                obstacleSelectionContainer.lastChild! as HTMLDivElement
+            ).className += " col-3";
             // label
-            const labelDiv = document.createElement('div');
-            labelDiv.className = 'col-6';
-            // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
-            labelDiv.style = 'display: table; text-align: center;';
-            const label = document.createElement('label');
+            const labelDiv = document.createElement("div");
+            labelDiv.className = "col-6";
+            labelDiv.setAttribute("style", "display: table; text-align: center;");
+            const label = document.createElement("label");
             label.id = `MICSR Obstacle ${category} ${this.id} Label`;
-            label.textContent = 'None';
-            // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
-            label.style = 'display: table-cell; vertical-align: middle;';
+            label.textContent = "None";
+            label.setAttribute("style", "display: table-cell; vertical-align: middle;");
             labelDiv.appendChild(label);
             obstacleSelectionContainer.appendChild(labelDiv);
             // add selection container to card
@@ -128,97 +190,174 @@ class AgilityCourse {
      * @param {Card} card The parent card
      * @param {number} category The obstacle index
      */
-    addObstacleMultiButton(card: any, title: any, category: any, prop: any, isProp: any) {
-        const menuItems = category === this.agilityCategories
-            ? this.agilityPillars
-            : this.agilityObstacles.filter((x: any) => x.category === -1 || (x[prop] === isProp && x.category === category));
+    addObstacleMultiButton(
+        card: Card,
+        title: string,
+        category: number,
+        prop: string,
+        isProp: boolean
+    ) {
+        const menuItems =
+            category >= this.agilityCategories
+                ? this.agilityPillars
+                : this.agilityObstacles.filter(
+                      (x) =>
+                          x.category === -1 ||
+                          (x[prop] === isProp && x.category === category)
+                  );
         if (menuItems.length <= 1) {
             return;
         }
         const buttonMedia = menuItems.map((obstacle: any) => obstacle.media);
-        const buttonIds = menuItems.map((obstacle: any) => `${obstacle.name} ${this.id}`);
-        const buttonCallbacks = menuItems.map((obstacle: any) => () => this.selectObstacle(category, obstacle));
-        const tooltips = menuItems.map((obstacle: any) => this.getObstacleTooltip(category, obstacle));
+        const buttonIds = menuItems.map(
+            (obstacle: any) => `${obstacle.name} ${this.id}`
+        );
+        const buttonCallbacks = menuItems.map(
+            (obstacle: any) => () => {
+                this.selectObstacle(category, obstacle);
+                this.parent.agilityCourseCallback();
+            }
+        );
+        const tooltips = menuItems.map((obstacle: any) =>
+            this.getObstacleTooltip(category, obstacle)
+        );
         card.addSectionTitle(title);
-        card.addImageButtons(buttonMedia, buttonIds, 'Small', buttonCallbacks, tooltips, '100%');
+        card.addImageButtons(
+            buttonMedia,
+            buttonIds,
+            "Small",
+            buttonCallbacks,
+            tooltips,
+            "100%"
+        );
     }
 
-    getObstacleTooltip(category: any, obstacle: any) {
+    getObstacleTooltip(category: number, obstacle: IObstacle) {
         let passives = `<div class="text-center">${obstacle.name}</div>`;
-        if (this.data.courseMastery[category]) {
+        if (this.player.courseMastery[category]) {
             this.tmpModifiers.addModifiers(obstacle.modifiers, 0.5);
         } else {
             this.tmpModifiers.addModifiers(obstacle.modifiers);
         }
-        this.micsr.showModifiersInstance.printRelevantModifiers(this.tmpModifiers, this.filter.tag).forEach((toPrint: any) => {
-            passives += `<div class="${toPrint[1]}">${toPrint[0]}</div>`;
-        });
+        this.micsr.showModifiersInstance
+            .printRelevantModifiers(this.tmpModifiers, this.filter.tag)
+            .forEach((toPrint: any) => {
+                passives += `<div class="${toPrint[1]}">${toPrint[0]}</div>`;
+            });
         this.tmpModifiers.reset();
         return passives;
     }
 
-    createAgilityPopup(category: any, filter: any) {
-        const obstacleSelectPopup = document.createElement('div');
-        obstacleSelectPopup.className = 'mcsPopup';
+    createAgilityPopup(category: number, filter: IAgilityFilter) {
+        const obstacleSelectPopup = document.createElement("div");
+        obstacleSelectPopup.className = "mcsPopup";
         // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
-        obstacleSelectPopup.style = 'width:350px;';
-        const obstacleSelectCard = new Card(this.micsr, obstacleSelectPopup, '', '600px');
+        obstacleSelectPopup.style = "width:350px;";
+        const obstacleSelectCard = new Card(
+            this.micsr,
+            obstacleSelectPopup,
+            "",
+            "600px"
+        );
         if (category === this.agilityCategories) {
-            this.addObstacleMultiButton(obstacleSelectCard, 'Pillars', category, filter.tag, true);
+            this.addObstacleMultiButton(
+                obstacleSelectCard,
+                "Pillars",
+                category,
+                filter.tag,
+                true
+            );
+        } else if (category === this.agilityCategories + 1) {
+            this.addObstacleMultiButton(
+                obstacleSelectCard,
+                "Elite Pillars",
+                category,
+                filter.tag,
+                true
+            );
         } else {
-            this.addObstacleMultiButton(obstacleSelectCard, `${filter.text} Obstacles`, category, filter.tag, true);
-            this.addObstacleMultiButton(obstacleSelectCard, 'Other Obstacles', category, filter.tag, false);
+            this.addObstacleMultiButton(
+                obstacleSelectCard,
+                `${filter.text} Obstacles`,
+                category,
+                filter.tag,
+                true
+            );
+            this.addObstacleMultiButton(
+                obstacleSelectCard,
+                "Other Obstacles",
+                category,
+                filter.tag,
+                false
+            );
         }
         return obstacleSelectPopup;
     }
 
-    selectObstacle(category: any, obstacle: any) {
-        const label = document.getElementById(`MICSR Obstacle ${category} ${this.id} Label`);
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
+    selectObstacle(category: number, obstacle: IObstacle) {
+        const label = document.getElementById(
+            `MICSR Obstacle ${category} ${this.id} Label`
+        )!;
         label.textContent = obstacle.name;
         this.setObstacleImage(category, obstacle);
-        if (category === this.agilityCategories) {
-            this.data.pillar = obstacle.id;
+        debugger;
+        // if (category === 10) {
+        //     this.player.pillar = obstacle.id;
+        // }
+        // else if (category === 14){
+        //     this.player.pillarElite = obstacle.id;
+        // } else {
+        if (obstacle.category === -1) {
+            this.player.course[category] = -1;
         } else {
-            if (obstacle.category === -1) {
-                this.data.course[category] = -1;
-            } else {
-                this.data.course[category] = obstacle.id;
-            }
+            this.player.course[category] = obstacle.id;
         }
-        this.parent.agilityCourseCallback();
+        // }
     }
 
     /**
      * Change the obstacle image
      */
-    setObstacleImage(category: any, obstacle: any) {
-        const img = document.getElementById(`MICSR Obstacle ${category} ${this.id} Image`);
+    setObstacleImage(category: number, obstacle: IObstacle) {
+        const img = document.getElementById(
+            `MICSR Obstacle ${category} ${this.id} Image`
+        );
         (img as any).src = obstacle.media;
-        (img as any)._tippy.setContent(this.getObstacleTooltip(category, obstacle));
+        (img as any)._tippy.setContent(
+            this.getObstacleTooltip(category, obstacle)
+        );
     }
 
-    updateAgilityTooltips(category: any) {
-        this.agilityObstacles.forEach((obstacle: any) => {
+    updateAgilityTooltips(category: number) {
+        this.agilityObstacles.forEach((obstacle) => {
             if (obstacle.category !== category) {
                 return;
             }
-            const button = document.getElementById(`MCS ${obstacle.name} ${this.id} Button`);
-            (button as any)._tippy.setContent(this.getObstacleTooltip(category, obstacle));
+            const button = document.getElementById(
+                `MCS ${obstacle.name} ${this.id} Button`
+            );
+            (button as any)._tippy.setContent(
+                this.getObstacleTooltip(category, obstacle)
+            );
         });
-        const obstacle = this.agilityObstacles[this.data.course[category] + 1];
-        const img = document.getElementById(`MICSR Obstacle ${category} ${this.id} Image`);
-        (img as any)._tippy.setContent(this.getObstacleTooltip(category, obstacle));
+        const obstacle =
+            this.agilityObstacles[this.player.course[category] + 1];
+        const img = document.getElementById(
+            `MICSR Obstacle ${category} ${this.id} Image`
+        );
+        (img as any)._tippy.setContent(
+            this.getObstacleTooltip(category, obstacle)
+        );
     }
 
-    agilityMasteryOnClick(event: any, category: any) {
+    agilityMasteryOnClick(event: MouseEvent, category: number) {
         // toggle
-        if (this.data.courseMastery[category]) {
-            this.data.courseMastery[category] = false;
-            this.parent.unselectButton(event.currentTarget);
+        if (this.player.courseMastery[category]) {
+            this.player.courseMastery[category] = false;
+            this.parent.unselectButton(event.currentTarget as HTMLButtonElement);
         } else {
-            this.data.courseMastery[category] = true;
-            this.parent.selectButton(event.currentTarget);
+            this.player.courseMastery[category] = true;
+            this.parent.selectButton(event.currentTarget as HTMLButtonElement);
         }
         // update tool tips
         this.updateAgilityTooltips(category);
@@ -226,34 +365,47 @@ class AgilityCourse {
         this.parent.agilityCourseCallback();
     }
 
-    importAgilityCourse(course: any, masteries: any, pillar: any) {
+    importAgilityCourse(
+        courseObstacles: number[],
+        masteries: boolean[],
+        pillarID: string
+    ) {
+        debugger;
         // clear current values
-        this.data.course.fill(-1);
-        this.data.courseMastery.fill(false);
+        this.player.course = Array(this.parent.actualGame.agility.maxObstacles).fill(-1);
+        this.player.courseMastery = Array(this.parent.actualGame.agility.maxObstacles).fill(false);
         // import settings
-        this.data.course.forEach((_: any, category: any) => {
-            let obstacleID = course[category];
+        this.player.course.forEach((_, category) => {
+            let obstacleID = courseObstacles[category];
             if (obstacleID === undefined) {
                 obstacleID = -1;
             }
-            this.selectObstacle(category, this.agilityObstacles[obstacleID + 1]);
+            this.selectObstacle(
+                category,
+                this.agilityObstacles[obstacleID + 1]
+            );
             if (masteries[obstacleID]) {
-                this.data.courseMastery[category] = true;
+                this.player.courseMastery[category] = true;
                 this.updateAgilityTooltips(category);
             }
         });
-        this.data.pillar = pillar;
-        this.selectObstacle(this.agilityCategories, this.agilityPillars[pillar + 1]);
+        this.player.pillarID = pillarID;
+        this.selectObstacle(
+            this.agilityCategories,
+            this.agilityPillars[this.player.game.agility.pillars.allObjects.findIndex((v) => v.id === pillarID)]
+        );
         // set image selection
-        this.data.courseMastery.forEach((m: any, i: any) => {
-            const elt = document.getElementById(`MCS Agility Mastery ${i} ${this.id} Toggle Button`);
-            if(elt){
-            if (m) {
-                this.parent.selectButton(elt);
-            } else {
-                this.parent.unselectButton(elt);
+        this.player.courseMastery.forEach((m, i) => {
+            const elt = document.getElementById(
+                `MCS Agility Mastery ${i} ${this.id} Toggle Button`
+            );
+            if (elt) {
+                if (m) {
+                    this.parent.selectButton(elt);
+                } else {
+                    this.parent.unselectButton(elt);
+                }
             }
-        }
         });
     }
 }

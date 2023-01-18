@@ -31,7 +31,12 @@ class SimGame extends Game {
         this.combat = new SimManager(this, demoNamespace) as any;
         this.detachGlobals();
 
+        
         // Fix SimPlayer object to match replaced Player object
+        // this.combat.player.registerStatProvider(this.firemaking);
+        // this.combat.player.registerStatProvider(this.agility);
+        // this.combat.player.registerStatProvider(this.astrology);
+        // this.combat.player.registerStatProvider(this.township);
         // TODO: Re-enable this when we manage pets directly
         // this.combat.player.registerStatProvider(this.petManager);
         this.combat.player.registerStatProvider(this.shop);
@@ -41,13 +46,13 @@ class SimGame extends Game {
     detachGlobals() {
         this.township.tasks.updateMonsterTasks = () => null;
         this.completion.updatePet = () => null;
-        this.completion.updateSkill = (skill: AnySkill) => null;
+        this.completion.updateSkill = (_: AnySkill) => null;
         this.completion.updateSkillMastery = (
-            skill: SkillWithMastery<MasteryAction, MasterySkillData>
+            _: SkillWithMastery<MasteryAction, MasterySkillData>
         ) => null;
-        this.completion.updateItem = (item: AnyItem) => null;
-        this.completion.updateMonster = (monster: Monster) => null;
-        this.completion.updatePet = (pet: Pet) => null;
+        this.completion.updateItem = (_: AnyItem) => null;
+        this.completion.updateMonster = (_: Monster) => null;
+        this.completion.updatePet = (_: Pet) => null;
         this.petManager.unlockPet = () => null;
         this.bank.addItem = () => true;
         this.bank.hasItem = () => true;
@@ -55,7 +60,7 @@ class SimGame extends Game {
         this.bank.removeItemQuantity = (
             item: AnyItem,
             quantity: number,
-            removeItemCharges: boolean
+            _: boolean
         ): void => {
             switch (item.type) {
                 case "Potion":

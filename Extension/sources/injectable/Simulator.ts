@@ -131,7 +131,7 @@ class Simulator {
         const data: ISimData = {
             simSuccess: false,
             reason: this.notSimulatedReason,
-            adjustedRates: {}
+            adjustedRates: {},
         };
         if (isMonster) {
             data.inQueue = false;
@@ -210,7 +210,7 @@ class Simulator {
             { name: "COMBAT_TRIANGLE_IDS", data: COMBAT_TRIANGLE_IDS },
             { name: "combatTriangle", data: combatTriangle },
             { name: "numberMultiplier", data: numberMultiplier },
-            
+
             { name: "burnEffect", data: burnEffect },
             { name: "poisonEffect", data: poisonEffect },
             { name: "rageEffect", data: rageEffect },
@@ -220,7 +220,10 @@ class Simulator {
             { name: "afflictionEffect", data: afflictionEffect },
             { name: "frostBurnEffect", data: frostBurnEffect },
             { name: "bleedReflectEffect", data: bleedReflectEffect },
-            { name: "decreasedEvasionStackingEffect", data: decreasedEvasionStackingEffect },
+            {
+                name: "decreasedEvasionStackingEffect",
+                data: decreasedEvasionStackingEffect,
+            },
             { name: "absorbingSkinEffect", data: absorbingSkinEffect },
             { name: "darkBladeEffect", data: darkBladeEffect },
             { name: "assassinEffect", data: assassinEffect },
@@ -314,7 +317,7 @@ class Simulator {
             "readAttackEffect",
             "getRandomArrayElement",
             "sortRecipesByCategoryAndLevel",
-            "checkBooleanCondition"
+            "checkBooleanCondition",
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
@@ -355,12 +358,18 @@ class Simulator {
             getQty() {
                 return 0;
             }
+
+            setLevel() {}
         };
         [
             CombatQuickEquipMenu,
             Completion,
             Minibar,
             Settings,
+            MasteryLevelUnlock,
+            ItemUpgrade,
+
+            // RenderQueues
             SkillRenderQueue,
             AltMagicRenderQueue,
             PrayerRenderQueue,
@@ -372,27 +381,35 @@ class Simulator {
             MiningRenderQueue,
             ThievingRenderQueue,
             FarmingRenderQueue,
-            TownshipTasks,
-            TownshipData,
             AgilityRenderQueue,
             SummoningRenderQueue,
             AstrologyRenderQueue,
             TownshipRenderQueue,
-            MasteryLevelUnlock,
-            CustomSkillMilestone,
-            SlayerAreaMilestone,
             BankRenderQueue,
-            ItemUpgrade,
             TutorialRenderQueue,
             ShopRenderQueue,
+
+            // Township
+            TownshipTasks,
+            TownshipData,
+
+            // Milestones
+            CustomSkillMilestone,
+            SlayerAreaMilestone,
+            AgilityObstacleMilestone,
+            AgilityPillarMilestone,
+            AgilityElitePillarMilestone,
+            SkillMasteryMilestone,
+            AgilityObstacleMilestone,
+            EquipItemMilestone,
         ].forEach((clas: any) =>
-        classNames.push({ name: clas.name, data: emptyClass })
+            classNames.push({ name: clas.name, data: emptyClass })
         );
         // these classes are copied from the game
         [
             Bank,
             BankItem,
-            
+
             SparseNumericMap,
             CompletionMap,
             NamespaceMap,
@@ -407,11 +424,11 @@ class Simulator {
             Skill,
             SkillWithMastery,
             CombatSkill,
-            SkillMasteryMilestone,
             GatheringSkill,
             CraftingSkill,
             ArtisanSkill,
-            // skills
+
+            // Skills
             Attack,
             Strength,
             Defence,
@@ -436,9 +453,6 @@ class Simulator {
             Summoning,
             Astrology,
             Township,
-
-            AgilityObstacleMilestone,
-            EquipItemMilestone,
 
             // Attacks
             SpecialAttack,
@@ -467,6 +481,16 @@ class Simulator {
             TokenItem,
             CombatLoot,
             DropTable,
+
+            // Modifiers
+            AstrologyModifier,
+            MappedModifiers,
+            TargetModifiers,
+            CombatModifiers,
+            PlayerModifiers,
+
+            // Main
+            MasteryAction,
             Lore,
             EventManager,
             CombatArea,
@@ -481,7 +505,6 @@ class Simulator {
             EquipSlot,
             GP,
             ItemCharges,
-            MappedModifiers,
             ExperienceCalculator,
             NotificationQueue,
             PlayerStats,
@@ -490,7 +513,6 @@ class Simulator {
             SlayerCoins,
             RaidCoins,
             SpellSelection,
-            TargetModifiers,
             Timer,
             Tutorial,
             BinaryWriter,
@@ -498,8 +520,6 @@ class Simulator {
             Shop,
             SlayerTask,
             SplashManager,
-            CombatModifiers,
-            PlayerModifiers,
             BaseManager,
             CombatManager,
             Character,
@@ -539,6 +559,9 @@ class Simulator {
             ControlledAffliction,
             ActivePrayer,
             ItemSynergy,
+            BaseAgilityObject,
+            AgilityObstacle,
+            AgilityPillar,
 
             // Events
             GameEvent,
@@ -593,7 +616,6 @@ class Simulator {
             ThievingActionEventMatcher,
             WoodcuttingActionEventMatcher,
 
-            MasteryAction,
             BasicSkillRecipe,
             ArtisanSkillRecipe,
             CategorizedArtisanRecipe,
@@ -604,6 +626,7 @@ class Simulator {
             HerbloreRecipe,
             SummoningRecipe,
             SummoningSynergy,
+            AstrologyRecipe,
 
             // Combat sim classes
             MICSR,
@@ -652,7 +675,7 @@ class Simulator {
             // TODO: This might also be sent with the MICSR object
             slayerTaskData: SlayerTask.data,
             dataPackage: this.micsr.dataPackage,
-            SummoningMarkLevels: Summoning.markLevels
+            SummoningMarkLevels: Summoning.markLevels,
         });
     }
 
@@ -677,14 +700,14 @@ class Simulator {
         };
     }
 
-    simID(monsterID: string, dungeonID: string | undefined) {
+    simID(monsterID: string, dungeonID?: string) {
         if (dungeonID === undefined) {
             return monsterID;
         }
         return `${dungeonID}-${monsterID}`;
     }
 
-    pushMonsterToQueue(monsterID: string, dungeonID: string | undefined) {
+    pushMonsterToQueue(monsterID: string, dungeonID?: string) {
         const simID = this.simID(monsterID, dungeonID);
         if (!this.monsterSimData[simID].inQueue) {
             this.monsterSimData[simID].inQueue = true;
@@ -712,7 +735,6 @@ class Simulator {
             const monsterID =
                 this.parent.barMonsterIDs[this.parent.selectedBar];
             if (this.monsterSimFilter[monsterID]) {
-                // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
                 this.pushMonsterToQueue(monsterID);
             } else {
                 this.parent.notify(
@@ -837,11 +859,7 @@ class Simulator {
         }
         // Queue simulation of monsters in slayer areas
         this.micsr.slayerAreas.forEach((area) => {
-            if (
-                !this.micsr.game.checkRequirements(
-                    area.entryRequirements
-                )
-            ) {
+            if (!this.micsr.game.checkRequirements(area.entryRequirements)) {
                 const tryToSim = area.monsters.reduce(
                     (sim, monster) =>
                         (this.monsterSimFilter[monster.id] &&

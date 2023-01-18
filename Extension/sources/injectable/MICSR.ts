@@ -47,7 +47,7 @@ class MICSR {
     imageNotify: (
         media: string,
         message: string,
-        messageTheme?: StandardTheme | undefined
+        messageTheme?: StandardTheme
     ) => void;
     cloudManager: any;
     actualGame!: Game;
@@ -134,8 +134,8 @@ class MICSR {
             "Crafting",
             "Runecrafting",
             // "Herblore", // Need for potion recipe lookup
-            "Agility",
-            "Astrology",
+            // "Agility",
+            // "Astrology",
             "Township",
         ];
     }
@@ -382,7 +382,7 @@ class MICSR {
         });
     }
 
-    isDungeonID(id: string | undefined) {
+    isDungeonID(id?: string) {
         if (!id) {
             return false;
         }

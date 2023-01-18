@@ -88,7 +88,7 @@ class ExportCheat extends Import {
         // this.player.spellSelection = spellSelection;
     }
 
-    importPotion(potionID: string | undefined) {
+    importPotion(potionID?: string) {
         /*
         // @ts-expect-error TS(2304): Cannot find name 'Herblore'.
         if (Herblore.potions[potionID] === undefined) {

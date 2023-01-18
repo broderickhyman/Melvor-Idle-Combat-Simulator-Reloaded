@@ -37,15 +37,25 @@ class Card {
      * @param {string} inputWidth The width of inputs for the card's ui elements
      * @param {boolean} outer This card is an outside card
      */
-    constructor(micsr: MICSR, parentElement: any, height: any, inputWidth: any, outer: boolean = false) {
+    constructor(
+        micsr: MICSR,
+        parentElement: any,
+        height: any,
+        inputWidth: any,
+        outer: boolean = false
+    ) {
         this.micsr = micsr;
-        this.outerContainer = document.createElement('div');
-        this.outerContainer.className = `mcsCardContainer${outer ? ' mcsOuter block block-rounded border-top border-combat border-4x bg-combat-inner-dark' : ''}`;
-        if (height !== '') {
+        this.outerContainer = document.createElement("div");
+        this.outerContainer.className = `mcsCardContainer${
+            outer
+                ? " mcsOuter block block-rounded border-top border-combat border-4x bg-combat-inner-dark"
+                : ""
+        }`;
+        if (height !== "") {
             this.outerContainer.style.height = height;
         }
-        this.container = document.createElement('div');
-        this.container.className = 'mcsCardContentContainer';
+        this.container = document.createElement("div");
+        this.container.className = "mcsCardContentContainer";
         this.outerContainer.appendChild(this.container);
         parentElement.appendChild(this.outerContainer);
         this.inputWidth = inputWidth;
@@ -69,16 +79,19 @@ class Card {
      * @param {Function} onclickCallback Callback to excute when pressed
      * @param {string} idTag Optional ID Tag
      */
-    addButton(buttonText: any, onclickCallback: any) {
-        const newButton = document.createElement('button');
-        newButton.type = 'button';
+    addButton(
+        buttonText: any,
+        onclickCallback: (this: GlobalEventHandlers, ev: MouseEvent) => any
+    ) {
+        const newButton = document.createElement("button");
+        newButton.type = "button";
         newButton.id = `MCS ${buttonText} Button`;
-        newButton.className = 'btn btn-primary m-1';
+        newButton.className = "btn btn-primary m-1";
         newButton.style.width = `100%`;
         newButton.textContent = buttonText;
         newButton.onclick = onclickCallback;
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'd-flex';
+        const buttonContainer = document.createElement("div");
+        buttonContainer.className = "d-flex";
         buttonContainer.appendChild(newButton);
         this.container.appendChild(buttonContainer);
         return newButton;
@@ -91,15 +104,15 @@ class Card {
      * @param {string} imageID Element ID
      * @return {HTMLImageElement}
      */
-    addImage(imageSource: any, imageSize: any, imageID = '') {
-        const newImage = document.createElement('img');
+    addImage(imageSource: any, imageSize: any, imageID = "") {
+        const newImage = document.createElement("img");
         newImage.style.width = `${imageSize}px`;
         newImage.style.height = `${imageSize}px`;
         newImage.id = imageID;
         newImage.src = imageSource;
-        const div = document.createElement('div');
-        div.className = 'mb-1';
-        div.style.textAlign = 'center';
+        const div = document.createElement("div");
+        div.className = "mb-1";
+        div.style.textAlign = "center";
         div.appendChild(newImage);
         this.container.appendChild(div);
         return newImage;
@@ -114,14 +127,20 @@ class Card {
      * @param {string} tooltip The tooltip content
      * @return {HTMLButtonElement} The created button element
      */
-    createImageButton(imageSource: any, idText: any, onclickCallback: any, size: any, tooltip: any) {
-        const newButton = document.createElement('button');
-        newButton.type = 'button';
+    createImageButton(
+        imageSource: string,
+        idText: string,
+        onclickCallback: (this: GlobalEventHandlers, ev: MouseEvent) => any,
+        size: string,
+        tooltip?: string
+    ) {
+        const newButton = document.createElement("button");
+        newButton.type = "button";
         newButton.id = `MCS ${idText} Button`;
-        newButton.className = 'btn btn-outline-dark';
+        newButton.className = "btn btn-outline-dark";
         newButton.onclick = onclickCallback;
         if (tooltip) newButton.dataset.tippyContent = tooltip;
-        const newImage = document.createElement('img');
+        const newImage = document.createElement("img");
         newImage.className = `mcsButtonImage mcsImage${size}`;
         newImage.id = `MCS ${idText} Button Image`;
         newImage.src = imageSource;
@@ -139,11 +158,27 @@ class Card {
      * @param {string} containerWidth container width
      * @return {HTMLDivElement[]} The image buttons
      */
-    addImageButtons(sources: any, idtexts: any, size: any, onclickCallbacks: any, tooltips: any, containerWidth = undefined) {
-        const newCCContainer = document.createElement('div');
-        newCCContainer.className = 'mcsMultiImageButtonContainer';
+    addImageButtons(
+        sources: any,
+        idtexts: any,
+        size: any,
+        onclickCallbacks: ((
+            this: GlobalEventHandlers,
+            ev: MouseEvent
+        ) => any)[],
+        tooltips: any,
+        containerWidth?: string
+    ) {
+        const newCCContainer = document.createElement("div");
+        newCCContainer.className = "mcsMultiImageButtonContainer";
         for (let i = 0; i < sources.length; i++) {
-            const newButton = this.createImageButton(sources[i], idtexts[i], onclickCallbacks[i], size, tooltips[i]);
+            const newButton = this.createImageButton(
+                sources[i],
+                idtexts[i],
+                onclickCallbacks[i],
+                size,
+                tooltips[i]
+            );
             newCCContainer.appendChild(newButton);
         }
         if (containerWidth) {
@@ -158,21 +193,24 @@ class Card {
      * @param {HTMLElement} popupMenuElement Element that should be displayed when the showElement is clicked
      */
     registerPopupMenu(showElement: any, popupMenuElement: any) {
-        showElement.addEventListener('click', () => {
+        showElement.addEventListener("click", () => {
             let firstClick = true;
-            if (popupMenuElement.style.display === 'none') {
+            if (popupMenuElement.style.display === "none") {
                 const outsideClickListener = (event: any) => {
                     if (firstClick) {
                         firstClick = false;
                         return;
                     }
-                    if (popupMenuElement.style.display === '') {
-                        popupMenuElement.style.display = 'none';
-                        document.body.removeEventListener('click', outsideClickListener);
+                    if (popupMenuElement.style.display === "") {
+                        popupMenuElement.style.display = "none";
+                        document.body.removeEventListener(
+                            "click",
+                            outsideClickListener
+                        );
                     }
                 };
-                document.body.addEventListener('click', outsideClickListener);
-                popupMenuElement.style.display = '';
+                document.body.addEventListener("click", outsideClickListener);
+                popupMenuElement.style.display = "";
             }
         });
     }
@@ -184,28 +222,32 @@ class Card {
      * @param {HTMLElement[]} popups
      * @param {string[]} tooltips The tooltip contents
      */
-    addMultiPopupMenu(sources: any, elIds: any, popups: any, tooltips: any, newCCContainer = undefined) {
+    addMultiPopupMenu(
+        sources: any,
+        elIds: any,
+        popups: any,
+        tooltips: any,
+        newCCContainer?: HTMLDivElement
+    ) {
         if (!newCCContainer) {
-            // @ts-expect-error TS(2322): Type 'HTMLDivElement' is not assignable to type 'u... Remove this comment to see the full error message
-            newCCContainer = document.createElement('div');
+            newCCContainer = document.createElement("div");
         }
-        // @ts-expect-error TS(2532): Object is possibly 'undefined'.
-        newCCContainer.className = 'mcsEquipmentImageContainer';
+        newCCContainer.className = "mcsEquipmentImageContainer";
         for (let i = 0; i < sources.length; i++) {
-            const containerDiv = document.createElement('div');
-            containerDiv.style.position = 'relative';
-            containerDiv.style.cursor = 'pointer';
-            const newImage = document.createElement('img');
+            const containerDiv = document.createElement("div");
+            containerDiv.style.position = "relative";
+            containerDiv.style.cursor = "pointer";
+            const newImage = document.createElement("img");
             newImage.id = elIds[i];
             newImage.src = sources[i];
-            newImage.className = 'combat-equip-img border border-2x border-rounded-equip border-combat-outline p-1';
+            newImage.className =
+                "combat-equip-img border border-2x border-rounded-equip border-combat-outline p-1";
             newImage.dataset.tippyContent = tooltips[i];
-            newImage.dataset.tippyHideonclick = 'true';
+            newImage.dataset.tippyHideonclick = "true";
             containerDiv.appendChild(newImage);
             containerDiv.appendChild(popups[i]);
-            // @ts-expect-error TS(2532): Object is possibly 'undefined'.
             newCCContainer.appendChild(containerDiv);
-            popups[i].style.display = 'none';
+            popups[i].style.display = "none";
             this.registerPopupMenu(containerDiv, popups[i]);
         }
         this.container.appendChild(newCCContainer);
@@ -219,14 +261,24 @@ class Card {
      * @param {Array} optionValues The values of the dropdown's options
      * @param {Function} onChangeCallback The callback for when the option is changed
      */
-    addDropdown(labelText: any, optionText: any, optionValues: any, onChangeCallback: any) {
+    addDropdown(
+        labelText: any,
+        optionText: any,
+        optionValues: any,
+        onChangeCallback: (this: HTMLSelectElement, ev: Event) => any
+    ) {
         const dropDownID = `MCS ${labelText} Dropdown`;
         const newCCContainer = this.createCCContainer();
         newCCContainer.id = `${dropDownID} Container`;
         const label = this.createLabel(labelText, dropDownID);
-        label.classList.add('mb-1');
+        label.classList.add("mb-1");
         newCCContainer.appendChild(label);
-        const newDropdown = this.createDropdown(optionText, optionValues, dropDownID, onChangeCallback);
+        const newDropdown = this.createDropdown(
+            optionText,
+            optionValues,
+            dropDownID,
+            onChangeCallback
+        );
         newCCContainer.appendChild(newDropdown);
         this.container.appendChild(newCCContainer);
         return newDropdown;
@@ -240,17 +292,22 @@ class Card {
      * @param {Function} onChangeCallback The callback for when the option is changed
      * @return {HTMLSelectElement}
      */
-    createDropdown(optionText: any, optionValues: any, dropDownID: any, onChangeCallback: any) {
-        const newDropdown = document.createElement('select');
-        newDropdown.className = 'form-control mb-1';
+    createDropdown(
+        optionText: any,
+        optionValues: any,
+        dropDownID: any,
+        onChangeCallback: (this: HTMLSelectElement, ev: Event) => any
+    ) {
+        const newDropdown = document.createElement("select");
+        newDropdown.className = "form-control mb-1";
         newDropdown.id = dropDownID;
         for (let i = 0; i < optionText.length; i++) {
-            const newOption = document.createElement('option');
+            const newOption = document.createElement("option");
             newOption.text = optionText[i];
             newOption.value = optionValues[i];
             newDropdown.add(newOption);
         }
-        newDropdown.addEventListener('change', onChangeCallback);
+        newDropdown.addEventListener("change", onChangeCallback);
         this.dropDowns.push(newDropdown);
         return newDropdown;
     }
@@ -263,20 +320,26 @@ class Card {
      * @param {number} max The maximum value of the input
      * @param {Function} onChangeCallback The callback for when the input changes
      */
-    addNumberInput(labelText: any, startValue: any, min: any, max: any, onChangeCallback: any) {
+    addNumberInput(
+        labelText: any,
+        startValue: any,
+        min: any,
+        max: any,
+        onChangeCallback: (this: HTMLSelectElement, ev: Event) => any
+    ) {
         const inputID = `MCS ${labelText} Input`;
         const newCCContainer = this.createCCContainer();
         const label = this.createLabel(labelText, inputID);
-        label.classList.add('mb-1');
+        label.classList.add("mb-1");
         newCCContainer.appendChild(label);
-        const newInput = document.createElement('input');
+        const newInput = document.createElement("input");
         newInput.id = inputID;
-        newInput.type = 'number';
+        newInput.type = "number";
         newInput.min = min;
         newInput.max = max;
         newInput.value = startValue;
-        newInput.className = 'form-control mb-1';
-        newInput.addEventListener('change', onChangeCallback);
+        newInput.className = "form-control mb-1";
+        newInput.addEventListener("change", onChangeCallback);
         newCCContainer.appendChild(newInput);
         this.container.appendChild(newCCContainer);
     }
@@ -287,32 +350,37 @@ class Card {
      * @param {string} startValue The initial text in the input
      * @param {Function} onInputCallback The callback for when the input changes
      */
-    addTextInput(labelText: any, startValue: any, onInputCallback: any, id = null) {
+    addTextInput(
+        labelText: any,
+        startValue: any,
+        onInputCallback: (this: HTMLInputElement, ev: Event) => any,
+        id = null
+    ) {
         id = id === null ? labelText : id;
         const inputID = `MCS ${id} TextInput`;
         const newCCContainer = this.createCCContainer();
         const label = this.createLabel(labelText, inputID);
-        label.classList.add('mb-1');
+        label.classList.add("mb-1");
         newCCContainer.appendChild(label);
-        const newInput = document.createElement('input');
+        const newInput = document.createElement("input");
         newInput.id = inputID;
-        newInput.type = 'text';
+        newInput.type = "text";
         newInput.value = startValue;
-        newInput.className = 'form-control mb-1';
+        newInput.className = "form-control mb-1";
         newInput.style.width = this.inputWidth;
-        newInput.addEventListener('input', onInputCallback);
+        newInput.addEventListener("input", onInputCallback);
         newCCContainer.appendChild(newInput);
         this.container.appendChild(newCCContainer);
     }
 
     numberArrayToInputString(array: any) {
         if (array === undefined || array === null) {
-            return '';
+            return "";
         }
         if (!isNaN(array)) {
             array = [array];
         }
-        return array.toString() + ' ';
+        return array.toString() + " ";
     }
 
     /**
@@ -322,14 +390,21 @@ class Card {
      * @param key
      * @param defaultValue
      */
-    addNumberArrayInput(labelText: any, object: any, key: any, defaultValue = undefined) {
+    addNumberArrayInput(
+        labelText: any,
+        object: any,
+        key: any,
+        defaultValue = undefined
+    ) {
         let interval: any = undefined;
-        const onInputCallback = (event: any) => {
-            let input = event.currentTarget.value;
+        const onInputCallback = (event: Event) => {
+            let input = event.currentTarget! as HTMLInputElement;
+            let inputValue = input.value;
             let result: any;
             try {
                 // split input into numbers
-                result = input.split(/\D/)
+                result = inputValue
+                    .split(/\D/)
                     // get rid of empty entries
                     .filter((x: any) => x.length)
                     // parse
@@ -344,20 +419,25 @@ class Card {
             if (result.length === 0) {
                 result = defaultValue;
             }
-            if (input === 'undefined' || input === 'null') {
-                input = '';
+            if (inputValue === "undefined" || inputValue === "null") {
+                inputValue = "";
             }
             if (interval) {
                 clearInterval(interval);
             }
-            if (input !== this.numberArrayToInputString(object[key])) {
+            if (inputValue !== this.numberArrayToInputString(object[key])) {
                 interval = setTimeout(() => {
                     object[key] = result;
-                    event.target.value = this.numberArrayToInputString(result);
+                    input.value = this.numberArrayToInputString(result);
                 }, 500);
             }
-        }
-        this.addTextInput(labelText, this.numberArrayToInputString(object[key]), onInputCallback, labelText + key);
+        };
+        this.addTextInput(
+            labelText,
+            this.numberArrayToInputString(object[key]),
+            onInputCallback,
+            labelText + key
+        );
     }
 
     /**
@@ -366,9 +446,9 @@ class Card {
      * @return {HTMLDivElement}
      */
     addInfoText(textToDisplay: any) {
-        const textDiv = document.createElement('div');
+        const textDiv = document.createElement("div");
         textDiv.textContent = textToDisplay;
-        textDiv.className = 'mcsInfoText';
+        textDiv.className = "mcsInfoText";
         this.container.appendChild(textDiv);
         return textDiv;
     }
@@ -382,13 +462,20 @@ class Card {
      * @param {string} outputID The id of the output field
      * @param {boolean} setLabelID Whether or not to assign an ID to the label
      */
-    addNumberOutput(labelText: any, initialValue: any, height: any, imageSrc: any, outputID: any, setLabelID = false) {
+    addNumberOutput(
+        labelText: any,
+        initialValue: any,
+        height: any,
+        imageSrc: any,
+        outputID: any,
+        setLabelID = false
+    ) {
         if (!outputID) {
             outputID = `MCS ${labelText} Output`;
         }
         // container
         const newCCContainer = this.createCCContainer();
-        if (imageSrc && imageSrc !== '') {
+        if (imageSrc && imageSrc !== "") {
             newCCContainer.appendChild(this.createImage(imageSrc, height));
         }
         // label
@@ -399,8 +486,8 @@ class Card {
         }
         newCCContainer.appendChild(newLabel);
         // output field
-        const newOutput = document.createElement('span');
-        newOutput.className = 'mcsNumberOutput';
+        const newOutput = document.createElement("span");
+        newOutput.className = "mcsNumberOutput";
         newOutput.style.width = this.inputWidth;
         newOutput.textContent = initialValue;
         newOutput.id = outputID;
@@ -415,15 +502,18 @@ class Card {
      * @param {string} titleText The text for the title
      * @param {string} titleID An optional id for the title, if left as '' an ID will not be assigned
      */
-    addSectionTitle(titleText: string, titleID: string | undefined = undefined) {
-        const newSectionTitle = document.createElement('div');
+    addSectionTitle(
+        titleText: string,
+        titleID?: string
+    ) {
+        const newSectionTitle = document.createElement("div");
         if (titleID) {
             newSectionTitle.id = titleID;
         }
         newSectionTitle.textContent = titleText;
-        newSectionTitle.className = 'mcsSectionTitle';
-        const titleContainer = document.createElement('div');
-        titleContainer.className = 'd-flex justify-content-center';
+        newSectionTitle.className = "mcsSectionTitle";
+        const titleContainer = document.createElement("div");
+        titleContainer.className = "d-flex justify-content-center";
         titleContainer.appendChild(newSectionTitle);
         this.container.appendChild(titleContainer);
     }
@@ -435,19 +525,27 @@ class Card {
      * @param {number} width The width of the buttons in pixels
      * @param {Function[]} buttonCallbacks The callback function for when the buttons are clicked
      */
-    addMultiButton(buttonText: any, buttonCallbacks: any, container = this.container, id = "") {
+    addMultiButton(
+        buttonText: any,
+        buttonCallbacks: ((
+            this: GlobalEventHandlers,
+            ev: MouseEvent
+        ) => any)[],
+        container = this.container,
+        id = ""
+    ) {
         let newButton;
-        const newCCContainer = document.createElement('div');
-        newCCContainer.className = 'mcsMultiButtonContainer';
+        const newCCContainer = document.createElement("div");
+        newCCContainer.className = "mcsMultiButtonContainer";
         if (id) {
             newCCContainer.id = id;
         }
         for (let i = 0; i < buttonText.length; i++) {
-            newButton = document.createElement('button');
-            newButton.type = 'button';
+            newButton = document.createElement("button");
+            newButton.type = "button";
             newButton.id = `MCS ${buttonText[i]} Button`;
-            newButton.className = 'btn btn-primary m-1';
-            newButton.style.width = '100%';
+            newButton.className = "btn btn-primary m-1";
+            newButton.style.width = "100%";
             newButton.textContent = buttonText[i];
             newButton.onclick = buttonCallbacks[i];
             newCCContainer.appendChild(newButton);
@@ -455,40 +553,64 @@ class Card {
         container.appendChild(newCCContainer);
     }
 
-    addImageToggleWithInfo(imgSrc: any, id: any, callBack: any, text: any, size = 'Medium', tooltip = '') {
+    addImageToggleWithInfo(
+        imgSrc: any,
+        id: any,
+        callBack: (
+            this: GlobalEventHandlers,
+            ev: MouseEvent
+        ) => any,
+        text: any,
+        size = "Medium",
+        tooltip = ""
+    ) {
         const container = this.createCCContainer();
         // image
         const img = this.createImageButton(imgSrc, id, callBack, size, tooltip);
         container.appendChild(img);
         // filled to push icon to the left and text to the righ
-        const filler = document.createElement('p');
-        filler.style.flexGrow = '1';
+        const filler = document.createElement("p");
+        filler.style.flexGrow = "1";
         container.appendChild(filler);
         // text
-        const span = document.createElement('span');
+        const span = document.createElement("span");
         span.textContent = text;
-        span.className = 'mcsInfoText';
+        span.className = "mcsInfoText";
         if (id) {
             span.id = `MCS ${id} Info`;
         }
-        span.style.display = 'block';
+        span.style.display = "block";
         container.appendChild(span);
         // push container to parent
         this.container.appendChild(container);
     }
 
-    addToggleRadio(labelText: any, radioName: any, object: any, flag: any, initialYes = false, height = 25, callBack = () => {
-    }) {
+    addToggleRadio(
+        labelText: any,
+        radioName: any,
+        object: any,
+        flag: any,
+        initialYes = false,
+        height = 25,
+        callBack = () => {}
+    ) {
         const yesToggle = () => {
             object[flag] = true;
             callBack();
-        }
+        };
         const noToggle = () => {
             object[flag] = false;
             callBack();
-        }
+        };
         const initialRadio = initialYes ? 0 : 1;
-        this.addRadio(labelText, height, radioName, ['Yes', 'No'], [yesToggle, noToggle], initialRadio);
+        this.addRadio(
+            labelText,
+            height,
+            radioName,
+            ["Yes", "No"],
+            [yesToggle, noToggle],
+            initialRadio
+        );
     }
 
     /**
@@ -501,19 +623,38 @@ class Card {
      * @param {number} initialRadio The initial radio that is on
      * @param {string} imageSrc An optional string to specify the source of a label image, if '' an image is not added
      */
-    addRadio(labelText: any, height: any, radioName: any, radioLabels: any, radioCallbacks: any, initialRadio: any, imageSrc = '') {
+    addRadio(
+        labelText: any,
+        height: any,
+        radioName: any,
+        radioLabels: any,
+        radioCallbacks: ((
+            this: HTMLInputElement,
+            ev: Event
+        ) => any)[],
+        initialRadio: any,
+        imageSrc = ""
+    ) {
         const newCCContainer = this.createCCContainer();
-        if (imageSrc && imageSrc !== '') {
+        if (imageSrc && imageSrc !== "") {
             newCCContainer.appendChild(this.createImage(imageSrc, height));
         }
-        newCCContainer.appendChild(this.createLabel(labelText, ''));
+        newCCContainer.appendChild(this.createLabel(labelText, ""));
         newCCContainer.id = `MCS ${labelText} Radio Container`;
-        const radioContainer = document.createElement('div');
-        radioContainer.className = 'mcsRadioContainer';
+        const radioContainer = document.createElement("div");
+        radioContainer.className = "mcsRadioContainer";
         newCCContainer.appendChild(radioContainer);
         // Create Radio elements with labels
         for (let i = 0; i < radioLabels.length; i++) {
-            radioContainer.appendChild(this.createRadio(radioName, radioLabels[i], `MCS ${labelText} Radio ${radioLabels[i]}`, initialRadio === i, radioCallbacks[i]));
+            radioContainer.appendChild(
+                this.createRadio(
+                    radioName,
+                    radioLabels[i],
+                    `MCS ${labelText} Radio ${radioLabels[i]}`,
+                    initialRadio === i,
+                    radioCallbacks[i]
+                )
+            );
         }
         this.container.appendChild(newCCContainer);
     }
@@ -527,22 +668,31 @@ class Card {
      * @param {Function} radioCallback Callback for when the radio is clicked
      * @return {HTMLDivElement}
      */
-    createRadio(radioName: any, radioLabel: any, radioID: any, checked: any, radioCallback: any) {
-        const newDiv = document.createElement('div');
-        newDiv.className = 'custom-control custom-radio custom-control-inline';
-        const newRadio = document.createElement('input');
-        newRadio.type = 'radio';
+    createRadio(
+        radioName: any,
+        radioLabel: any,
+        radioID: any,
+        checked: any,
+        radioCallback: (
+            this: HTMLInputElement,
+            ev: Event
+        ) => any
+    ) {
+        const newDiv = document.createElement("div");
+        newDiv.className = "custom-control custom-radio custom-control-inline";
+        const newRadio = document.createElement("input");
+        newRadio.type = "radio";
         newRadio.id = radioID;
         newRadio.name = radioName;
-        newRadio.className = 'custom-control-input';
+        newRadio.className = "custom-control-input";
         if (checked) {
             newRadio.checked = true;
         }
-        newRadio.addEventListener('change', radioCallback);
+        newRadio.addEventListener("change", radioCallback);
         newDiv.appendChild(newRadio);
         const label = this.createLabel(radioLabel, radioID);
-        label.className = 'custom-control-label';
-        label.setAttribute('for', radioID);
+        label.className = "custom-control-label";
+        label.setAttribute("for", radioID);
         newDiv.appendChild(label);
         return newDiv;
     }
@@ -552,8 +702,8 @@ class Card {
      * @return {HTMLDivElement}
      */
     createCCContainer() {
-        const newCCContainer = document.createElement('div');
-        newCCContainer.className = 'mcsCCContainer';
+        const newCCContainer = document.createElement("div");
+        newCCContainer.className = "mcsCCContainer";
         return newCCContainer;
     }
 
@@ -563,12 +713,13 @@ class Card {
      * @param {string} referenceID The element the label references
      * @return {HTMLLabelElement}
      */
-    createLabel(labelText: any, referenceID: any) {
-        const newLabel = document.createElement('label');
-        newLabel.className = 'mcsLabel';
+    createLabel(labelText: string, referenceID?: string) {
+        const newLabel = document.createElement("label") as HTMLLabelElement;
+        newLabel.className = "mcsLabel";
         newLabel.textContent = labelText;
-        // @ts-expect-error TS(2551): Property 'for' does not exist on type 'HTMLLabelEl... Remove this comment to see the full error message
-        newLabel.for = referenceID;
+        if (referenceID) {
+            newLabel.setAttribute("for", referenceID);
+        }
         return newLabel;
     }
 
@@ -579,7 +730,7 @@ class Card {
      * @return {HTMLImageElement} The newly created image element
      */
     createImage(imageSrc: any, height: any) {
-        const newImage = document.createElement('img');
+        const newImage = document.createElement("img");
         newImage.style.height = `${height}px`;
         newImage.src = imageSrc;
         return newImage;
@@ -592,7 +743,7 @@ class Card {
      * @param {HTMLDivElement} tooltip The tooltip element
      */
     hideTooltip(e: any, tooltip: any) {
-        tooltip.style.display = 'none';
+        tooltip.style.display = "none";
     }
 
     /**
@@ -601,6 +752,6 @@ class Card {
      * @param {HTMLDivElement} tooltip The tooltip element
      */
     showTooltip(e: any, tooltip: any) {
-        tooltip.style.display = '';
+        tooltip.style.display = "";
     }
 }
