@@ -67,8 +67,8 @@ class SimPlayer extends Player {
     pillarID: string;
     pillarEliteID: string;
     runesProvided: any;
-    skillLevel: Map<string, number>;
-    skillXP: Map<string, number>;
+    skillLevel!: Map<string, number>;
+    skillXP!: Map<string, number>;
     slayercoins: any;
     target: any;
     timers: any;
@@ -96,14 +96,6 @@ class SimPlayer extends Player {
         this.micsr = simManager.micsr;
         this.detachGlobals();
 
-        // skillLevel
-        this.skillLevel = new Map(
-            this.game.skills.allObjects.map((skill) => [skill.id, 1])
-        );
-        this.skillLevel.set(this.game.hitpoints.id, 10);
-        this.skillXP = new Map(
-            this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
-        );
         // currentGamemode, numberMultiplier
         this.currentGamemodeID = "";
         // petUnlocked
@@ -281,7 +273,8 @@ class SimPlayer extends Player {
         while (
             this.healAfterDeath &&
             this.hitpoints < this.stats.maxHitpoints &&
-            this.food.currentSlot.quantity > 0
+            this.food.currentSlot.quantity > 0 &&
+            this.food.currentSlot.item.localID !== "Empty_Food"
         ) {
             this.eatFood();
         }
@@ -662,30 +655,13 @@ class SimPlayer extends Player {
         this.canCurse = allowMagic && !this.usingAncient;
     }
 
-    rollToHit(target: any, attack: any) {
-        return (
-            this.game.checkRequirements(this.manager.areaRequirements) &&
-            super.rollToHit(target, attack)
-        );
-    }
-
-    damage(amount: any, source: any, thieving = false) {
+    damage(amount: number, source: SplashType, thieving?: boolean): void {
         super.damage(amount, source);
         this.highestDamageTaken = Math.max(this.highestDamageTaken, amount);
-        if (this.hitpoints > 0) {
-            if (
-                this.hitpoints <
-                (this.stats.maxHitpoints *
-                    this.modifiers.increasedCombatStoppingThreshold) /
-                    100
-            ) {
-                this.manager.stopCombat();
-            }
-            this.lowestHitpoints = Math.min(
-                this.lowestHitpoints,
-                this.hitpoints
-            );
-        }
+        this.lowestHitpoints = Math.min(
+            this.lowestHitpoints,
+            this.hitpoints
+        );
     }
 
     setPotion(newPotion: PotionItem | undefined) {
@@ -828,6 +804,13 @@ class SimPlayer extends Player {
 
     /** Decode the SimPlayer object */
     decode(reader: SaveWriter, version: number) {
+        this.skillLevel = new Map(
+            this.game.skills.allObjects.map((skill) => [skill.id, 1])
+        );
+        this.skillLevel.set(this.game.hitpoints.id, 10);
+        this.skillXP = new Map(
+            this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
+        );
         // debugger;
         super.decode(reader, version);
         // We don't have these extra values when creating the SimGame on the game side
