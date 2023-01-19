@@ -53,40 +53,45 @@
 // }
 // this.micsr.defaultSettings.levels[this.micsr.skillIDs.Hitpoints] = 10;
 
+interface IImportSpells {
+    [index: string]: string;
+    ancient: string;
+    aurora: string;
+    archaic: string;
+    curse: string;
+    standard: string;
+}
+
 interface IImportSettings {
-    version: any;
+    version: string;
     // lists
     astrologyModifiers: {}[];
     course: number[];
     courseMastery: boolean[];
-    equipment: any;
+    equipment: string[];
     levels: Map<string, number>;
     petUnlocked: string[];
     // objects
     styles: {
-        magic: any;
-        melee: any;
-        ranged: any;
+        magic: string;
+        melee: string;
+        ranged: string;
     };
+    spells: IImportSpells;
     // simple values
-    ancient: any;
-    archaic: any;
-    aurora: any;
     autoEatTier: number;
     cookingMastery: boolean;
     cookingPool: boolean;
     currentGamemodeID: string;
-    curse: any;
     foodSelected: string;
-    healAfterDeath: any;
+    healAfterDeath: boolean;
     isManualEating: boolean;
     isSlayerTask: boolean;
     pillarID: string;
     pillarEliteID: string;
     potionID?: string;
     prayerSelected: string[];
-    standard: any;
-    useCombinationRunes: any;
+    useCombinationRunes: boolean;
 }
 
 /**
@@ -96,13 +101,15 @@ class Import {
     app: App;
     autoEatTiers: ShopPurchase[];
     document: any;
-    player: SimPlayer;
+    actualPlayer: Player;
+    simPlayer: SimPlayer;
     micsr: MICSR;
 
     constructor(app: App) {
         this.app = app;
         this.micsr = app.micsr;
-        this.player = app.player;
+        this.actualPlayer = app.actualGame.combat.player;
+        this.simPlayer = app.player;
         this.document = document;
         this.autoEatTiers = [
             this.micsr.actualGame.shop.purchases.getObjectByID(
@@ -136,7 +143,7 @@ class Import {
 
         // get foodSelected
         const foodSelected =
-            this.micsr.actualGame.combat.player.food.currentSlot.item;
+            this.actualPlayer.food.currentSlot.item;
         // get cooking mastery for foodSelected
         let cookingMastery = false;
         const recipe =
@@ -207,14 +214,16 @@ class Import {
                 if (this.app.actualGame.agility.isObstacleBuilt(obstacle)) {
                     chosenAgilityObstacles[obstacle.category] = i;
                 }
-                if(this.app.actualGame.agility.getMasteryLevel(obstacle) >= 99){
+                if (
+                    this.app.actualGame.agility.getMasteryLevel(obstacle) >= 99
+                ) {
                     courseMastery[obstacle.category] = true;
                 }
             }
         );
 
         const equipmentSet =
-            this.micsr.actualGame.combat.player.equipmentSets[setID];
+            this.actualPlayer.equipmentSets[setID];
         const equipment = equipmentSet.equipment;
 
         // create settings object
@@ -238,34 +247,37 @@ class Import {
                 .map((pet) => pet.id),
             // objects
             styles: {
-                magic: this.micsr.actualGame.combat.player.attackStyles.magic
+                magic: this.actualPlayer.attackStyles.magic
                     .id,
-                melee: this.micsr.actualGame.combat.player.attackStyles.melee
+                melee: this.actualPlayer.attackStyles.melee
                     .id,
-                ranged: this.micsr.actualGame.combat.player.attackStyles.ranged
+                ranged: this.actualPlayer.attackStyles.ranged
                     .id,
             },
+            spells: {
+                ancient: equipmentSet.spellSelection.ancient?.id || "",
+                archaic: equipmentSet.spellSelection.archaic?.id || "",
+                aurora: equipmentSet.spellSelection.aurora?.id || "",
+                curse: equipmentSet.spellSelection.curse?.id || "",
+                standard: equipmentSet.spellSelection.standard?.id || "",
+            },
             // simple values
-            ancient: equipmentSet.spellSelection.ancient,
-            archaic: equipmentSet.spellSelection.archaic,
-            aurora: equipmentSet.spellSelection.aurora,
             autoEatTier: autoEatTier,
             cookingMastery: cookingMastery,
             cookingPool: cookingPool,
             currentGamemodeID: this.micsr.actualGame.currentGamemode.id,
-            curse: equipmentSet.spellSelection.curse,
             foodSelected: foodSelected.id,
-            healAfterDeath: this.player.healAfterDeath,
-            isManualEating: this.player.isManualEating,
-            isSlayerTask: this.player.isSlayerTask,
-            pillarID: this.micsr.actualGame.agility.builtPassivePillar?.id,
+            healAfterDeath: this.simPlayer.healAfterDeath,
+            isManualEating: this.simPlayer.isManualEating,
+            isSlayerTask: this.simPlayer.isSlayerTask,
+            pillarID:
+                this.micsr.actualGame.agility.builtPassivePillar?.id || "",
             pillarEliteID:
-                this.micsr.actualGame.agility.builtElitePassivePillar?.id,
+                this.micsr.actualGame.agility.builtElitePassivePillar?.id || "",
             potionID: potionID,
             prayerSelected: Array.from(equipmentSet.prayerSelection).map(
                 (p) => p.id
             ),
-            standard: equipmentSet.spellSelection.standard,
             useCombinationRunes:
                 this.micsr.actualGame.settings.useCombinationRunes,
         };
@@ -275,45 +287,47 @@ class Import {
     }
 
     exportSettings(): IImportSettings {
-        const courseMastery = this.player.courseMastery;
+        const courseMastery = this.simPlayer.courseMastery;
         return {
             version: this.micsr.version,
             // lists
-            astrologyModifiers: this.player.activeAstrologyModifiers,
-            course: this.player.course,
+            astrologyModifiers: this.simPlayer.activeAstrologyModifiers,
+            course: this.simPlayer.course,
             courseMastery: courseMastery,
-            equipment: this.player.equipment.slotArray.map(
+            equipment: this.simPlayer.equipment.slotArray.map(
                 (x: any) => x.item.id
             ),
-            levels: this.player.skillLevel,
-            petUnlocked: this.player.petUnlocked.map((pet) => pet.id),
+            levels: this.simPlayer.skillLevel,
+            petUnlocked: this.simPlayer.petUnlocked.map((pet) => pet.id),
             // objects
             styles: {
-                magic: this.player.attackStyles.magic.id,
-                melee: this.player.attackStyles.melee.id,
-                ranged: this.player.attackStyles.ranged.id,
+                magic: this.simPlayer.attackStyles.magic.id,
+                melee: this.simPlayer.attackStyles.melee.id,
+                ranged: this.simPlayer.attackStyles.ranged.id,
             },
-            prayerSelected: Array.from(this.player.activePrayers).map(
+            prayerSelected: Array.from(this.simPlayer.activePrayers).map(
                 (p) => p.id
             ),
+            spells: {
+                ancient: this.simPlayer.spellSelection.ancient?.id || "",
+                archaic: this.simPlayer.spellSelection.archaic?.id || "",
+                aurora: this.simPlayer.spellSelection.aurora?.id || "",
+                curse: this.simPlayer.spellSelection.curse?.id || "",
+                standard: this.simPlayer.spellSelection.standard?.id || "",
+            },
             // simple values
-            ancient: this.player.spellSelection.ancient,
-            archaic: this.player.spellSelection.archaic,
-            aurora: this.player.spellSelection.aurora,
-            autoEatTier: this.player.autoEatTier,
-            cookingMastery: this.player.cookingMastery,
-            cookingPool: this.player.cookingPool,
-            currentGamemodeID: this.player.currentGamemodeID,
-            curse: this.player.spellSelection.curse,
-            foodSelected: this.player.food.currentSlot.item.id,
-            healAfterDeath: this.player.healAfterDeath,
-            isManualEating: this.player.isManualEating,
-            isSlayerTask: this.player.isSlayerTask,
-            pillarID: this.player.pillarID,
-            pillarEliteID: this.player.pillarEliteID,
-            potionID: this.player.potion?.id,
-            standard: this.player.spellSelection.standard,
-            useCombinationRunes: this.player.useCombinationRunes,
+            autoEatTier: this.simPlayer.autoEatTier,
+            cookingMastery: this.simPlayer.cookingMastery,
+            cookingPool: this.simPlayer.cookingPool,
+            currentGamemodeID: this.simPlayer.currentGamemodeID,
+            foodSelected: this.simPlayer.food.currentSlot.item.id,
+            healAfterDeath: this.simPlayer.healAfterDeath,
+            isManualEating: this.simPlayer.isManualEating,
+            isSlayerTask: this.simPlayer.isSlayerTask,
+            pillarID: this.simPlayer.pillarID,
+            pillarEliteID: this.simPlayer.pillarEliteID,
+            potionID: this.simPlayer.potion?.id,
+            useCombinationRunes: this.simPlayer.useCombinationRunes,
         };
     }
 
@@ -336,13 +350,7 @@ class Import {
         this.importLevels(settings.levels);
         this.importEquipment(settings.equipment);
         this.importStyle(settings.styles);
-        this.importSpells({
-            ancient: settings.ancient,
-            archaic: settings.archaic,
-            aurora: settings.aurora,
-            curse: settings.curse,
-            standard: settings.standard,
-        });
+        this.importSpells(settings.spells);
         this.importPrayers(settings.prayerSelected);
         this.importPotion(settings.potionID);
         this.importPets(settings.petUnlocked);
@@ -357,11 +365,11 @@ class Import {
         this.importSlayerTask(settings.isSlayerTask);
         this.importGameMode(settings.currentGamemodeID);
         this.importUseCombinationRunes(settings.useCombinationRunes);
-        this.importAgilityCourse(
-            settings.course,
-            settings.courseMastery,
-            settings.pillarID
-        );
+        // this.importAgilityCourse(
+        //     settings.course,
+        //     settings.courseMastery,
+        //     settings.pillarID
+        // );
         // this.importAstrology(settings.astrologyModifiers);
 
         // update and compute values
@@ -373,7 +381,7 @@ class Import {
 
     importEquipment(equipment: any) {
         // clear previous items
-        this.player.equipment.unequipAll();
+        this.simPlayer.equipment.unequipAll();
         for (const slot in this.micsr.equipmentSlotData) {
             const slotID = this.micsr.equipmentSlotData[slot].id;
             this.app.setEquipmentImage(slotID);
@@ -400,7 +408,7 @@ class Import {
                 this.micsr.skillIDs[key]
             );
         });
-        this.player.skillLevel = levels;
+        this.simPlayer.skillLevel = levels;
     }
 
     importStyle(styles: any) {
@@ -410,26 +418,59 @@ class Import {
             )!;
             const index = this.micsr.attackStylesIdx[attackStyle.id];
             // @ts-expect-error
-            this.player.setAttackStyle(cbStyle, attackStyle);
+            this.simPlayer.setAttackStyle(cbStyle, attackStyle);
             this.document.getElementById(
                 `MCS ${cbStyle} Style Dropdown`
             ).selectedIndex = index % 3;
         });
     }
 
-    importSpells(spellSelection: any) {
+    importSpells(spellSelection: IImportSpells) {
         // Set all active spell UI to be disabled
-        Object.keys(this.app.combatData.spells).forEach((spellType) => {
-            const spellID = this.player.getSpellFromType(spellType);
-            this.app.disableSpell(spellType, spellID);
-            this.app.enableSpell(spellType, spellSelection[spellType]);
-        });
+        this.importSpell(
+            this.app.combatData.spells.ancient,
+            spellSelection,
+            "ancient"
+        );
+        this.importSpell(
+            this.app.combatData.spells.archaic,
+            spellSelection,
+            "archaic"
+        );
+        this.importSpell(
+            this.app.combatData.spells.aurora,
+            spellSelection,
+            "aurora"
+        );
+        this.importSpell(
+            this.app.combatData.spells.curse,
+            spellSelection,
+            "curse"
+        );
+        this.importSpell(
+            this.app.combatData.spells.standard,
+            spellSelection,
+            "standard"
+        );
         this.app.spellSanityCheck();
+    }
+
+    private importSpell(
+        spells: NamespaceRegistry<CombatSpell>,
+        spellSelection: IImportSpells,
+        spellType: string
+    ) {
+        const selected = this.simPlayer.getSpellFromType(spellType);
+        this.app.disableSpell(spellType, selected);
+        const newSpell = spells.getObjectByID(spellSelection[spellType]);
+        if (newSpell) {
+            this.app.enableSpell(spellType, newSpell);
+        }
     }
 
     importPrayers(prayerSelected: string[]) {
         // Toggle old prayers off
-        this.player.activePrayers.clear();
+        this.simPlayer.activePrayers.clear();
         // Update prayers
         this.micsr.prayers.forEach((prayer) => {
             const prayButton = this.document.getElementById(
@@ -437,7 +478,7 @@ class Import {
             );
             if (prayerSelected.includes(prayer.id)) {
                 this.app.selectButton(prayButton);
-                this.player.activePrayers.add(prayer);
+                this.simPlayer.activePrayers.add(prayer);
             } else {
                 this.app.unselectButton(prayButton);
             }
@@ -446,35 +487,35 @@ class Import {
 
     importPotion(potionID?: string) {
         // Deselect potion if selected
-        if (this.player.potion) {
+        if (this.simPlayer.potion) {
             this.app.unselectButton(
                 this.document.getElementById(
-                    `MCS ${this.app.getPotionHtmlId(this.player.potion)} Button`
+                    `MCS ${this.app.getPotionHtmlId(this.simPlayer.potion)} Button`
                 )
             );
-            this.player.potion = undefined;
+            this.simPlayer.potion = undefined;
         }
         // Select new potion if applicable
         if (potionID) {
             const potion = this.app.manager.game.items.potions.find(
                 (p) => p.id === potionID
             );
-            this.player.potion = potion;
-            if (this.player.potion) {
+            this.simPlayer.potion = potion;
+            if (this.simPlayer.potion) {
                 this.app.selectButton(
                     this.document.getElementById(
                         `MCS ${this.app.getPotionHtmlId(
-                            this.player.potion
+                            this.simPlayer.potion
                         )} Button`
                     )
                 );
-                this.app.updatePotionTier(this.player.potion.tier);
+                this.app.updatePotionTier(this.simPlayer.potion.tier);
             }
         }
     }
 
     importPets(petUnlocked: string[]) {
-        this.player.petUnlocked = [];
+        this.simPlayer.petUnlocked = [];
         this.app.micsr.pets.forEach((pet) => {
             this.app.unselectButton(
                 this.document.getElementById(`MCS ${pet.name} Button`)
@@ -483,7 +524,7 @@ class Import {
         // Import pets
         petUnlocked.forEach((petID) => {
             const pet = this.app.game.pets.getObjectByID(petID)!;
-            this.player.petUnlocked.push(pet);
+            this.simPlayer.petUnlocked.push(pet);
             this.app.selectButton(
                 this.document.getElementById(`MCS ${pet.name} Button`)
             );
@@ -499,36 +540,36 @@ class Import {
         cookingMastery: boolean
     ) {
         // Import Food Settings
-        this.player.autoEatTier = autoEatTier;
+        this.simPlayer.autoEatTier = autoEatTier;
         this.document.getElementById(
             "MCS Auto Eat Tier Dropdown"
         ).selectedIndex = autoEatTier + 1;
         this.app.equipFood(foodSelected);
         this.checkRadio("MCS 95% Cooking Pool", cookingPool);
-        this.player.cookingPool = cookingPool;
+        this.simPlayer.cookingPool = cookingPool;
         this.checkRadio("MCS 99 Cooking Mastery", cookingMastery);
-        this.player.cookingMastery = cookingMastery;
+        this.simPlayer.cookingMastery = cookingMastery;
     }
 
     importManualEating(isManualEating: boolean) {
         this.checkRadio("MCS Manual Eating", isManualEating);
-        this.player.isManualEating = isManualEating;
+        this.simPlayer.isManualEating = isManualEating;
     }
 
     importHealAfterDeath(healAfterDeath: boolean) {
         this.checkRadio("MCS Heal After Death", healAfterDeath);
-        this.player.healAfterDeath = healAfterDeath;
+        this.simPlayer.healAfterDeath = healAfterDeath;
     }
 
     importSlayerTask(isSlayerTask: boolean) {
         // Update slayer task mode
         this.checkRadio("MCS Slayer Task", isSlayerTask);
-        this.player.isSlayerTask = isSlayerTask;
+        this.simPlayer.isSlayerTask = isSlayerTask;
         this.app.slayerTaskSimsToggle();
     }
 
     importGameMode(gamemodeID: string) {
-        this.player.currentGamemodeID = gamemodeID;
+        this.simPlayer.currentGamemodeID = gamemodeID;
         const index = this.micsr.gamemodes.findIndex(
             (x) => x.id === gamemodeID
         );
@@ -539,7 +580,7 @@ class Import {
     importUseCombinationRunes(useCombinationRunes: boolean) {
         // Update hardcore mode
         this.checkRadio("MCS Use Combination Runes", useCombinationRunes);
-        this.player.useCombinationRunes = useCombinationRunes;
+        this.simPlayer.useCombinationRunes = useCombinationRunes;
     }
 
     importAgilityCourse(
@@ -551,7 +592,7 @@ class Import {
     }
 
     importAstrology(astrologyModifiers: any) {
-        this.player.activeAstrologyModifiers.forEach(
+        this.simPlayer.activeAstrologyModifiers.forEach(
             (constellationModifiers: any, idx) => {
                 const constellation =
                     this.app.game.astrology.actions.allObjects.find(
@@ -603,6 +644,34 @@ class Import {
             }
         );
         this.app.updateAstrologySummary();
+    }
+
+    convertObjectToJson(settings: IImportSettings): string {
+        return JSON.stringify(
+            settings,
+            (k, v) => {
+                if (v instanceof Map) {
+                    return {
+                        dataType: "Map",
+                        value: Array.from(v.entries()),
+                    };
+                } else {
+                    return v;
+                }
+            },
+            1
+        );
+    }
+
+    convertStringToObject(value: string): IImportSettings {
+        return JSON.parse(value, (k, v) => {
+            if (typeof v === "object" && v !== null) {
+                if (v.dataType === "Map") {
+                    return new Map(v.value);
+                }
+            }
+            return v;
+        });
     }
 
     checkRadio(baseID: string, check: boolean) {

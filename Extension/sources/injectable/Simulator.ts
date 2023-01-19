@@ -1097,7 +1097,7 @@ class Simulator {
             dungeonSimData: this.dungeonSimData,
             slayerSimData: this.slayerSimData,
         };
-        save.export = JSON.stringify(save.settings, null, 1);
+        save.export = this.parent.import.convertObjectToJson(save.settings);
         this.parent.savedSimulations.push(save);
         this.parent.createCompareCard();
     }

@@ -116,7 +116,7 @@ class AgilityCourse {
                             this.media.combat,
                             this.media.statistics,
                             this.media.gp,
-                            this.media.stamina
+                            this.media.stamina,
                         ][id],
                         modifiers: {},
                         name: x.name,
@@ -174,11 +174,17 @@ class AgilityCourse {
             // label
             const labelDiv = document.createElement("div");
             labelDiv.className = "col-6";
-            labelDiv.setAttribute("style", "display: table; text-align: center;");
+            labelDiv.setAttribute(
+                "style",
+                "display: table; text-align: center;"
+            );
             const label = document.createElement("label");
             label.id = `MICSR Obstacle ${category} ${this.id} Label`;
             label.textContent = "None";
-            label.setAttribute("style", "display: table-cell; vertical-align: middle;");
+            label.setAttribute(
+                "style",
+                "display: table-cell; vertical-align: middle;"
+            );
             labelDiv.appendChild(label);
             obstacleSelectionContainer.appendChild(labelDiv);
             // add selection container to card
@@ -212,12 +218,10 @@ class AgilityCourse {
         const buttonIds = menuItems.map(
             (obstacle: any) => `${obstacle.name} ${this.id}`
         );
-        const buttonCallbacks = menuItems.map(
-            (obstacle: any) => () => {
-                this.selectObstacle(category, obstacle);
-                this.parent.agilityCourseCallback();
-            }
-        );
+        const buttonCallbacks = menuItems.map((obstacle: any) => () => {
+            this.selectObstacle(category, obstacle);
+            this.parent.agilityCourseCallback();
+        });
         const tooltips = menuItems.map((obstacle: any) =>
             this.getObstacleTooltip(category, obstacle)
         );
@@ -295,12 +299,12 @@ class AgilityCourse {
     }
 
     selectObstacle(category: number, obstacle: IObstacle) {
+        // debugger;
         const label = document.getElementById(
             `MICSR Obstacle ${category} ${this.id} Label`
         )!;
         label.textContent = obstacle.name;
         this.setObstacleImage(category, obstacle);
-        debugger;
         // if (category === 10) {
         //     this.player.pillar = obstacle.id;
         // }
@@ -354,7 +358,9 @@ class AgilityCourse {
         // toggle
         if (this.player.courseMastery[category]) {
             this.player.courseMastery[category] = false;
-            this.parent.unselectButton(event.currentTarget as HTMLButtonElement);
+            this.parent.unselectButton(
+                event.currentTarget as HTMLButtonElement
+            );
         } else {
             this.player.courseMastery[category] = true;
             this.parent.selectButton(event.currentTarget as HTMLButtonElement);
@@ -370,10 +376,14 @@ class AgilityCourse {
         masteries: boolean[],
         pillarID: string
     ) {
-        debugger;
+        // debugger;
         // clear current values
-        this.player.course = Array(this.parent.actualGame.agility.maxObstacles).fill(-1);
-        this.player.courseMastery = Array(this.parent.actualGame.agility.maxObstacles).fill(false);
+        this.player.course = Array(
+            this.parent.actualGame.agility.maxObstacles
+        ).fill(-1);
+        this.player.courseMastery = Array(
+            this.parent.actualGame.agility.maxObstacles
+        ).fill(false);
         // import settings
         this.player.course.forEach((_, category) => {
             let obstacleID = courseObstacles[category];
@@ -390,10 +400,16 @@ class AgilityCourse {
             }
         });
         this.player.pillarID = pillarID;
-        this.selectObstacle(
-            this.agilityCategories,
-            this.agilityPillars[this.player.game.agility.pillars.allObjects.findIndex((v) => v.id === pillarID)]
-        );
+        if (pillarID) {
+            this.selectObstacle(
+                this.agilityCategories,
+                this.agilityPillars[
+                    this.player.game.agility.pillars.allObjects.findIndex(
+                        (v) => v.id === pillarID
+                    )
+                ]
+            );
+        }
         // set image selection
         this.player.courseMastery.forEach((m, i) => {
             const elt = document.getElementById(

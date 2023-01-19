@@ -51,10 +51,10 @@ class App {
     equipmentSubsets: any;
     failureLabel: any;
     foodCCContainer: any;
-    foodItems: any;
+    foodItems!: FoodItem[];
     force: any;
     import!: Import;
-    importedSettings: any;
+    importedSettings?: IImportSettings;
     infoPlaceholder: any;
     initialTimeUnitIndex: any;
     isViewingDungeon: any;
@@ -428,7 +428,7 @@ class App {
         this.createPrayerSelectCard();
         this.createPotionSelectCard();
         this.createPetSelectCard();
-        this.createAgilitySelectCard();
+        // this.createAgilitySelectCard();
         // this.createAstrologySelectCard();
         this.createLootOptionsCard();
         this.createSimulationAndExportCard();
@@ -832,13 +832,13 @@ class App {
             equipmentSelectCard.addSectionTitle("Food");
             this.foodItems = [
                 this.micsr.game.emptyFoodItem,
-                ...this.micsr.items.allObjects,
+                ...this.micsr.items.food.allObjects,
             ].filter((item) => this.filterIfHasKey("healsFor", item));
             this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
             const buttonMedia = this.foodItems.map((item: any) => item.media);
             const buttonIds = this.foodItems.map((item: any) => item.name);
             const buttonCallbacks = this.foodItems.map(
-                (item: any) => () => this.equipFood(item)
+                (item) => () => this.equipFood(item.id)
             );
             const tooltips = this.foodItems.map((item: any) =>
                 this.getFoodTooltip(item)
@@ -1993,13 +1993,15 @@ class App {
         this.simOptionsCard.addButton("Export Settings", () =>
             this.exportSettingButtonOnClick()
         );
-        this.importedSettings = {};
+        this.importedSettings = undefined;
         this.simOptionsCard.addTextInput("Settings JSON:", "", (event: any) => {
             try {
-                this.importedSettings = JSON.parse(event.currentTarget.value);
+                this.importedSettings = this.import.convertStringToObject(
+                    event.currentTarget.value
+                );
             } catch {
                 this.notify("Ignored invalid JSON settings!", "danger");
-                this.importedSettings = {};
+                this.importedSettings = undefined;
             }
         });
         this.simOptionsCard.addButton("Import Settings", () => {
@@ -2636,7 +2638,7 @@ class App {
         }
     }
 
-    updateEquipmentStats(){
+    updateEquipmentStats() {
         this.updateStyleDropdowns();
         this.updateSpellOptions();
         this.updateCombatStats();
@@ -3307,7 +3309,7 @@ class App {
 
     exportSettingButtonOnClick() {
         const settings = this.import.exportSettings();
-        const data = JSON.stringify(settings, null, 1);
+        const data = this.import.convertObjectToJson(settings);
         this.popExport(data);
     }
 
@@ -4002,7 +4004,7 @@ class App {
      * Updates the text fields for the computed combat stats
      */
     updateCombatStats() {
-        debugger;
+        // debugger;
         // first update the values
         this.combatData.updateCombatStats();
         // second update the view

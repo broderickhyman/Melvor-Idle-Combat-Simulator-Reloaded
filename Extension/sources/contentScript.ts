@@ -135,20 +135,183 @@ export function setup(setupContext: Modding.ModContext) {
                     // Auto open the combat sim menu
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
-                    $("[id='MCS 1 Button']").trigger("click");
+                    // $("[id='MCS 1 Button']").trigger("click");
+                    // $("[id='MCS 2 Button']").trigger("click");
+
+                    // Specific test
+                    // const settings = app.import.exportSettings();
+                    // settings.levels.forEach((v, k, m) => {
+                    //     m.set(k, 120);
+                    // });
+                    // // settings.foodSelected = "melvorD:Birthday_Cake";
+                    // settings.foodSelected = "melvorF:Apple_Pie";
+                    app.import.importSettings(app.import.convertStringToObject(JSON.stringify({
+                        version: "v2.0.0",
+                        astrologyModifiers: [],
+                        course: [
+                            0, 5, 7, 11, 18, 24, 29, 32, 38, 45, -1, 58, 61, 68,
+                            73, -1,
+                        ],
+                        courseMastery: [
+                            true,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                            false,
+                        ],
+                        equipment: [
+                            "melvorTotH:Slayer_Wizard_Hat_Mythical",
+                            "melvorTotH:Vorloran_Devastator_Platebody",
+                            "melvorTotH:Vorloran_Devastator_Platelegs",
+                            "melvorTotH:Vorloran_Devastator_Boots",
+                            "melvorF:Cloudburst_Staff",
+                            "melvorF:Cloudburst_Staff",
+                            "melvorD:Fury_of_the_Elemental_Zodiac",
+                            "melvorF:Ring_Of_Wealth",
+                            "melvorTotH:Vorloran_Devastator_Gauntlets",
+                            "melvorD:Empty_Equipment",
+                            "melvorTotH:Superior_Cape_Of_Completion",
+                            "melvorD:Empty_Equipment",
+                            "melvorF:Summoning_Familiar_Witch",
+                            "melvorF:Summoning_Familiar_Dragon",
+                            "melvorD:Empty_Equipment"
+                           ],
+                        levels: {
+                            dataType: "Map",
+                            value: [
+                                ["melvorD:Attack", 120],
+                                ["melvorD:Strength", 120],
+                                ["melvorD:Defence", 120],
+                                ["melvorD:Hitpoints", 120],
+                                ["melvorD:Ranged", 120],
+                                ["melvorD:Magic", 120],
+                                ["melvorD:Prayer", 120],
+                                ["melvorD:Slayer", 120],
+                                ["melvorD:Woodcutting", 120],
+                                ["melvorD:Fishing", 120],
+                                ["melvorD:Firemaking", 120],
+                                ["melvorD:Cooking", 120],
+                                ["melvorD:Mining", 120],
+                                ["melvorD:Smithing", 120],
+                                ["melvorD:Thieving", 120],
+                                ["melvorD:Farming", 120],
+                                ["melvorD:Fletching", 120],
+                                ["melvorD:Crafting", 120],
+                                ["melvorD:Runecrafting", 120],
+                                ["melvorD:Herblore", 120],
+                                ["melvorD:Agility", 120],
+                                ["melvorD:Summoning", 120],
+                                ["melvorD:Astrology", 120],
+                                ["melvorD:Township", 120],
+                            ],
+                        },
+                        petUnlocked: [
+                            "melvorD:PuddingDuckie",
+                            "melvorD:Pyro",
+                            "melvorD:Cris",
+                            "melvorD:CoolRock",
+                            "melvorD:PuffTheBabyDragon",
+                            "melvorD:LarryTheLonelyLizard",
+                            "melvorD:Bruce",
+                            "melvorD:LilRon",
+                            "melvorD:Leonardo",
+                            "melvorD:FinnTheCat",
+                            "melvorD:Ty",
+                            "melvorD:Chick",
+                            "melvorD:Zarrah",
+                            "melvorD:Chio",
+                            "melvorD:BouncingBob",
+                            "melvorD:Rosey",
+                            "melvorD:Ayyden",
+                            "melvorD:ArcticYeti",
+                            "melvorD:Mac",
+                            "melvorD:FestiveCoolRock",
+                            "melvorD:FestiveChio",
+                            "melvorF:Snek",
+                            "melvorF:Quill",
+                            "melvorF:Gunter",
+                            "melvorF:Gronk",
+                            "melvorF:Marahute",
+                            "melvorF:Salem",
+                            "melvorF:Monkey",
+                            "melvorF:Asura",
+                            "melvorF:Peri",
+                            "melvorF:Otto",
+                            "melvorF:JellyJim",
+                            "melvorF:Harley",
+                            "melvorF:Singe",
+                            "melvorF:Aquarias",
+                            "melvorF:Norman",
+                            "melvorF:Erran",
+                            "melvorF:Ren",
+                            "melvorF:Sam",
+                            "melvorF:Mark",
+                            "melvorF:Astro",
+                            "melvorF:B",
+                            "melvorF:Marcy",
+                            "melvorF:Roger",
+                            "melvorF:Ace",
+                            "melvorF:Layla",
+                            "melvorF:MisterFuzzbutt",
+                            "melvorF:OctaviusLepidus",
+                            "melvorF:Saki",
+                        ],
+                        styles: {
+                            magic: "melvorD:Magic",
+                            melee: "melvorD:Slash",
+                            ranged: "melvorD:Rapid",
+                        },
+                        prayerSelected: [
+                            "melvorF:Augury",
+                            "melvorF:Mystic_Mastery",
+                        ],
+                        spells: {
+                            ancient: "",
+                            archaic: "",
+                            aurora: "melvorF:FuryII",
+                            curse: "melvorF:AnguishIII",
+                            standard: "melvorD:WaterSurge",
+                        },
+                        autoEatTier: 2,
+                        cookingMastery: true,
+                        cookingPool: true,
+                        currentGamemodeID: "melvorD:Standard",
+                        foodSelected: "melvorF:Apple_Pie",
+                        healAfterDeath: true,
+                        isManualEating: false,
+                        isSlayerTask: false,
+                        pillarID: "melvorF:PillarofCombat",
+                        pillarEliteID: "",
+                        potionID: "melvorF:Diamond_Luck_Potion_III",
+                        useCombinationRunes: false,
+                    })));
 
                     // Start sim all
                     // Low trial count for fast simulate all
-                    micsr.trials = 1e2;
-                    $("[id='MCS # Trials Input'").val(micsr.trials);
+                    // micsr.trials = 1e2;
+                    // $("[id='MCS # Trials Input'").val(micsr.trials);
                     // $("[id='MCS Simulate All Button']").trigger("click");
 
                     // High trial count for development for consistent numbers
-                    // micsr.trials = 2e4;
-                    // $("[id='MCS # Trials Input'").val(micsr.trials);
+                    micsr.trials = 2e4;
+                    $("[id='MCS # Trials Input'").val(micsr.trials);
                     // Click monster
-                    $($(".mcs-bar-container")[0]).trigger("click");
+                    // Plant
+                    // $($(".mcs-bar-container")[0]).trigger("click");
+                    // Black Dragon
                     // $($(".mcs-bar-container")[9]).trigger("click");
+                    // Ice Hydra
+                    $($(".mcs-bar-container")[50]).trigger("click");
                     // Start sim selected
                     $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");

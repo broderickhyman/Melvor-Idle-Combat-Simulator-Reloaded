@@ -61,7 +61,7 @@ class ExportCheat extends Import {
         // add some bank space
         //// @ts-expect-error TS(2304): Cannot find name 'addShopPurchase'.
         // addShopPurchase('General', 0, 1e3);
-        this.player.computeAllStats();
+        this.simPlayer.computeAllStats();
         // add some runes, in case we need them
         //// @ts-expect-error TS(2304): Cannot find name 'items'.
         // items.filter((x: any) => x.type === 'Rune').forEach((x: any) => addItemToBank(x.id, Number.MAX_SAFE_INTEGER, true, false, true));
@@ -70,7 +70,7 @@ class ExportCheat extends Import {
         // cheat settings to game
         this.importSettings(settings);
         // update stats
-        this.player.computeAllStats();
+        this.simPlayer.computeAllStats();
     }
 
     update() {
