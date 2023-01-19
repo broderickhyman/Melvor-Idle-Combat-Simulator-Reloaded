@@ -26,21 +26,291 @@ class SimGame extends Game {
         super();
         this.micsr = micsr;
         this.isWebWorker = isWebWorker;
-        const demoNamespace =
-            this.registeredNamespaces.getNamespace("melvorD")!;
-        this.combat = new SimManager(this, demoNamespace) as any;
-        this.detachGlobals();
 
-        
+        // this.loopInterval = -1;
+        // this.loopStarted = false;
+        this.disableClearOffline = false;
+        // this.isUnpausing = false;
+        // this.previousTickTime = performance.now();
+        // this.enableRendering = true;
+        // this.maxOfflineTicks = 20 * 60 * 60 * 24;
+        this.registeredNamespaces = new NamespaceMap();
+        // @ts-expect-error
+        this.dummyNamespaces = new NamespaceMap();
+        // this.tickTimestamp = Date.now();
+        // this.saveTimestamp = 0;
+        // this._isPaused = false;
+        this.merchantsPermitRead = false;
+        this.characterName = getLangString("CHARACTER_SELECT", "75");
+        this.minibar = new Minibar(this as any);
+        this.petManager = new PetManager(this as any);
+        this.shop = new Shop(this as any);
+        this.itemCharges = new ItemCharges(this as any);
+        this.tutorial = new Tutorial(this as any);
+        this.potions = new PotionManager(this as any);
+        this.gp = new GP(this as any);
+        this.slayerCoins = new SlayerCoins(this as any);
+        this.raidCoins = new RaidCoins(this as any);
+        this.readNewsIDs = [];
+        this.lastLoadedGameVersion = gameVersion;
+        this.completion = new Completion(this as any);
+        this.lore = new Lore(this as any);
+        this.eventManager = new EventManager();
+        // @ts-expect-error
+        this.dropWeightCache = new Map();
+        this.refundedAstrology = false;
+        // this.refundedAstrologyAgain = false;
+        this.renderQueue = {
+            title: false,
+            combatMinibar: false,
+            activeSkills: false,
+        };
+        this.attackStyles = new NamespaceRegistry(this.registeredNamespaces);
+        this.stackingEffects = new NamespaceRegistry(this.registeredNamespaces);
+        this.specialAttacks = new NamespaceRegistry(this.registeredNamespaces);
+        this.items = new ItemRegistry(this.registeredNamespaces);
+        this.pages = new NamespaceRegistry(this.registeredNamespaces);
+        this.actions = new NamespaceRegistry(this.registeredNamespaces);
+        this.activeActions = new NamespaceRegistry(this.registeredNamespaces);
+        this.passiveActions = new NamespaceRegistry(this.registeredNamespaces);
+        // @ts-expect-error
+        this._passiveTickers = [];
+        // @ts-expect-error
+        this.actionPageMap = new Map();
+        // @ts-expect-error
+        this.skillPageMap = new Map();
+        this.skills = new NamespaceRegistry(this.registeredNamespaces);
+        this.masterySkills = new NamespaceRegistry(this.registeredNamespaces);
+        this.monsters = new NamespaceRegistry(this.registeredNamespaces);
+        this.monsterAreas = new Map();
+        this.combatPassives = new NamespaceRegistry(this.registeredNamespaces);
+        this.combatAreas = new NamespaceRegistry(this.registeredNamespaces);
+        this.combatAreaDisplayOrder = new NamespacedArray(this.combatAreas);
+        this.slayerAreas = new NamespaceRegistry(this.registeredNamespaces);
+        this.slayerAreaDisplayOrder = new NamespacedArray(this.slayerAreas);
+        this.dungeons = new NamespaceRegistry(this.registeredNamespaces);
+        this.dungeonDisplayOrder = new NamespacedArray(this.dungeons);
+        this.combatEvents = new NamespaceRegistry(this.registeredNamespaces);
+        this.prayers = new NamespaceRegistry(this.registeredNamespaces);
+        this.standardSpells = new NamespaceRegistry(this.registeredNamespaces);
+        this.curseSpells = new NamespaceRegistry(this.registeredNamespaces);
+        this.auroraSpells = new NamespaceRegistry(this.registeredNamespaces);
+        this.ancientSpells = new NamespaceRegistry(this.registeredNamespaces);
+        this.archaicSpells = new NamespaceRegistry(this.registeredNamespaces);
+        this.pets = new NamespaceRegistry(this.registeredNamespaces);
+        this.gamemodes = new NamespaceRegistry(this.registeredNamespaces);
+        // @ts-expect-error
+        this.steamAchievements = new Map();
+        this.itemSynergies = new Map();
+        this.randomGemTable = new DropTable(this as any, []);
+        this.randomSuperiorGemTable = new DropTable(this as any, []);
+        // @ts-expect-error
+        this.softDataRegQueue = [];
+        this.bank = new Bank(this as any, 12, 12);
+        this.registeredNamespaces.registerNamespace(
+            "melvorBaseGame",
+            "Base Game",
+            false
+        );
+        this.registeredNamespaces.registerNamespace(
+            "melvorTrue",
+            "True",
+            false
+        );
+        const demoNamespace = this.registeredNamespaces.registerNamespace(
+            "melvorD",
+            "Demo",
+            false
+        );
+        // @ts-expect-error
+        if (cloudManager.hasFullVersionEntitlement) {
+            const fullNamespace = this.registeredNamespaces.registerNamespace(
+                "melvorF",
+                "Full Version",
+                false
+            );
+            this.combatPassives.registerObject(
+                new ControlledAffliction(fullNamespace, this as any)
+            );
+        }
+        // @ts-expect-error
+        if (cloudManager.hasTotHEntitlement)
+            this.registeredNamespaces.registerNamespace(
+                "melvorTotH",
+                "Throne of the Herald",
+                false
+            );
+        this.normalAttack = new SpecialAttack(
+            demoNamespace,
+            {
+                id: "Normal",
+                defaultChance: 100,
+                damage: [{ damageType: "Normal", amplitude: 100 }],
+                prehitEffects: [],
+                onhitEffects: [],
+                cantMiss: false,
+                attackCount: 1,
+                attackInterval: -1,
+                lifesteal: 0,
+                usesRunesPerProc: false,
+                usesPrayerPointsPerProc: true,
+                usesPotionChargesPerProc: true,
+                attackTypes: ["melee", "ranged", "magic"],
+                isDragonbreath: false,
+                name: "Normal Attack",
+                description: "Perform a Normal attack.",
+                descriptionGenerator: "Perform a Normal attack.",
+            },
+            this as any
+        );
+        this.specialAttacks.registerObject(this.normalAttack);
+        this.itemEffectAttack = new ItemEffectAttack(demoNamespace, this as any);
+        this.emptyEquipmentItem = new EquipmentItem(
+            demoNamespace,
+            {
+                id: "Empty_Equipment",
+                tier: "emptyItem",
+                name: "",
+                validSlots: [],
+                occupiesSlots: [],
+                equipRequirements: [],
+                equipmentStats: [],
+                category: "",
+                type: "",
+                media: "assets/media/skills/combat/food_empty.svg",
+                ignoreCompletion: true,
+                obtainFromItemLog: false,
+                golbinRaidExclusive: false,
+                sellsFor: 0,
+            },
+            this as any
+        );
+        this.items.registerObject(this.emptyEquipmentItem);
+        this.emptyFoodItem = new FoodItem(demoNamespace, {
+            itemType: "Food",
+            id: "Empty_Food",
+            name: "",
+            healsFor: 0,
+            category: "",
+            type: "",
+            media: "assets/media/skills/combat/food_empty.svg",
+            ignoreCompletion: true,
+            obtainFromItemLog: false,
+            golbinRaidExclusive: false,
+            sellsFor: 0,
+        });
+        this.items.registerObject(this.emptyFoodItem);
+        this.unknownCombatArea = new CombatArea(
+            demoNamespace,
+            {
+                name: "Unknown Area",
+                id: "UnknownArea",
+                media: "assets/media/main/question.svg",
+                monsterIDs: [],
+                difficulty: [0],
+                entryRequirements: [],
+            },
+            this as any
+        );
+        this.combatAreas.registerObject(this.unknownCombatArea);
+        this.decreasedEvasionStackingEffect = new StackingEffect(
+            demoNamespace,
+            {
+                id: "DecreasedEvasion",
+                stacksToAdd: 1,
+                modifiers: { decreasedGlobalEvasion: 10 },
+                maxStacks: 3,
+                name: "TODO: Get name",
+                media: TODO_REPLACE_MEDIA,
+            }
+        );
+        this.activeActionPage = new Page(
+            demoNamespace,
+            {
+                id: "ActiveSkill",
+                customName: "Active Skill",
+                media: "assets/media/main/logo_no_text.svg",
+                containerID: "",
+                headerBgClass: "",
+                hasGameGuide: false,
+                canBeDefault: true,
+            },
+            this as any
+        );
+        this.pages.registerObject(this.activeActionPage);
+        const unsetMode = new Gamemode(
+            demoNamespace,
+            {
+                id: "Unset",
+                name: "Error: Unset Gamemode",
+                media: "assets/media/main/question.svg",
+                description: "Error: Unset Gamemode",
+                rules: [],
+                textClass: "",
+                btnClass: "",
+                isPermaDeath: false,
+                isEvent: false,
+                endDate: 0,
+                combatTriangle: "Standard",
+                hitpointMultiplier: 1,
+                hasRegen: true,
+                capNonCombatSkillLevels: false,
+                startingPage: "melvorD:ActiveSkill",
+                startingItems: [],
+                allowSkillUnlock: true,
+                startingSkills: [],
+                skillUnlockCost: [Infinity],
+                playerModifiers: {},
+                enemyModifiers: {},
+                hasTutorial: false,
+            },
+            this as any
+        );
+        this.gamemodes.registerObject(unsetMode);
+        this.currentGamemode = unsetMode;
+        this.settings = new Settings(this as any);
+        this.stats = new Statistics(this as any);
+        this.combat = new SimManager(this, demoNamespace) as any;
+        this.golbinRaid = new RaidManager(this as any, demoNamespace);
+
+        this.actions.registerObject(this.combat);
+        this.actions.registerObject(this.golbinRaid);
+        this.activeActions.registerObject(this.combat);
+        this.activeActions.registerObject(this.golbinRaid);
+        this.passiveActions.registerObject(this.combat);
+        this.attack = this.registerSkill(demoNamespace, Attack);
+        this.strength = this.registerSkill(demoNamespace, Strength);
+        this.defence = this.registerSkill(demoNamespace, Defence);
+        this.hitpoints = this.registerSkill(demoNamespace, Hitpoints);
+        this.ranged = this.registerSkill(demoNamespace, Ranged);
+        this.altMagic = this.registerSkill(demoNamespace, AltMagic);
+        this.prayer = this.registerSkill(demoNamespace, Prayer);
+        this.slayer = this.registerSkill(demoNamespace, Slayer);
+        this.woodcutting = this.registerSkill(demoNamespace, Woodcutting);
+        this.fishing = this.registerSkill(demoNamespace, Fishing);
+        this.firemaking = this.registerSkill(demoNamespace, Firemaking);
+        this.cooking = this.registerSkill(demoNamespace, Cooking);
+        this.mining = this.registerSkill(demoNamespace, Mining);
+        this.smithing = this.registerSkill(demoNamespace, Smithing);
+        this.thieving = this.registerSkill(demoNamespace, Thieving);
+        this.farming = this.registerSkill(demoNamespace, Farming);
+        this.fletching = this.registerSkill(demoNamespace, Fletching);
+        this.crafting = this.registerSkill(demoNamespace, Crafting);
+        this.runecrafting = this.registerSkill(demoNamespace, Runecrafting);
+        this.herblore = this.registerSkill(demoNamespace, Herblore);
+        this.agility = this.registerSkill(demoNamespace, Agility);
+        this.summoning = this.registerSkill(demoNamespace, Summoning);
+        this.astrology = this.registerSkill(demoNamespace, Astrology);
+        this.township = this.registerSkill(demoNamespace, Township);
+        this.actions.registerObject(this.township as any);
         // Fix SimPlayer object to match replaced Player object
-        // this.combat.player.registerStatProvider(this.firemaking);
-        // this.combat.player.registerStatProvider(this.agility);
-        // this.combat.player.registerStatProvider(this.astrology);
-        // this.combat.player.registerStatProvider(this.township);
         // TODO: Re-enable this when we manage pets directly
         // this.combat.player.registerStatProvider(this.petManager);
         this.combat.player.registerStatProvider(this.shop);
         this.combat.player.registerStatProvider(this.potions);
+        // this.golbinRaid.player.registerStatProvider(this.petManager.raidStats);
+        // this.golbinRaid.player.registerStatProvider(this.shop.raidStats);
+        this.detachGlobals();
     }
 
     detachGlobals() {
@@ -159,9 +429,7 @@ class SimGame extends Game {
 
     resetToBlankState() {
         this.combat.player.resetToBlankState();
-        // @ts-expect-error
-        this.potions.activePotions.clear();
-        this.combat.player.potion = undefined;
+        this.combat.player.setPotion(undefined);
     }
 
     constructEventMatcher(data: GameEventMatcherData): GameEventMatcher {

@@ -493,14 +493,12 @@ class Import {
                     `MCS ${this.app.getPotionHtmlId(this.simPlayer.potion)} Button`
                 )
             );
-            this.simPlayer.potion = undefined;
+            this.simPlayer.setPotion(undefined);
         }
         // Select new potion if applicable
         if (potionID) {
-            const potion = this.app.manager.game.items.potions.find(
-                (p) => p.id === potionID
-            );
-            this.simPlayer.potion = potion;
+            const potion = this.simPlayer.game.items.potions.getObjectByID(potionID);
+            this.simPlayer.setPotion(potion);
             if (this.simPlayer.potion) {
                 this.app.selectButton(
                     this.document.getElementById(

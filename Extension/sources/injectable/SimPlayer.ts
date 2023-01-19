@@ -66,7 +66,6 @@ class SimPlayer extends Player {
     petUnlocked: Pet[];
     pillarID: string;
     pillarEliteID: string;
-    potion?: PotionItem;
     runesProvided: any;
     skillLevel: Map<string, number>;
     skillXP: Map<string, number>;
@@ -87,6 +86,10 @@ class SimPlayer extends Player {
     // @ts-expect-error Force SimManager type
     manager: SimManager;
     micsr: MICSR;
+
+    public get potion() {
+        return this.game.potions.getActivePotionForAction(this.game.combat);
+    }
 
     constructor(simManager: SimManager, simGame: SimGame) {
         super(simManager as any, simGame as any);
@@ -110,8 +113,6 @@ class SimPlayer extends Player {
         this.courseMastery = [];
         this.pillarID = "";
         this.pillarEliteID = "";
-        // herbloreBonuses
-        this.potion = undefined;
         // shopItemsPurchased
         this.autoEatTier = -1;
         // cooking MASTERY
@@ -693,7 +694,6 @@ class SimPlayer extends Player {
         } else if (this.potion) {
             this.game.potions.removePotion(this.potion.action);
         }
-        this.potion = newPotion;
     }
 
     getSpellFromType(spellType: string) {
@@ -886,7 +886,7 @@ class SimPlayer extends Player {
         this.micsr.logVerbose("decode skillLevel", this.skillLevel);
         const potionId = reader.getString();
         if (potionId) {
-            this.potion = this.game.items.potions.getObjectByID(potionId);
+            this.setPotion(this.game.items.potions.getObjectByID(potionId));
         }
         this.micsr.logVerbose("decode potion id", potionId);
         this.petUnlocked = reader.getArray(

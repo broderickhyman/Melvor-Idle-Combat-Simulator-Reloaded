@@ -145,30 +145,11 @@ export function setup(setupContext: Modding.ModContext) {
                     // });
                     // // settings.foodSelected = "melvorD:Birthday_Cake";
                     // settings.foodSelected = "melvorF:Apple_Pie";
-                    app.import.importSettings(app.import.convertStringToObject(JSON.stringify({
+                    const settings = app.import.convertStringToObject(JSON.stringify({
                         version: "v2.0.0",
                         astrologyModifiers: [],
-                        course: [
-                            0, 5, 7, 11, 18, 24, 29, 32, 38, 45, -1, 58, 61, 68,
-                            73, -1,
-                        ],
-                        courseMastery: [
-                            true,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                            false,
-                        ],
+                        course: [],
+                        courseMastery: [],
                         equipment: [
                             "melvorTotH:Slayer_Wizard_Hat_Mythical",
                             "melvorTotH:Vorloran_Devastator_Platebody",
@@ -292,9 +273,10 @@ export function setup(setupContext: Modding.ModContext) {
                         isSlayerTask: false,
                         pillarID: "melvorF:PillarofCombat",
                         pillarEliteID: "",
-                        potionID: "melvorF:Diamond_Luck_Potion_III",
+                        potionID: "melvorF:Damage_Reduction_Potion_IV",
                         useCombinationRunes: false,
-                    })));
+                    }));
+                    // app.import.importSettings(settings);
 
                     // Start sim all
                     // Low trial count for fast simulate all
@@ -306,14 +288,12 @@ export function setup(setupContext: Modding.ModContext) {
                     micsr.trials = 2e4;
                     $("[id='MCS # Trials Input'").val(micsr.trials);
                     // Click monster
-                    // Plant
-                    // $($(".mcs-bar-container")[0]).trigger("click");
-                    // Black Dragon
-                    // $($(".mcs-bar-container")[9]).trigger("click");
-                    // Ice Hydra
-                    $($(".mcs-bar-container")[50]).trigger("click");
+                    const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorD:Plant");
+                    // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorD:BlackDragon");
+                    // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorTotH:IceHydra");
+                    $($(".mcs-bar-container")[imageID]).trigger("click");
                     // Start sim selected
-                    $("[id='MCS Simulate Selected Button']").trigger("click");
+                    // $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");
                 }
             } catch (error) {
