@@ -31,7 +31,6 @@ interface ISimData {
 
 interface ISimSave {
     settings: IImportSettings;
-    export: string;
     monsterSimData: { [index: string]: ISimData };
     dungeonSimData: { [index: string]: ISimData };
     slayerSimData: { [index: string]: ISimData };
@@ -1092,12 +1091,10 @@ class Simulator {
         // store simulation
         const save: ISimSave = {
             settings: this.parent.import.exportSettings(),
-            export: "",
-            monsterSimData: this.monsterSimData,
-            dungeonSimData: this.dungeonSimData,
-            slayerSimData: this.slayerSimData,
+            monsterSimData: JSON.parse(JSON.stringify(this.monsterSimData)),
+            dungeonSimData: JSON.parse(JSON.stringify(this.dungeonSimData)),
+            slayerSimData: JSON.parse(JSON.stringify(this.slayerSimData)),
         };
-        save.export = this.parent.import.convertObjectToJson(save.settings);
         this.parent.savedSimulations.push(save);
         this.parent.createCompareCard();
     }
