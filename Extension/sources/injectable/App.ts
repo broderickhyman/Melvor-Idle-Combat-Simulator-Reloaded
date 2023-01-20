@@ -808,7 +808,7 @@ class App {
 
     createFoodContainer() {
         this.foodCCContainer = this.equipmentSelectCard.createCCContainer();
-        // food card
+        // Food card
         const containerDiv = document.createElement("div");
         containerDiv.style.position = "relative";
         containerDiv.style.cursor = "pointer";
@@ -830,17 +830,16 @@ class App {
                 "600px"
             );
             equipmentSelectCard.addSectionTitle("Food");
-            this.foodItems = [
-                this.micsr.game.emptyFoodItem,
-                ...this.micsr.items.food.allObjects,
-            ].filter((item) => this.filterIfHasKey("healsFor", item));
-            this.foodItems.sort((a: any, b: any) => b.healsFor - a.healsFor);
-            const buttonMedia = this.foodItems.map((item: any) => item.media);
-            const buttonIds = this.foodItems.map((item: any) => item.name);
+            this.foodItems = this.micsr.items.food.allObjects.filter((item) =>
+                this.filterIfHasKey("healsFor", item)
+            );
+            this.foodItems.sort((a, b) => b.healsFor - a.healsFor);
+            const buttonMedia = this.foodItems.map((item) => item.media);
+            const buttonIds = this.foodItems.map((item) => item.name);
             const buttonCallbacks = this.foodItems.map(
                 (item) => () => this.equipFood(item.id)
             );
-            const tooltips = this.foodItems.map((item: any) =>
+            const tooltips = this.foodItems.map((item) =>
                 this.getFoodTooltip(item)
             );
             equipmentSelectCard.addImageButtons(
@@ -857,7 +856,7 @@ class App {
         this.foodCCContainer.appendChild(containerDiv);
         foodPopup.style.display = "none";
         this.equipmentSelectCard.registerPopupMenu(containerDiv, foodPopup);
-        // heal amt
+        // Heal amt
         let label = document.createElement("span");
         label.id = "MICSR-heal-amount-Label";
         label.className = "text-bank-desc";
@@ -871,33 +870,32 @@ class App {
         wrapper.appendChild(image);
         wrapper.appendChild(label);
         this.foodCCContainer.appendChild(wrapper);
-        // auto eat dropdown
+        // Auto eat dropdown
         let autoEatTierNames = [
             "No Auto Eat",
-            this.micsr.actualGame.shop.purchases
-                .getObjectByID("melvorD:Auto_Eat_Tier_I")!
-                .name.replace(" - Tier", ""),
-            this.micsr.actualGame.shop.purchases
-                .getObjectByID("melvorD:Auto_Eat_Tier_II")!
-                .name.replace(" - Tier", ""),
-            this.micsr.actualGame.shop.purchases
-                .getObjectByID("melvorD:Auto_Eat_Tier_III")!
-                .name.replace(" - Tier", ""),
+            ...this.game.autoEatTiers.map((t) =>
+                this.actualGame.shop.purchases
+                    .getObjectByID(t)!
+                    .name.replace(" - Tier", "")
+            ),
         ];
         let autoEatTierValues = [-1, 0, 1, 2];
         const autoEatTierDropdown = this.equipmentSelectCard.createDropdown(
             autoEatTierNames,
             autoEatTierValues,
             "MCS Auto Eat Tier Dropdown",
-            (event: any) => {
-                this.player.autoEatTier = parseInt(
-                    event.currentTarget.selectedOptions[0].value
+            (event) => {
+                this.game.setAutoEatTier(
+                    parseInt(
+                        (event.currentTarget! as HTMLSelectElement)
+                            .selectedOptions[0].value
+                    )
                 );
                 this.updateCombatStats();
             }
         );
         this.foodCCContainer.appendChild(autoEatTierDropdown);
-        // append to equipmentSelectCard
+        // Append to equipmentSelectCard
         this.equipmentSelectCard.container.appendChild(this.foodCCContainer);
     }
 

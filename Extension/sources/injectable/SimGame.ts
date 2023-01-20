@@ -21,11 +21,29 @@ class SimGame extends Game {
     // @ts-expect-error Force SimManager type
     combat: SimManager;
     isWebWorker: boolean;
+    autoEatTiers: string[];
+
+    // @ts-expect-error Force shop type
+    shop: {
+        computeProvidedStats: (updatePlayers: boolean) => void;
+        isUpgradePurchased(upgrade: ShopPurchase): boolean;
+        postDataRegistration(): void;
+        purchases: NamespaceRegistry<ShopPurchase>;
+        upgradesPurchased: Map<ShopPurchase, number>;
+        encode(writer: SaveWriter): SaveWriter;
+        decode(reader: SaveWriter, version: number): void;
+    };
 
     constructor(micsr: MICSR, isWebWorker: boolean) {
         super();
         this.micsr = micsr;
         this.isWebWorker = isWebWorker;
+
+        this.autoEatTiers = [
+            "melvorD:Auto_Eat_Tier_I",
+            "melvorD:Auto_Eat_Tier_II",
+            "melvorD:Auto_Eat_Tier_III",
+        ];
 
         // this.loopInterval = -1;
         // this.loopStarted = false;
@@ -44,7 +62,7 @@ class SimGame extends Game {
         this.characterName = getLangString("CHARACTER_SELECT", "75");
         this.minibar = new Minibar(this as any);
         this.petManager = new PetManager(this as any);
-        this.shop = new Shop(this as any);
+        this.shop = new Shop(this as any) as any;
         this.itemCharges = new ItemCharges(this as any);
         this.tutorial = new Tutorial(this as any);
         this.potions = new PotionManager(this as any);
@@ -164,7 +182,10 @@ class SimGame extends Game {
             this as any
         );
         this.specialAttacks.registerObject(this.normalAttack);
-        this.itemEffectAttack = new ItemEffectAttack(demoNamespace, this as any);
+        this.itemEffectAttack = new ItemEffectAttack(
+            demoNamespace,
+            this as any
+        );
         this.emptyEquipmentItem = new EquipmentItem(
             demoNamespace,
             {
@@ -306,7 +327,7 @@ class SimGame extends Game {
         // Fix SimPlayer object to match replaced Player object
         // TODO: Re-enable this when we manage pets directly
         // this.combat.player.registerStatProvider(this.petManager);
-        this.combat.player.registerStatProvider(this.shop);
+        this.combat.player.registerStatProvider(this.shop as any);
         this.combat.player.registerStatProvider(this.potions);
         // this.golbinRaid.player.registerStatProvider(this.petManager.raidStats);
         // this.golbinRaid.player.registerStatProvider(this.shop.raidStats);
@@ -427,9 +448,26 @@ class SimGame extends Game {
         }
     }
 
+    setAutoEatTier(tier: number) {
+        this.shop.upgradesPurchased.clear();
+        for (let t = 0; t <= tier; t++) {
+            this.shop.upgradesPurchased.set(
+                this.shop.purchases.getObjectByID(this.autoEatTiers[t])!,
+                1
+            );
+        }
+        this.shop.computeProvidedStats(false);
+    }
+
     resetToBlankState() {
         this.combat.player.resetToBlankState();
         this.combat.player.setPotion(undefined);
+        this.shop.upgradesPurchased.clear();
+
+        // @ts-expect-error
+        this.potions.computeProvidedStats(false);
+        this.shop.computeProvidedStats(false);
+        this.combat.player.computeAllStats();
     }
 
     constructEventMatcher(data: GameEventMatcherData): GameEventMatcher {

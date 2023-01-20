@@ -99,7 +99,6 @@ interface IImportSettings {
  */
 class Import {
     app: App;
-    autoEatTiers: ShopPurchase[];
     document: any;
     actualPlayer: Player;
     simPlayer: SimPlayer;
@@ -111,17 +110,6 @@ class Import {
         this.actualPlayer = app.actualGame.combat.player;
         this.simPlayer = app.player;
         this.document = document;
-        this.autoEatTiers = [
-            this.micsr.actualGame.shop.purchases.getObjectByID(
-                "melvorD:Auto_Eat_Tier_I"
-            )!,
-            this.micsr.actualGame.shop.purchases.getObjectByID(
-                "melvorD:Auto_Eat_Tier_II"
-            )!,
-            this.micsr.actualGame.shop.purchases.getObjectByID(
-                "melvorD:Auto_Eat_Tier_III"
-            )!,
-        ];
     }
 
     /**
@@ -129,12 +117,13 @@ class Import {
      * @param {number} setID Index of equipmentSets from 0-2 to import
      */
     importButtonOnClick(setID: number) {
+        let actualGame = this.micsr.actualGame
         // get potion
         let potionID: string | undefined = undefined;
-        let potion = this.micsr.actualGame.items.potions.find((potion) => {
+        let potion = actualGame.items.potions.find((potion) => {
             return (
                 potion.action.localID === "Combat" &&
-                this.micsr.actualGame.potions.isPotionActive(potion)
+                actualGame.potions.isPotionActive(potion)
             );
         });
         if (potion) {
@@ -142,28 +131,27 @@ class Import {
         }
 
         // get foodSelected
-        const foodSelected =
-            this.actualPlayer.food.currentSlot.item;
+        const foodSelected = this.actualPlayer.food.currentSlot.item;
         // get cooking mastery for foodSelected
         let cookingMastery = false;
         const recipe =
-            this.micsr.actualGame.cooking.productRecipeMap.get(foodSelected);
+            actualGame.cooking.productRecipeMap.get(foodSelected);
         if (recipe && recipe.hasMastery) {
             cookingMastery =
-                this.micsr.actualGame.cooking.getMasteryLevel(recipe) >= 99;
+                actualGame.cooking.getMasteryLevel(recipe) >= 99;
         }
-        const cookingPool = this.micsr.actualGame.cooking.isPoolTierActive(3);
+        const cookingPool = actualGame.cooking.isPoolTierActive(3);
 
         // get the player's auto eat tier
         const autoEatTier =
             -1 +
-            this.autoEatTiers.filter((x: any) =>
-                this.micsr.actualGame.shop.isUpgradePurchased(x)
+            this.app.game.autoEatTiers.filter((x) =>
+                actualGame.shop.isUpgradePurchased(actualGame.shop.purchases.getObjectByID(x)!)
             ).length;
 
         // get the active astrology modifiers
         const astrologyModifiers: {}[] = [];
-        // for (const constellation of this.micsr.actualGame.astrology.actions.allObjects) {
+        // for (const constellation of actualGame.astrology.actions.allObjects) {
 
         //     const modifiers = {};
         //         for (const m of [
@@ -222,8 +210,7 @@ class Import {
             }
         );
 
-        const equipmentSet =
-            this.actualPlayer.equipmentSets[setID];
+        const equipmentSet = this.actualPlayer.equipmentSets[setID];
         const equipment = equipmentSet.equipment;
 
         // create settings object
@@ -235,24 +222,21 @@ class Import {
             courseMastery: courseMastery,
             equipment: equipment.slotArray.map((x) => x.item.id),
             levels: new Map(
-                this.micsr.actualGame.skills.allObjects.map((skill) => [
+                actualGame.skills.allObjects.map((skill) => [
                     skill.id,
                     skill.level,
                 ])
             ),
-            petUnlocked: this.micsr.actualGame.pets.allObjects
+            petUnlocked: actualGame.pets.allObjects
                 .filter((pet) =>
-                    this.micsr.actualGame.petManager.isPetUnlocked(pet)
+                    actualGame.petManager.isPetUnlocked(pet)
                 )
                 .map((pet) => pet.id),
             // objects
             styles: {
-                magic: this.actualPlayer.attackStyles.magic
-                    .id,
-                melee: this.actualPlayer.attackStyles.melee
-                    .id,
-                ranged: this.actualPlayer.attackStyles.ranged
-                    .id,
+                magic: this.actualPlayer.attackStyles.magic.id,
+                melee: this.actualPlayer.attackStyles.melee.id,
+                ranged: this.actualPlayer.attackStyles.ranged.id,
             },
             spells: {
                 ancient: equipmentSet.spellSelection.ancient?.id || "",
@@ -265,21 +249,21 @@ class Import {
             autoEatTier: autoEatTier,
             cookingMastery: cookingMastery,
             cookingPool: cookingPool,
-            currentGamemodeID: this.micsr.actualGame.currentGamemode.id,
+            currentGamemodeID: actualGame.currentGamemode.id,
             foodSelected: foodSelected.id,
             healAfterDeath: this.simPlayer.healAfterDeath,
             isManualEating: this.simPlayer.isManualEating,
             isSlayerTask: this.simPlayer.isSlayerTask,
             pillarID:
-                this.micsr.actualGame.agility.builtPassivePillar?.id || "",
+                actualGame.agility.builtPassivePillar?.id || "",
             pillarEliteID:
-                this.micsr.actualGame.agility.builtElitePassivePillar?.id || "",
+                actualGame.agility.builtElitePassivePillar?.id || "",
             potionID: potionID,
             prayerSelected: Array.from(equipmentSet.prayerSelection).map(
                 (p) => p.id
             ),
             useCombinationRunes:
-                this.micsr.actualGame.settings.useCombinationRunes,
+                actualGame.settings.useCombinationRunes,
         };
 
         // import settings
@@ -287,7 +271,13 @@ class Import {
     }
 
     exportSettings(): IImportSettings {
+        const simGame = this.simPlayer.game;
         const courseMastery = this.simPlayer.courseMastery;
+        const autoEatTier =
+            -1 +
+            this.app.game.autoEatTiers.filter((x) =>
+                simGame.shop.isUpgradePurchased(simGame.shop.purchases.getObjectByID(x)!)
+            ).length;
         return {
             version: this.micsr.version,
             // lists
@@ -316,7 +306,7 @@ class Import {
                 standard: this.simPlayer.spellSelection.standard?.id || "",
             },
             // simple values
-            autoEatTier: this.simPlayer.autoEatTier,
+            autoEatTier: autoEatTier,
             cookingMastery: this.simPlayer.cookingMastery,
             cookingPool: this.simPlayer.cookingPool,
             currentGamemodeID: this.simPlayer.currentGamemodeID,
@@ -371,7 +361,7 @@ class Import {
         //     settings.pillarID
         // );
         // this.importAstrology(settings.astrologyModifiers);
-
+            
         // update and compute values
         this.app.updateUi();
 
@@ -490,14 +480,17 @@ class Import {
         if (this.simPlayer.potion) {
             this.app.unselectButton(
                 this.document.getElementById(
-                    `MCS ${this.app.getPotionHtmlId(this.simPlayer.potion)} Button`
+                    `MCS ${this.app.getPotionHtmlId(
+                        this.simPlayer.potion
+                    )} Button`
                 )
             );
             this.simPlayer.setPotion(undefined);
         }
         // Select new potion if applicable
         if (potionID) {
-            const potion = this.simPlayer.game.items.potions.getObjectByID(potionID);
+            const potion =
+                this.simPlayer.game.items.potions.getObjectByID(potionID);
             this.simPlayer.setPotion(potion);
             if (this.simPlayer.potion) {
                 this.app.selectButton(
@@ -538,7 +531,7 @@ class Import {
         cookingMastery: boolean
     ) {
         // Import Food Settings
-        this.simPlayer.autoEatTier = autoEatTier;
+        this.simPlayer.game.setAutoEatTier(autoEatTier);
         this.document.getElementById(
             "MCS Auto Eat Tier Dropdown"
         ).selectedIndex = autoEatTier + 1;

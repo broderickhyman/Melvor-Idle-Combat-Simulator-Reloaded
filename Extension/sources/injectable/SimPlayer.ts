@@ -25,16 +25,6 @@
 class SimPlayer extends Player {
     _slayercoins: any;
     activeAstrologyModifiers: any[];
-    activeDOTs: any;
-    activeItemSynergies: any;
-    activeSummonSlots: any;
-    applyModifiersToPrayerCost: any;
-    // @ts-expect-error HACK
-    attackStyle: any;
-    attackType: any;
-    autoEatTier: number;
-    canAurora: any;
-    canCurse: any;
     combinations: string[];
     cookingMastery: boolean;
     cookingPool: boolean;
@@ -49,16 +39,10 @@ class SimPlayer extends Player {
         strings: string[];
     };
     emptyAutoHeal: any;
-    //// @ts-expect-error HACK
-    // equipment: any;
-    // equipmentSets: any;
     gp: number;
     hasRunes: boolean;
-    heal: any;
     healAfterDeath: boolean;
     highestDamageTaken: any;
-    hitpoints: any;
-    interruptAttack: any;
     isManualEating: any;
     isSlayerTask: any;
     lowestHitpoints: any;
@@ -66,20 +50,15 @@ class SimPlayer extends Player {
     petUnlocked: Pet[];
     pillarID: string;
     pillarEliteID: string;
-    runesProvided: any;
     skillLevel!: Map<string, number>;
     skillXP!: Map<string, number>;
     slayercoins: any;
-    target: any;
-    timers: any;
     useCombinationRunesFlag: boolean;
     usedAmmo: number;
     usedFood: number;
     usedPotions: number;
     usedPrayerPoints: number;
     usedRunes: { [index: string]: number };
-    // @ts-expect-error HACK
-    usingAncient: any;
 
     // @ts-expect-error Force SimGame type
     game!: SimGame;
@@ -105,8 +84,6 @@ class SimPlayer extends Player {
         this.courseMastery = [];
         this.pillarID = "";
         this.pillarEliteID = "";
-        // shopItemsPurchased
-        this.autoEatTier = -1;
         // cooking MASTERY
         this.cookingPool = false;
         this.cookingMastery = false;
@@ -160,7 +137,6 @@ class SimPlayer extends Player {
             numbers: [
                 "pillarID",
                 "pillarEliteID",
-                "autoEatTier",
                 "activeAstrologyModifiers", // this is an array of dictionaries, but it (de)serializes fine
             ],
             strings: ["currentGamemodeID"],
@@ -482,7 +458,7 @@ class SimPlayer extends Player {
 
     autoEat() {
         if (this.emptyAutoHeal) {
-            this.usedFood = 0;
+            this.usedFood = Infinity;
         } else {
             super.autoEat();
         }
@@ -490,6 +466,7 @@ class SimPlayer extends Player {
 
     getMaxDotDamage() {
         let dotDamage = 0;
+        // @ts-expect-error
         this.activeDOTs.forEach((dot: any) => {
             if (dot.type === "Regen") {
                 return;
@@ -627,8 +604,8 @@ class SimPlayer extends Player {
         quantity?: number
     ): boolean {
         const itemToEquip =
-            item === undefined ? this.micsr.emptyItems[slot] : item;
-        if (slot === "Default") {
+            item === undefined ? this.micsr.emptyItem : item;
+        if (!slot || slot === "Default") {
             slot = itemToEquip.validSlots[0];
         }
         // clear other slots occupied by current slot
@@ -637,7 +614,7 @@ class SimPlayer extends Player {
                 x.occupiedBy = "None";
             }
         });
-        this.equipment.equipItem(itemToEquip, slot, quantity);
+        this.equipment.equipItem(itemToEquip, slot, quantity || 1);
         return true;
     }
 

@@ -145,7 +145,6 @@ export function setup(setupContext: Modding.ModContext) {
                     // settings.levels.forEach((v, k, m) => {
                     //     m.set(k, 120);
                     // });
-                    // // settings.foodSelected = "melvorD:Birthday_Cake";
                     // settings.foodSelected = "melvorF:Apple_Pie";
                     const settings = app.import.convertStringToObject(
                         JSON.stringify({
