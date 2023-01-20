@@ -1205,7 +1205,7 @@ class App {
      */
     createSpellSelectCard(
         title: string,
-        spellType: string,
+        spellType: CombatSpellBook,
         spells: CombatSpell[],
         spellMenu: SpellMenu<CombatSpell>
     ) {
@@ -2970,7 +2970,7 @@ class App {
     }
 
     // Callback Functions for the spell select buttons
-    spellButtonOnClick(event: any, spell: CombatSpell, spellType: string) {
+    spellButtonOnClick(event: any, spell: CombatSpell, spellType: CombatSpellBook) {
         const selected = this.player.getSpellFromType(spellType);
         if (selected === spell) {
             this.disableSpell(spellType, spell);
@@ -2983,7 +2983,7 @@ class App {
         this.updateCombatStats();
     }
 
-    disableSpell(spellType: string, spell?: CombatSpell, message?: string) {
+    disableSpell(spellType: CombatSpellBook, spell?: CombatSpell, message?: string) {
         // do nothing
         if (
             spell === undefined ||
@@ -3003,7 +3003,7 @@ class App {
         }
     }
 
-    enableSpell(spellType: string, spell: CombatSpell, message?: string) {
+    enableSpell(spellType: CombatSpellBook, spell: CombatSpell, message?: string) {
         // do nothing
         if (spell === undefined) {
             return;
@@ -3029,18 +3029,25 @@ class App {
         }
         // remove previous selection
         this.disableSpell(spellType, this.player.getSpellFromType(spellType));
-        if (spellType === "ancient") {
+        if (spellType === "ancient" || spellType === "archaic") {
             this.disableSpell(
                 "standard",
                 this.player.spellSelection.standard,
                 "Disabled standard magic spell."
             );
         }
-        if (spellType === "standard") {
+        if (spellType === "standard" || spellType === "archaic") {
             this.disableSpell(
                 "ancient",
                 this.player.spellSelection.ancient,
                 "Disabled ancient magick spell."
+            );
+        }
+        if (spellType === "ancient" || spellType === "standard") {
+            this.disableSpell(
+                "archaic",
+                this.player.spellSelection.archaic,
+                "Disabled archaic magic spell."
             );
         }
         // select spell
@@ -3108,7 +3115,8 @@ class App {
         // check that at least one spell is selected
         if (
             spellSelection.standard === undefined &&
-            spellSelection.ancient === undefined
+            spellSelection.ancient === undefined &&
+            spellSelection.archaic === undefined
         ) {
             this.enableSpell(
                 "standard",
@@ -3125,6 +3133,17 @@ class App {
                 "ancient",
                 spellSelection.ancient,
                 `Disabled ${spellSelection.ancient.name}.`
+            );
+        }
+        // if both standard and archaic magic are selected, disable archaic magic
+        if (
+            spellSelection.standard !== undefined &&
+            spellSelection.archaic !== undefined
+        ) {
+            this.disableSpell(
+                "archaic",
+                spellSelection.archaic,
+                `Disabled ${spellSelection.archaic.name}.`
             );
         }
         // if ancient magic is selected, disable curses
@@ -3880,7 +3899,7 @@ class App {
     checkForSpellLevel() {
         const magicLevel =
             this.micsr.game.skills.getObjectByID("melvorD:Magic")?.level || 0;
-        const setSpellsPerLevel = (spell: any, spellType: any) => {
+        const setSpellsPerLevel = (spell: CombatSpell, spellType: CombatSpellBook) => {
             const id = `MCS ${spell.id} Button Image`;
             const elt = document.getElementById(id);
             if (magicLevel < spell.level) {
@@ -3894,19 +3913,19 @@ class App {
                 (elt as any).src = spell.media;
             }
         };
-        this.micsr.standardSpells.forEach((spell: any) =>
+        this.micsr.standardSpells.forEach((spell) =>
             setSpellsPerLevel(spell, "standard")
         );
-        this.micsr.auroraSpells.forEach((spell: any) =>
+        this.micsr.auroraSpells.forEach((spell) =>
             setSpellsPerLevel(spell, "aurora")
         );
-        this.micsr.curseSpells.forEach((spell: any) =>
+        this.micsr.curseSpells.forEach((spell) =>
             setSpellsPerLevel(spell, "curse")
         );
-        this.micsr.ancientSpells.forEach((spell: any) =>
+        this.micsr.ancientSpells.forEach((spell) =>
             setSpellsPerLevel(spell, "ancient")
         );
-        this.micsr.archaicSpells.forEach((spell: any) =>
+        this.micsr.archaicSpells.forEach((spell) =>
             setSpellsPerLevel(spell, "archaic")
         );
     }
@@ -3926,7 +3945,7 @@ class App {
     checkForSpellItem() {
         const disableSpellsForItem = (
             spell: CombatSpell,
-            spellType: string
+            spellType: CombatSpellBook
         ) => {
             if (this.checkRequiredItem(spell)) {
                 (

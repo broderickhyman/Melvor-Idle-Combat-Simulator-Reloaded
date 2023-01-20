@@ -448,7 +448,7 @@ class Import {
     private importSpell(
         spells: NamespaceRegistry<CombatSpell>,
         spellSelection: IImportSpells,
-        spellType: string
+        spellType: CombatSpellBook
     ) {
         const selected = this.simPlayer.getSpellFromType(spellType);
         this.app.disableSpell(spellType, selected);

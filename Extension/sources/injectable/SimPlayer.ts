@@ -650,7 +650,7 @@ class SimPlayer extends Player {
         }
     }
 
-    getSpellFromType(spellType: string) {
+    getSpellFromType(spellType: CombatSpellBook) {
         switch (spellType) {
             case "standard":
                 return this.spellSelection.standard;
@@ -667,7 +667,7 @@ class SimPlayer extends Player {
         }
     }
 
-    setSpellFromType(spellType: string, spell: CombatSpell) {
+    setSpellFromType(spellType: CombatSpellBook, spell: CombatSpell) {
         switch (spellType) {
             case "standard":
                 this.spellSelection.standard = spell as any;
@@ -689,7 +689,7 @@ class SimPlayer extends Player {
         }
     }
 
-    disableSpellFromType(spellType: string) {
+    disableSpellFromType(spellType: CombatSpellBook) {
         switch (spellType) {
             case "standard":
                 this.spellSelection.standard = undefined;
