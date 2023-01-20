@@ -305,6 +305,7 @@ class SimPlayer extends Player {
     }
 
     resetToBlankState() {
+        this.changeEquipmentSet(0);
         this.equipment.unequipAll();
         this.unequipFood();
         this.activePrayers.clear();
@@ -876,8 +877,5 @@ class SimPlayer extends Player {
             (r) => r.getNamespacedObject(this.game.pets) as Pet
         );
         this.micsr.logVerbose("decode petUnlocked", this.petUnlocked);
-        // after reading the data, recompute stats and reset gains
-        super.computeAllStats();
-        this.resetGains();
     }
 }
