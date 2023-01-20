@@ -137,8 +137,11 @@ export function setup(setupContext: Modding.ModContext) {
                     // Auto open the combat sim menu
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
-                    // $("[id='MCS 1 Button']").trigger("click");
+                    $("[id='MCS 1 Button']").trigger("click");
                     // $("[id='MCS 2 Button']").trigger("click");
+
+                    // Select Agility tab
+                    $("#mcs-mcsmaintab-agility-tab").trigger("click")
 
                     // Specific test
                     // const settings = app.import.exportSettings();

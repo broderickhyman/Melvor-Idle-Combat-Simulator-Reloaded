@@ -868,7 +868,7 @@ class ShowModifiers {
         return data.isSkill;
     }
 
-    printRelevantModifiers(modifiers: any, tag: any) {
+    printRelevantModifiers(modifiers: any, tag: string) {
         const relevantNames = this.relevantModifiers[tag].names;
         const skillIDs = this.relevantModifiers[tag].skillIDs;
         const toPrint: any = [];

@@ -428,7 +428,7 @@ class App {
         this.createPrayerSelectCard();
         this.createPotionSelectCard();
         this.createPetSelectCard();
-        // this.createAgilitySelectCard();
+        this.createAgilitySelectCard();
         // this.createAstrologySelectCard();
         this.createLootOptionsCard();
         this.createSimulationAndExportCard();
@@ -1312,7 +1312,7 @@ class App {
     }
 
     createPetSelectCard() {
-        const combatPets = this.micsr.pets.allObjects;
+        const combatPets = this.game.pets.allObjects;
         this.petSelectCard = this.mainTabCard.addTab(
             "Pets",
             this.media.pet,
@@ -1326,7 +1326,7 @@ class App {
             (pet) => (e: any) => this.petButtonOnClick(e, pet)
         );
         const tooltips = combatPets.map(
-            (pet: any) =>
+            (pet) =>
                 `<div class="text-center">${
                     pet.name
                 }<br><small class='text-info'>${pet.description.replace(
@@ -1346,7 +1346,7 @@ class App {
             this.updateCombatStats();
         });
         this.petSelectCard.addImage(
-            this.micsr.pets.getObjectByID("melvorD:CoolRock")!.media,
+            this.actualGame.pets.getObjectByID("melvorD:CoolRock")!.media,
             100,
             "MCS Rock"
         ).style.display = "none";

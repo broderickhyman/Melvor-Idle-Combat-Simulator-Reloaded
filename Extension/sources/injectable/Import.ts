@@ -117,7 +117,7 @@ class Import {
      * @param {number} setID Index of equipmentSets from 0-2 to import
      */
     importButtonOnClick(setID: number) {
-        let actualGame = this.micsr.actualGame
+        let actualGame = this.micsr.actualGame;
         // get potion
         let potionID: string | undefined = undefined;
         let potion = actualGame.items.potions.find((potion) => {
@@ -134,11 +134,9 @@ class Import {
         const foodSelected = this.actualPlayer.food.currentSlot.item;
         // get cooking mastery for foodSelected
         let cookingMastery = false;
-        const recipe =
-            actualGame.cooking.productRecipeMap.get(foodSelected);
+        const recipe = actualGame.cooking.productRecipeMap.get(foodSelected);
         if (recipe && recipe.hasMastery) {
-            cookingMastery =
-                actualGame.cooking.getMasteryLevel(recipe) >= 99;
+            cookingMastery = actualGame.cooking.getMasteryLevel(recipe) >= 99;
         }
         const cookingPool = actualGame.cooking.isPoolTierActive(3);
 
@@ -146,7 +144,9 @@ class Import {
         const autoEatTier =
             -1 +
             this.app.game.autoEatTiers.filter((x) =>
-                actualGame.shop.isUpgradePurchased(actualGame.shop.purchases.getObjectByID(x)!)
+                actualGame.shop.isUpgradePurchased(
+                    actualGame.shop.purchases.getObjectByID(x)!
+                )
             ).length;
 
         // get the active astrology modifiers
@@ -192,20 +192,21 @@ class Import {
 
         // get the chosen agility obstacles
         const chosenAgilityObstacles = new Array(
-            this.app.actualGame.agility.maxObstacles
+            this.app.agilityCourse.agilityCategories
         ).fill(-1);
         const courseMastery = new Array(
-            this.app.actualGame.agility.maxObstacles
+            this.app.agilityCourse.agilityCategories
         ).fill(false);
         this.app.actualGame.agility.actions.allObjects.forEach(
             (obstacle, i) => {
                 if (this.app.actualGame.agility.isObstacleBuilt(obstacle)) {
                     chosenAgilityObstacles[obstacle.category] = i;
-                }
-                if (
-                    this.app.actualGame.agility.getMasteryLevel(obstacle) >= 99
-                ) {
-                    courseMastery[obstacle.category] = true;
+                    if (
+                        this.app.actualGame.agility.getMasteryLevel(obstacle) >=
+                        99
+                    ) {
+                        courseMastery[obstacle.category] = true;
+                    }
                 }
             }
         );
@@ -228,9 +229,7 @@ class Import {
                 ])
             ),
             petUnlocked: actualGame.pets.allObjects
-                .filter((pet) =>
-                    actualGame.petManager.isPetUnlocked(pet)
-                )
+                .filter((pet) => actualGame.petManager.isPetUnlocked(pet))
                 .map((pet) => pet.id),
             // objects
             styles: {
@@ -254,16 +253,13 @@ class Import {
             healAfterDeath: this.simPlayer.healAfterDeath,
             isManualEating: this.simPlayer.isManualEating,
             isSlayerTask: this.simPlayer.isSlayerTask,
-            pillarID:
-                actualGame.agility.builtPassivePillar?.id || "",
-            pillarEliteID:
-                actualGame.agility.builtElitePassivePillar?.id || "",
+            pillarID: actualGame.agility.builtPassivePillar?.id || "",
+            pillarEliteID: actualGame.agility.builtElitePassivePillar?.id || "",
             potionID: potionID,
             prayerSelected: Array.from(equipmentSet.prayerSelection).map(
                 (p) => p.id
             ),
-            useCombinationRunes:
-                actualGame.settings.useCombinationRunes,
+            useCombinationRunes: actualGame.settings.useCombinationRunes,
         };
 
         // import settings
@@ -276,7 +272,9 @@ class Import {
         const autoEatTier =
             -1 +
             this.app.game.autoEatTiers.filter((x) =>
-                simGame.shop.isUpgradePurchased(simGame.shop.purchases.getObjectByID(x)!)
+                simGame.shop.isUpgradePurchased(
+                    simGame.shop.purchases.getObjectByID(x)!
+                )
             ).length;
         return {
             version: this.micsr.version,
@@ -355,13 +353,14 @@ class Import {
         this.importSlayerTask(settings.isSlayerTask);
         this.importGameMode(settings.currentGamemodeID);
         this.importUseCombinationRunes(settings.useCombinationRunes);
-        // this.importAgilityCourse(
-        //     settings.course,
-        //     settings.courseMastery,
-        //     settings.pillarID
-        // );
+        this.importAgilityCourse(
+            settings.course,
+            settings.courseMastery,
+            settings.pillarID,
+            settings.pillarEliteID
+        );
         // this.importAstrology(settings.astrologyModifiers);
-            
+
         // update and compute values
         this.app.updateUi();
 
@@ -507,7 +506,7 @@ class Import {
 
     importPets(petUnlocked: string[]) {
         this.simPlayer.petUnlocked = [];
-        this.app.micsr.pets.forEach((pet) => {
+        this.app.game.pets.forEach((pet) => {
             this.app.unselectButton(
                 this.document.getElementById(`MCS ${pet.name} Button`)
             );
@@ -577,9 +576,10 @@ class Import {
     importAgilityCourse(
         course: number[],
         masteries: boolean[],
-        pillarID: string
+        pillarID: string,
+        elitePillarID: string
     ) {
-        this.app.agilityCourse.importAgilityCourse(course, masteries, pillarID);
+        this.app.agilityCourse.importAgilityCourse(course, masteries, pillarID, elitePillarID);
     }
 
     importAstrology(astrologyModifiers: any) {

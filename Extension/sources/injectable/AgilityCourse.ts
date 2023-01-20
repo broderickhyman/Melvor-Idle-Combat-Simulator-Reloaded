@@ -41,6 +41,7 @@ class AgilityCourse {
     agilityCategories: number;
     agilityObstacles: IObstacle[];
     agilityPillars: IObstacle[];
+    eliteAgilityPillars: IObstacle[];
     player: SimPlayer;
     filter: IAgilityFilter;
     filters: IAgilityFilter[];
@@ -68,8 +69,11 @@ class AgilityCourse {
             statistics: "assets/media/main/statistics_header.svg",
         };
 
-        // copy obstacles
-        this.agilityCategories = this.parent.actualGame.agility.maxObstacles;
+        // Copy obstacles
+        // One pillar is counted when we start counting from 0
+        // Add extra for pillar
+        this.agilityCategories =
+            this.parent.actualGame.agility.maxObstacles + 2;
         const noObstacle: IObstacle = {
             category: -1,
             id: -1,
@@ -88,7 +92,7 @@ class AgilityCourse {
                         description: "",
                         id: id,
                         media: x.media,
-                        modifiers: {},
+                        modifiers: x.modifiers,
                         name: x.name,
                         requirements: x.skillRequirements,
                     };
@@ -118,7 +122,37 @@ class AgilityCourse {
                             this.media.gp,
                             this.media.stamina,
                         ][id],
-                        modifiers: {},
+                        modifiers: x.modifiers,
+                        name: x.name,
+                        requirements: {},
+                    };
+                    this.filters.forEach(
+                        (filter: any) =>
+                            (pillar[filter.tag] =
+                                this.micsr.showModifiersInstance.printRelevantModifiers(
+                                    x.modifiers,
+                                    filter.tag
+                                ).length > 0)
+                    );
+                    return pillar;
+                }
+            ),
+        ];
+        this.eliteAgilityPillars = [
+            noObstacle,
+            ...this.parent.actualGame.agility.elitePillars.allObjects.map(
+                (x, id) => {
+                    const pillar: IObstacle = {
+                        category: -1,
+                        description: "",
+                        id: id,
+                        media: [
+                            this.media.combat,
+                            this.media.statistics,
+                            this.media.gp,
+                            this.media.stamina,
+                        ][id],
+                        modifiers: x.modifiers,
                         name: x.name,
                         requirements: {},
                     };
@@ -141,11 +175,11 @@ class AgilityCourse {
         card.addSectionTitle("Agility Course");
 
         let i = 0;
-        for (; i <= this.agilityCategories + 1; i++) {
+        for (; i <= this.agilityCategories - 1; i++) {
             const category = i;
             const obstacleSelectionContainer = card.createCCContainer();
             // mastery button
-            if (category < this.agilityCategories + 1) {
+            if (category < this.agilityCategories - 2) {
                 const masteryButton = card.createImageButton(
                     this.media.mastery,
                     `Agility Mastery ${category} ${this.id} Toggle`,
@@ -203,14 +237,19 @@ class AgilityCourse {
         prop: string,
         isProp: boolean
     ) {
-        const menuItems =
-            category >= this.agilityCategories
-                ? this.agilityPillars
-                : this.agilityObstacles.filter(
-                      (x) =>
-                          x.category === -1 ||
-                          (x[prop] === isProp && x.category === category)
-                  );
+        let menuItems: IObstacle[] = [];
+        debugger;
+        if (category >= this.agilityCategories - 1) {
+            menuItems = this.eliteAgilityPillars;
+        } else if (category >= this.agilityCategories - 2) {
+            menuItems = this.agilityPillars;
+        } else {
+            menuItems = this.agilityObstacles.filter(
+                (x) =>
+                    x.category === -1 ||
+                    (x[prop] === isProp && x.category === category)
+            );
+        }
         if (menuItems.length <= 1) {
             return;
         }
@@ -238,11 +277,10 @@ class AgilityCourse {
 
     getObstacleTooltip(category: number, obstacle: IObstacle) {
         let passives = `<div class="text-center">${obstacle.name}</div>`;
-        if (this.player.courseMastery[category]) {
-            this.tmpModifiers.addModifiers(obstacle.modifiers, 0.5);
-        } else {
-            this.tmpModifiers.addModifiers(obstacle.modifiers);
-        }
+        this.tmpModifiers.addModifiers(
+            obstacle.modifiers,
+            this.player.courseMastery[category] ? 0.5 : 1
+        );
         this.micsr.showModifiersInstance
             .printRelevantModifiers(this.tmpModifiers, this.filter.tag)
             .forEach((toPrint: any) => {
@@ -263,7 +301,7 @@ class AgilityCourse {
             "",
             "600px"
         );
-        if (category === this.agilityCategories) {
+        if (category === this.agilityCategories - 2) {
             this.addObstacleMultiButton(
                 obstacleSelectCard,
                 "Pillars",
@@ -271,7 +309,7 @@ class AgilityCourse {
                 filter.tag,
                 true
             );
-        } else if (category === this.agilityCategories + 1) {
+        } else if (category === this.agilityCategories - 1) {
             this.addObstacleMultiButton(
                 obstacleSelectCard,
                 "Elite Pillars",
@@ -299,7 +337,6 @@ class AgilityCourse {
     }
 
     selectObstacle(category: number, obstacle: IObstacle) {
-        // debugger;
         const label = document.getElementById(
             `MICSR Obstacle ${category} ${this.id} Label`
         )!;
@@ -374,15 +411,15 @@ class AgilityCourse {
     importAgilityCourse(
         courseObstacles: number[],
         masteries: boolean[],
-        pillarID: string
+        pillarID: string,
+        elitePillarID: string
     ) {
-        // debugger;
         // clear current values
         this.player.course = Array(
-            this.parent.actualGame.agility.maxObstacles
+            this.agilityCategories
         ).fill(-1);
         this.player.courseMastery = Array(
-            this.parent.actualGame.agility.maxObstacles
+            this.agilityCategories
         ).fill(false);
         // import settings
         this.player.course.forEach((_, category) => {
@@ -394,7 +431,7 @@ class AgilityCourse {
                 category,
                 this.agilityObstacles[obstacleID + 1]
             );
-            if (masteries[obstacleID]) {
+            if (masteries[category]) {
                 this.player.courseMastery[category] = true;
                 this.updateAgilityTooltips(category);
             }
@@ -402,10 +439,21 @@ class AgilityCourse {
         this.player.pillarID = pillarID;
         if (pillarID) {
             this.selectObstacle(
-                this.agilityCategories,
+                this.agilityCategories - 2,
                 this.agilityPillars[
                     this.player.game.agility.pillars.allObjects.findIndex(
                         (v) => v.id === pillarID
+                    )
+                ]
+            );
+        }
+        this.player.pillarEliteID = elitePillarID;
+        if (elitePillarID) {
+            this.selectObstacle(
+                this.agilityCategories - 1,
+                this.eliteAgilityPillars[
+                    this.player.game.agility.elitePillars.allObjects.findIndex(
+                        (v) => v.id === elitePillarID
                     )
                 ]
             );

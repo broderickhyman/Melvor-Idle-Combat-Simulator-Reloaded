@@ -481,11 +481,11 @@ class SimPlayer extends Player {
         // Custom
         this.addPetModifiers();
         this.addAgilityModifiers();
-        this.addAstrologyModifiers();
+        // this.addAstrologyModifiers();
     }
 
     addPetModifiers() {
-        this.micsr.pets.allObjects.forEach((pet, i) => {
+        this.game.pets.allObjects.forEach((pet, i) => {
             if (
                 this.petUnlocked.includes(pet) &&
                 !pet.activeInRaid &&
@@ -498,30 +498,35 @@ class SimPlayer extends Player {
 
     addAgilityModifiers() {
         let fullCourse = true;
-        for (let i = 0; i < this.course.length; i++) {
-            if (this.course[i] < 0) {
+        for (
+            let obstacleIndex = 0;
+            obstacleIndex < this.course.length;
+            obstacleIndex++
+        ) {
+            if (this.course[obstacleIndex] < 0) {
                 fullCourse = false;
                 break;
             }
-            if (this.courseMastery[i]) {
-                this.modifiers.addModifiers(
-                    this.game.agility.actions.allObjects.find((_, i) => i === this.course[i])!.modifiers,
-                    0.5
-                );
-            } else {
-                this.modifiers.addModifiers(
-                    this.game.agility.actions.allObjects.find((_, i) => i === this.course[i])!.modifiers
-                );
-            }
+            const obstacle = this.game.agility.actions.allObjects.find(
+                (_, i) => i === this.course[obstacleIndex]
+            )!;
+            this.modifiers.addModifiers(
+                obstacle.modifiers,
+                this.courseMastery[obstacleIndex] ? 0.5 : 1
+            );
         }
         if (fullCourse && this.pillarID) {
             this.modifiers.addModifiers(
-                this.game.agility.pillars.allObjects.find((p) => p.id === this.pillarID)!.modifiers
+                this.game.agility.pillars.allObjects.find(
+                    (p) => p.id === this.pillarID
+                )!.modifiers
             );
         }
         if (fullCourse && this.pillarEliteID) {
             this.modifiers.addModifiers(
-                this.game.agility.elitePillars.allObjects.find((p) => p.id === this.pillarEliteID)!.modifiers
+                this.game.agility.elitePillars.allObjects.find(
+                    (p) => p.id === this.pillarEliteID
+                )!.modifiers
             );
         }
     }
@@ -603,8 +608,7 @@ class SimPlayer extends Player {
         slot?: SlotTypes | "Default",
         quantity?: number
     ): boolean {
-        const itemToEquip =
-            item === undefined ? this.micsr.emptyItem : item;
+        const itemToEquip = item === undefined ? this.micsr.emptyItem : item;
         if (!slot || slot === "Default") {
             slot = itemToEquip.validSlots[0];
         }
@@ -636,10 +640,7 @@ class SimPlayer extends Player {
     damage(amount: number, source: SplashType, thieving?: boolean): void {
         super.damage(amount, source);
         this.highestDamageTaken = Math.max(this.highestDamageTaken, amount);
-        this.lowestHitpoints = Math.min(
-            this.lowestHitpoints,
-            this.hitpoints
-        );
+        this.lowestHitpoints = Math.min(this.lowestHitpoints, this.hitpoints);
     }
 
     setPotion(newPotion: PotionItem | undefined) {
