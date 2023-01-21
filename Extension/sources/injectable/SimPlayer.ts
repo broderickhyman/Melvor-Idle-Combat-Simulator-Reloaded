@@ -254,6 +254,10 @@ class SimPlayer extends Player {
 
     // replace globals with properties
     initialize() {
+        if(this.course.length === 0){
+            this.course = Array(this.game.agility.maxObstacles).fill(-1);
+            this.courseMastery = Array(this.game.agility.maxObstacles).fill(false);
+        }
         this.equipmentSets.forEach((e) => {
             e.equipment.removeQuantityFromSlot = (
                 slot: SlotTypes,
