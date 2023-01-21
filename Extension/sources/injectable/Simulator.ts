@@ -83,7 +83,7 @@ class Simulator {
         this.micsr.monsters.forEach((monster: any) => {
             this.monsterSimData[monster.id] = this.newSimData(true);
             this.monsterSimIDs.push(monster.id);
-            this.monsterSimFilter[monster.id] = this.micsr.isDev;
+            this.monsterSimFilter[monster.id] = true;
         });
         this.dungeonSimData = {};
         this.micsr.dungeons.forEach((dungeon: any) => {
