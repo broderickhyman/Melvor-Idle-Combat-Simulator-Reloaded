@@ -140,7 +140,6 @@ class SimGame extends Game {
             "Demo",
             false
         );
-        // @ts-expect-error
         if (cloudManager.hasFullVersionEntitlement) {
             const fullNamespace = this.registeredNamespaces.registerNamespace(
                 "melvorF",
@@ -151,7 +150,6 @@ class SimGame extends Game {
                 new ControlledAffliction(fullNamespace, this as any)
             );
         }
-        // @ts-expect-error
         if (cloudManager.hasTotHEntitlement)
             this.registeredNamespaces.registerNamespace(
                 "melvorTotH",

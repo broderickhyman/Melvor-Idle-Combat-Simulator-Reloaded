@@ -49,7 +49,6 @@ class MICSR {
         message: string,
         messageTheme?: StandardTheme
     ) => void;
-    cloudManager: any;
     actualGame!: Game;
     game!: SimGame;
     namespace!: DataNamespace;
@@ -105,8 +104,6 @@ class MICSR {
         // simulation settings
         this.trials = 1e3;
         this.maxTicks = 1e3;
-        // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
-        this.cloudManager = cloudManager;
         this.DATA_VERSION = DATA_VERSION;
         this.currentSaveVersion = currentSaveVersion;
         this.equipmentSlotData = equipmentSlotData;
@@ -162,13 +159,13 @@ class MICSR {
             "Demo",
             `/assets/data/melvorDemo.json?${this.DATA_VERSION}`
         );
-        if (this.cloudManager.hasFullVersionEntitlement) {
+        if (cloudManager.hasFullVersionEntitlement) {
             await this.fetchDataPackage(
                 "Full",
                 `/assets/data/melvorFull.json?${this.DATA_VERSION}`
             );
         }
-        if (this.cloudManager.hasTotHEntitlement) {
+        if (cloudManager.hasTotHEntitlement) {
             await this.fetchDataPackage(
                 "TotH",
                 `/assets/data/melvorTotH.json?${this.DATA_VERSION}`
@@ -178,10 +175,10 @@ class MICSR {
 
     async initialize(game: SimGame, actualGame: Game) {
         game.registerDataPackage(this.dataPackage["Demo"]);
-        if (this.cloudManager.hasFullVersionEntitlement) {
+        if (cloudManager.hasFullVersionEntitlement) {
             game.registerDataPackage(this.dataPackage["Full"]);
         }
-        if (this.cloudManager.hasTotHEntitlement) {
+        if (cloudManager.hasTotHEntitlement) {
             game.registerDataPackage(this.dataPackage["TotH"]);
         }
         game.postDataRegistration();
@@ -281,19 +278,6 @@ class MICSR {
         }
         this.dataPackage[id].data.skillData = skillData;
     }
-
-    // fetching() {
-    //     if (!this.cloudManager.hasFullVersionEntitlement && this.dataPackage.Demo === undefined) {
-    //         return true;
-    //     }
-    //     if (this.cloudManager.hasFullVersionEntitlement && this.dataPackage.Full === undefined) {
-    //         return true;
-    //     }
-    //     if (this.cloudManager.hasTotHEntitlement && this.dataPackage.TotH === undefined) {
-    //         return true;
-    //     }
-    //     return false;
-    // }
 
     // any setup that requires a game object
     setupGame(game: SimGame, actualGame: Game) {

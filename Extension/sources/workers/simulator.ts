@@ -161,11 +161,9 @@
                 const simGame = new SimGame(micsr, true);
                 micsr.dataPackage = event.data.dataPackage;
                 micsr.cleanupDataPackage("Demo");
-                // @ts-expect-error
                 if (cloudManager.hasFullVersionEntitlement) {
                     micsr.cleanupDataPackage("Full");
                 }
-                // @ts-expect-error
                 if (cloudManager.hasTotHEntitlement) {
                     micsr.cleanupDataPackage("TotH");
                 }

@@ -200,7 +200,6 @@ class Simulator {
             {
                 name: "cloudManager",
                 data: {
-                    // @ts-expect-error TS(2304): Cannot find name 'cloudManager'.
                     ...cloudManager,
                     formElements: undefined,
                     formInnerHTML: undefined,
