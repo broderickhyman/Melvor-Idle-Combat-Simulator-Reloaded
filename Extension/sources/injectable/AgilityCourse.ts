@@ -20,7 +20,8 @@
 interface IObstacle {
     [index: string]: any;
     category: ObstacleCategories | -1;
-    id: number;
+    index: number;
+    id: string;
     description: string;
     media: string;
     modifiers: any;
@@ -70,13 +71,11 @@ class AgilityCourse {
         };
 
         // Copy obstacles
-        // One pillar is counted when we start counting from 0
-        // Add extra for pillar
-        this.agilityCategories =
-            this.parent.actualGame.agility.maxObstacles + 2;
+        this.agilityCategories = this.parent.actualGame.agility.maxObstacles;
         const noObstacle: IObstacle = {
             category: -1,
-            id: -1,
+            index: -1,
+            id: "",
             description: "",
             media: this.media.stamina,
             modifiers: {},
@@ -86,11 +85,12 @@ class AgilityCourse {
         this.agilityObstacles = [
             noObstacle,
             ...this.parent.actualGame.agility.actions.allObjects.map(
-                (x, id) => {
+                (x, index) => {
                     const obstacle: IObstacle = {
                         category: x.category,
                         description: "",
-                        id: id,
+                        index: index,
+                        id: x.id,
                         media: x.media,
                         modifiers: x.modifiers,
                         name: x.name,
@@ -111,23 +111,24 @@ class AgilityCourse {
         this.agilityPillars = [
             noObstacle,
             ...this.parent.actualGame.agility.pillars.allObjects.map(
-                (x, id) => {
+                (x, index) => {
                     const pillar: IObstacle = {
                         category: -1,
                         description: "",
-                        id: id,
+                        index: index,
+                        id: x.id,
                         media: [
                             this.media.combat,
                             this.media.statistics,
                             this.media.gp,
                             this.media.stamina,
-                        ][id],
+                        ][index],
                         modifiers: x.modifiers,
                         name: x.name,
                         requirements: {},
                     };
                     this.filters.forEach(
-                        (filter: any) =>
+                        (filter) =>
                             (pillar[filter.tag] =
                                 this.micsr.showModifiersInstance.printRelevantModifiers(
                                     x.modifiers,
@@ -141,17 +142,18 @@ class AgilityCourse {
         this.eliteAgilityPillars = [
             noObstacle,
             ...this.parent.actualGame.agility.elitePillars.allObjects.map(
-                (x, id) => {
+                (x, index) => {
                     const pillar: IObstacle = {
                         category: -1,
                         description: "",
-                        id: id,
+                        index: index,
+                        id: x.id,
                         media: [
                             this.media.combat,
                             this.media.statistics,
                             this.media.gp,
                             this.media.stamina,
-                        ][id],
+                        ][index],
                         modifiers: x.modifiers,
                         name: x.name,
                         requirements: {},
@@ -174,22 +176,28 @@ class AgilityCourse {
         this.filter = filter;
         card.addSectionTitle("Agility Course");
 
-        let i = 0;
-        for (; i <= this.agilityCategories - 1; i++) {
-            const category = i;
+        for (let i = 0; i < this.agilityCategories + 2; i++) {
+            let category: number | "pillar" | "elite" = i;
+            if(i === this.agilityCategories + 1){
+                category = "elite";
+            }
+            else if (i === this.agilityCategories){
+                category = "pillar";
+            }
             const obstacleSelectionContainer = card.createCCContainer();
-            // mastery button
-            if (category < this.agilityCategories - 2) {
+            // Mastery button
+            if (typeof category === "number" && category < this.agilityCategories) {
                 const masteryButton = card.createImageButton(
                     this.media.mastery,
                     `Agility Mastery ${category} ${this.id} Toggle`,
-                    (event) => this.agilityMasteryOnClick(event, category),
+                    (event) => this.agilityMasteryOnClick(event, category as number),
                     "Small",
                     "99 Mastery"
                 );
                 masteryButton.className += " col-3";
                 obstacleSelectionContainer.appendChild(masteryButton);
-            } else {
+            }
+            else {
                 const emptyDiv = document.createElement("div");
                 emptyDiv.className += " col-3";
                 obstacleSelectionContainer.appendChild(emptyDiv);
@@ -202,9 +210,6 @@ class AgilityCourse {
                 ["None"],
                 obstacleSelectionContainer
             );
-            (
-                obstacleSelectionContainer.lastChild! as HTMLDivElement
-            ).className += " col-3";
             // label
             const labelDiv = document.createElement("div");
             labelDiv.className = "col-6";
@@ -233,35 +238,35 @@ class AgilityCourse {
     addObstacleMultiButton(
         card: Card,
         title: string,
-        category: number,
-        prop: string,
+        category: number | "pillar" | "elite",
+        filter: string,
         isProp: boolean
     ) {
         let menuItems: IObstacle[] = [];
         debugger;
-        if (category >= this.agilityCategories - 1) {
+        if (category === "elite") {
             menuItems = this.eliteAgilityPillars;
-        } else if (category >= this.agilityCategories - 2) {
+        } else if (category === "pillar") {
             menuItems = this.agilityPillars;
         } else {
             menuItems = this.agilityObstacles.filter(
                 (x) =>
                     x.category === -1 ||
-                    (x[prop] === isProp && x.category === category)
+                    (x[filter] === isProp && x.category === category)
             );
         }
         if (menuItems.length <= 1) {
             return;
         }
-        const buttonMedia = menuItems.map((obstacle: any) => obstacle.media);
+        const buttonMedia = menuItems.map((obstacle) => obstacle.media);
         const buttonIds = menuItems.map(
-            (obstacle: any) => `${obstacle.name} ${this.id}`
+            (obstacle) => `${obstacle.name} ${this.id}`
         );
-        const buttonCallbacks = menuItems.map((obstacle: any) => () => {
+        const buttonCallbacks = menuItems.map((obstacle) => () => {
             this.selectObstacle(category, obstacle);
             this.parent.agilityCourseCallback();
         });
-        const tooltips = menuItems.map((obstacle: any) =>
+        const tooltips = menuItems.map((obstacle) =>
             this.getObstacleTooltip(category, obstacle)
         );
         card.addSectionTitle(title);
@@ -275,11 +280,18 @@ class AgilityCourse {
         );
     }
 
-    getObstacleTooltip(category: number, obstacle: IObstacle) {
+    getObstacleTooltip(
+        category: number | "pillar" | "elite",
+        obstacle: IObstacle
+    ) {
         let passives = `<div class="text-center">${obstacle.name}</div>`;
+        let negativeMultiplier = 1;
+        if(typeof category === "number"){
+            negativeMultiplier = this.player.courseMastery[category] ? 0.5 : 1;
+        }
         this.tmpModifiers.addModifiers(
             obstacle.modifiers,
-            this.player.courseMastery[category] ? 0.5 : 1
+            negativeMultiplier
         );
         this.micsr.showModifiersInstance
             .printRelevantModifiers(this.tmpModifiers, this.filter.tag)
@@ -290,18 +302,20 @@ class AgilityCourse {
         return passives;
     }
 
-    createAgilityPopup(category: number, filter: IAgilityFilter) {
+    createAgilityPopup(
+        category: number | "pillar" | "elite",
+        filter: IAgilityFilter
+    ) {
         const obstacleSelectPopup = document.createElement("div");
         obstacleSelectPopup.className = "mcsPopup";
-        // @ts-expect-error TS(2540): Cannot assign to 'style' because it is a read-only... Remove this comment to see the full error message
-        obstacleSelectPopup.style = "width:350px;";
+        obstacleSelectPopup.setAttribute("style", "width:350px;");
         const obstacleSelectCard = new Card(
             this.micsr,
             obstacleSelectPopup,
             "",
             "600px"
         );
-        if (category === this.agilityCategories - 2) {
+        if (category === "pillar") {
             this.addObstacleMultiButton(
                 obstacleSelectCard,
                 "Pillars",
@@ -309,7 +323,7 @@ class AgilityCourse {
                 filter.tag,
                 true
             );
-        } else if (category === this.agilityCategories - 1) {
+        } else if (category === "elite") {
             this.addObstacleMultiButton(
                 obstacleSelectCard,
                 "Elite Pillars",
@@ -336,30 +350,32 @@ class AgilityCourse {
         return obstacleSelectPopup;
     }
 
-    selectObstacle(category: number, obstacle: IObstacle) {
+    selectObstacle(category: number | "pillar" | "elite", obstacle: IObstacle) {
         const label = document.getElementById(
             `MICSR Obstacle ${category} ${this.id} Label`
         )!;
         label.textContent = obstacle.name;
         this.setObstacleImage(category, obstacle);
-        // if (category === 10) {
-        //     this.player.pillar = obstacle.id;
-        // }
-        // else if (category === 14){
-        //     this.player.pillarElite = obstacle.id;
-        // } else {
-        if (obstacle.category === -1) {
-            this.player.course[category] = -1;
+        if (category === "pillar") {
+            this.player.pillarID = obstacle.id;
+        } else if (category === "elite") {
+            this.player.pillarEliteID = obstacle.id;
         } else {
-            this.player.course[category] = obstacle.id;
+            if (obstacle.category === -1) {
+                this.player.course[category] = -1;
+            } else {
+                this.player.course[category] = obstacle.index;
+            }
         }
-        // }
     }
 
     /**
      * Change the obstacle image
      */
-    setObstacleImage(category: number, obstacle: IObstacle) {
+    setObstacleImage(
+        category: number | "pillar" | "elite",
+        obstacle: IObstacle
+    ) {
         const img = document.getElementById(
             `MICSR Obstacle ${category} ${this.id} Image`
         );
@@ -415,12 +431,8 @@ class AgilityCourse {
         elitePillarID: string
     ) {
         // clear current values
-        this.player.course = Array(
-            this.agilityCategories
-        ).fill(-1);
-        this.player.courseMastery = Array(
-            this.agilityCategories
-        ).fill(false);
+        this.player.course = Array(this.agilityCategories).fill(-1);
+        this.player.courseMastery = Array(this.agilityCategories).fill(false);
         // import settings
         this.player.course.forEach((_, category) => {
             let obstacleID = courseObstacles[category];
@@ -439,22 +451,22 @@ class AgilityCourse {
         this.player.pillarID = pillarID;
         if (pillarID) {
             this.selectObstacle(
-                this.agilityCategories - 2,
+                "pillar",
                 this.agilityPillars[
                     this.player.game.agility.pillars.allObjects.findIndex(
                         (v) => v.id === pillarID
-                    )
+                    ) + 1
                 ]
             );
         }
         this.player.pillarEliteID = elitePillarID;
         if (elitePillarID) {
             this.selectObstacle(
-                this.agilityCategories - 1,
+                "elite",
                 this.eliteAgilityPillars[
                     this.player.game.agility.elitePillars.allObjects.findIndex(
                         (v) => v.id === elitePillarID
-                    )
+                    ) + 1
                 ]
             );
         }
