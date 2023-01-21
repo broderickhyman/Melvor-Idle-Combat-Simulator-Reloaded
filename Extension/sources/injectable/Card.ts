@@ -342,6 +342,7 @@ class Card {
         newInput.addEventListener("change", onChangeCallback);
         newCCContainer.appendChild(newInput);
         this.container.appendChild(newCCContainer);
+        return newInput;
     }
 
     /**
@@ -729,7 +730,7 @@ class Card {
      * @param {number} height in pixels
      * @return {HTMLImageElement} The newly created image element
      */
-    createImage(imageSrc: any, height: any) {
+    createImage(imageSrc: string, height: number) {
         const newImage = document.createElement("img");
         newImage.style.height = `${height}px`;
         newImage.src = imageSrc;

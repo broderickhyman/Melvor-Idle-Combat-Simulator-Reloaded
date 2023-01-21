@@ -243,7 +243,6 @@ class AgilityCourse {
         isProp: boolean
     ) {
         let menuItems: IObstacle[] = [];
-        debugger;
         if (category === "elite") {
             menuItems = this.eliteAgilityPillars;
         } else if (category === "pillar") {

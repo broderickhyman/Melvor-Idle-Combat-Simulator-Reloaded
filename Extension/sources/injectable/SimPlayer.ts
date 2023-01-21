@@ -24,7 +24,6 @@
  */
 class SimPlayer extends Player {
     _slayercoins: any;
-    activeAstrologyModifiers: any[];
     combinations: string[];
     cookingMastery: boolean;
     cookingPool: boolean;
@@ -94,8 +93,6 @@ class SimPlayer extends Player {
         this.healAfterDeath = true;
         this.isSlayerTask = false;
         this.isManualEating = false;
-        // activeAstrologyModifiers
-        this.activeAstrologyModifiers = [];
         // runes in bank
         this.hasRunes = true;
 
@@ -137,7 +134,6 @@ class SimPlayer extends Player {
             numbers: [
                 "pillarID",
                 "pillarEliteID",
-                "activeAstrologyModifiers", // this is an array of dictionaries, but it (de)serializes fine
             ],
             strings: ["currentGamemodeID"],
         };
@@ -532,9 +528,7 @@ class SimPlayer extends Player {
     }
 
     addAstrologyModifiers() {
-        for (let i = 0; i < this.activeAstrologyModifiers.length; i++) {
-            this.modifiers.addModifiers(this.activeAstrologyModifiers[i]);
-        }
+
     }
 
     equipmentID(slotID: EquipmentSlots) {

@@ -279,7 +279,7 @@ class Import {
         return {
             version: this.micsr.version,
             // lists
-            astrologyModifiers: this.simPlayer.activeAstrologyModifiers,
+            astrologyModifiers: [],
             course: this.simPlayer.course,
             courseMastery: courseMastery,
             equipment: this.simPlayer.equipment.slotArray.map(
@@ -634,7 +634,6 @@ class Import {
                 }
             }
         );
-        this.app.updateAstrologySummary();
     }
 
     convertObjectToJson(settings: IImportSettings): string {

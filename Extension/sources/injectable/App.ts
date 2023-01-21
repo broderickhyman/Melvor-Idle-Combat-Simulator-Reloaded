@@ -38,8 +38,6 @@ class App {
     combatStatCard!: Card;
     combatStatKeys: any;
     compareCard!: Card;
-    constellationContainers: any;
-    constellationModifierContainers: any;
     consumables: any;
     consumablesCard!: TabCard;
     dataExport: any;
@@ -93,7 +91,6 @@ class App {
     tippySingleton: any;
     topContent: any;
     trackHistory: any;
-    uniqueModifiers: any;
     viewedDungeonID?: string;
     zoneInfoCard!: Card;
 
@@ -143,7 +140,7 @@ class App {
         };
         this.potionTier = 0;
         this.astrologySelected = undefined;
-        this.skipConstellations = [0, 2, 7];
+        this.skipConstellations = [0, 2, 7, 11, 12];
         // xp gains
         addPlotOption("XP per ", true, "xpPerSecond", "XP/");
         addPlotOption("HP XP per ", true, "hpXpPerSecond", "HP XP/");
@@ -1386,49 +1383,22 @@ class App {
                 "100px"
             );
             initial = true;
-            this.uniqueModifiers = [];
-            this.actualGame.astrology.actions.allObjects.forEach(
-                (constellation) => {
-                    const uniques: any = {};
-                    for (const modifiers of constellation.uniqueModifiers) {
-                        for (const modifier of modifiers.modifiers) {
-                            uniques[modifier.key] = true;
-                        }
-                    }
-                    this.uniqueModifiers.push(uniques);
-                }
-            );
         } else {
             this.astrologySelectCard.clearContainer();
         }
         this.astrologySelectCard.addSectionTitle("Astrology");
-        this.constellationContainers = [];
-        this.constellationModifierContainers = [];
         const card = this.astrologySelectCard;
         this.actualGame.astrology.actions.allObjects.forEach(
             (constellation, index) => {
-                // create constellation modifier object
-                let activeConstellationModifiers = {};
-                if (initial) {
-                    this.player.activeAstrologyModifiers.push(
-                        activeConstellationModifiers
-                    );
-                } else {
-                    activeConstellationModifiers =
-                        this.player.activeAstrologyModifiers[index];
-                }
                 // create constellation container
-                const cc = card.createCCContainer();
-                this.constellationContainers.push(cc);
                 if (this.skipConstellations.includes(index)) {
-                    this.constellationModifierContainers.push([]);
                 } else {
+                    const cc = card.createCCContainer();
+                    cc.className = "mcsEquipmentImageContainer";
                     // constellation symbol and skills
-                    const constellationImage = card.createImageButton(
+                    const constellationImage = card.createImage(
                         constellation.media,
-                        `constellation-${index}`,
-                        () => {},
-                        "Small"
+                        40
                     );
                     cc.appendChild(
                         card.createLabel(
@@ -1436,59 +1406,9 @@ class App {
                         )
                     );
                     cc.appendChild(constellationImage);
-                    cc.appendChild(
-                        card.createImage(constellation.skills[0].media, 20)
-                    );
-                    cc.appendChild(
-                        card.createImage(constellation.skills[1].media, 20)
-                    );
-                    const standardLabel = card.createLabel(`+0%`);
-                    standardLabel.id = `MICSR-${constellation.name}-standard-percentage`;
-                    cc.appendChild(standardLabel);
-                    cc.appendChild(
-                        card.container.appendChild(
-                            card.createImage(this.media.standardStar, 20)
-                        )
-                    );
-                    const uniqueLabel = card.createLabel(`+0%`);
-                    uniqueLabel.id = `MICSR-${constellation.name}-unique-percentage`;
-                    cc.appendChild(uniqueLabel);
-                    cc.appendChild(
-                        card.container.appendChild(
-                            card.createImage(this.media.uniqueStar, 20)
-                        )
-                    );
-                    // add constellation to astrology card
                     card.container.appendChild(cc);
-                    constellationImage.parentElement!.onclick = () =>
-                        this.toggleAstrologySelectCard(index);
-                    // image buttons to open modifier selection
-                    let elementList: any = [];
-                    const standardStar = card.createImage(
-                        this.media.standardStar,
-                        40
-                    );
-                    standardStar.id = `MICSR-${constellation.name}-Standard-Image`;
-                    card.container.appendChild(standardStar);
-                    this.createStandardAstrologyModifiers(
-                        card,
-                        elementList,
-                        constellation,
-                        activeConstellationModifiers
-                    );
-                    const uniqueStar = card.createImage(
-                        this.media.uniqueStar,
-                        40
-                    );
-                    uniqueStar.id = `MICSR-${constellation.name}-Unique-Image`;
-                    card.container.appendChild(uniqueStar);
-                    this.createUniqueAstrologyModifiers(
-                        card,
-                        elementList,
-                        constellation,
-                        activeConstellationModifiers
-                    );
-                    this.constellationModifierContainers.push(elementList);
+                    this.createAstrologyModifiers(card, constellation, "standard");
+                    this.createAstrologyModifiers(card, constellation, "unique");
                 }
             }
         );
@@ -1498,251 +1418,54 @@ class App {
     }
 
     clearAstrology() {
-        // set modifiers to 0
-        this.player.activeAstrologyModifiers.forEach((constellation, idx) => {
-            if (this.skipConstellations.includes(idx)) {
-                return;
-            }
-            for (const modifier in constellation) {
-                if (constellation[modifier].push) {
-                    constellation[modifier].forEach((x: any) => (x[1] = 0));
-                } else {
-                    constellation[modifier] = 0;
-                }
-            }
-        });
         // set UI to 0
-        this.constellationModifierContainers.forEach((containers: any) =>
-            containers.forEach(
-                (x: any) => ((document.getElementById(x) as any).value = 0)
-            )
-        );
-        // update summary
-        this.updateAstrologySummary();
+        // this.constellationModifierContainers.forEach((containers: any) =>
+        //     containers.forEach(
+        //         (x: any) => ((document.getElementById(x) as any).value = 0)
+        //     )
+        // );
         // update stats
         this.updateCombatStats();
     }
 
-    toggleAstrologySelectCard(selected?: number) {
-        this.astrologySelected =
-            this.astrologySelected === selected ? undefined : selected;
-        if (this.astrologySelected === undefined) {
-            document.getElementById(
-                "MCS Clear All Star Modifiers Button"
-            )!.style.display = "block";
-        } else {
-            document.getElementById(
-                "MCS Clear All Star Modifiers Button"
-            )!.style.display = "none";
+    createAstrologyModifiers(
+        card: Card,
+        constellation: AstrologyRecipe,
+        type: "standard" | "unique"
+    ) {
+        let title = "";
+        let modifiers: AstrologyModifier[];
+        let maxValue = 0;
+        switch (type) {
+            case "standard":
+                title = "Standard";
+                modifiers = constellation.standardModifiers;
+                maxValue = Astrology.standardModifierCosts.length;
+                break;
+            case "unique":
+                title = "Unique";
+                modifiers = constellation.uniqueModifiers;
+                maxValue = Astrology.uniqueModifierCosts.length;
+                break;
         }
-        this.actualGame.astrology.actions.allObjects.forEach(
-            (constellation, index) => {
-                if (this.skipConstellations.includes(index)) {
-                    return;
-                }
-                if (
-                    this.astrologySelected !== undefined &&
-                    this.astrologySelected !== index
-                ) {
-                    this.constellationContainers[index].style.display = "none";
-                } else {
-                    this.constellationContainers[index].style.display = "block";
-                }
-                const els = [
-                    document.getElementById(
-                        `MICSR-${constellation.name}-Standard-Image`
-                    )!,
-                    document.getElementById(
-                        `MICSR-${constellation.name}-Unique-Image`
-                    )!,
-                ];
-                for (const id of this.constellationModifierContainers[index]) {
-                    const el = document.getElementById(id).parentElement!;
-                    els.push(el);
-                }
-                for (const el of els) {
-                    if (this.astrologySelected !== index) {
-                        el.style.display = "none";
-                    } else {
-                        el.style.display = "flex";
-                    }
-                }
-            }
-        );
-    }
 
-    createStandardAstrologyModifiers(
-        card: any,
-        elementList: any,
-        constellation: any,
-        activeConstellationModifiers: any
-    ) {
-        const stdMod: any = [];
-        constellation.skills.forEach((skillID: any, idx: any) => {
+        for (let i = 0; i < modifiers.length; i++) {
+            const mod = modifiers[i];
             if (
-                !this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(
-                    skillID
-                )
+                mod.modifiers.some((v) => {
+                    return "skill" in v && v.skill.isCombat;
+                })
             ) {
-                return;
-            }
-            // summoning has no relevant modifiers other than increasedSkillXP
-            if (this.micsr.skillIDs.Summoning === skillID) {
-                stdMod.push([skillID, "increasedSkillXP"]);
-                return;
-            }
-            // for other combat skills all modifiers are relevant
-            constellation.standardModifiers[idx].forEach((modifier: any) =>
-                stdMod.push([
-                    modifierData[modifier].isSkill ? skillID : undefined,
-                    modifier,
-                ])
-            );
-        });
-        const alreadyAdded: any = [];
-        // @ts-expect-error TS(7006): Parameter 'x' implicitly has an 'any' type.
-        stdMod.forEach((x) => {
-            const skillID = x[0];
-            const modifier = x[1];
-            if (skillID !== undefined) {
-                card.addNumberInput(
-                    `${constellation.name}-${this.micsr.skillNames[skillID]}-${modifier}`,
+                const input = card.addNumberInput(
+                    `${title}: ${i + 1}`,
                     0,
                     0,
-                    15,
-                    (event: any) => {
-                        activeConstellationModifiers[modifier] =
-                            activeConstellationModifiers[modifier].map(
-                                (y: any) => {
-                                    if (y[0] !== skillID) {
-                                        return y;
-                                    }
-                                    return [
-                                        skillID,
-                                        parseInt(event.currentTarget.value),
-                                    ];
-                                }
-                            );
-                        if (
-                            activeConstellationModifiers[modifier].find(
-                                (x: any) => x[0] === skillID
-                            ) === undefined
-                        ) {
-                            activeConstellationModifiers[modifier].push([
-                                skillID,
-                                parseInt(event.currentTarget.value),
-                            ]);
-                        }
-                        this.updateAstrologySummary();
-                        this.updateCombatStats();
-                    }
+                    maxValue,
+                    (event) => {}
                 );
-                const id = `MCS ${constellation.name}-${this.micsr.skillNames[skillID]}-${modifier} Input`;
-                elementList.push(id);
-                card.container.lastChild.firstChild.textContent = `${this.micsr.skillNames[skillID]} ${modifier}`;
-                if (activeConstellationModifiers[modifier] === undefined) {
-                    activeConstellationModifiers[modifier] = [];
-                }
-                activeConstellationModifiers[modifier].push([skillID, 0]);
-            } else if (!alreadyAdded.includes(modifier)) {
-                card.addNumberInput(
-                    `${constellation.name}-${modifier}`,
-                    0,
-                    0,
-                    15,
-                    (event: any) => {
-                        activeConstellationModifiers[modifier] = parseInt(
-                            event.currentTarget.value
-                        );
-                        this.updateAstrologySummary();
-                        this.updateCombatStats();
-                    }
-                );
-                const id = `MCS ${constellation.name}-${modifier} Input`;
-                elementList.push(id);
-                card.container.lastChild.firstChild.textContent = `${modifier}`;
-                activeConstellationModifiers[modifier] = 0;
-                alreadyAdded.push(modifier);
+                input.id = `MCS_${constellation.id}_${i}_Input`;
             }
-        });
-    }
-
-    createUniqueAstrologyModifiers(
-        card: any,
-        elementList: any,
-        constellation: any,
-        activeConstellationModifiers: any
-    ) {
-        // unique modifiers
-        const uniqMod = constellation.uniqueModifiers
-            .reduce((acc: any, val: any) => acc.concat(val), [])
-            .filter(
-                (m: any) =>
-                    this.micsr.showModifiersInstance.relevantModifiers.combat.names.includes(
-                        m
-                    ) ||
-                    this.micsr.showModifiersInstance.relevantModifiers.combat.names.includes(
-                        m.substring(9)
-                    )
-            );
-        uniqMod.forEach((modifier: any) => {
-            card.addNumberInput(
-                `${constellation.name}-${modifier}`,
-                0,
-                0,
-                15,
-                (event: any) => {
-                    activeConstellationModifiers[modifier] = parseInt(
-                        event.currentTarget.value
-                    );
-                    this.updateAstrologySummary();
-                    this.updateCombatStats();
-                }
-            );
-            const id = `MCS ${constellation.name}-${modifier} Input`;
-            elementList.push(id);
-            card.container.lastChild.firstChild.textContent = `${modifier}`;
-            activeConstellationModifiers[modifier] = 0;
-        });
-    }
-
-    updateAstrologySummary() {
-        this.player.activeAstrologyModifiers.forEach(
-            (constellationModifiers: any, idx) => {
-                if (this.skipConstellations.includes(idx)) {
-                    return;
-                }
-                let standard = 0;
-                let unique = 0;
-                for (const modifier in constellationModifiers) {
-                    let val = 0;
-                    if (constellationModifiers[modifier].push) {
-                        constellationModifiers[modifier].forEach(
-                            (x: any) => (val += x[1])
-                        );
-                    } else {
-                        val += constellationModifiers[modifier];
-                    }
-                    if (this.uniqueModifiers[idx][modifier]) {
-                        unique += val;
-                    } else {
-                        standard += val;
-                    }
-                }
-                const constellation =
-                    this.actualGame.astrology.actions.allObjects.find(
-                        (_, i) => i === idx
-                    )!;
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(
-                    `MICSR-${constellation.name}-standard-percentage`
-                ).textContent = `+${standard}%`;
-                // @ts-expect-error TS(2531): Object is possibly 'null'.
-                document.getElementById(
-                    `MICSR-${constellation.name}-unique-percentage`
-                ).textContent = `+${unique}%`;
-            }
-        );
+        }
     }
 
     createLootOptionsCard() {
@@ -2970,7 +2693,11 @@ class App {
     }
 
     // Callback Functions for the spell select buttons
-    spellButtonOnClick(event: any, spell: CombatSpell, spellType: CombatSpellBook) {
+    spellButtonOnClick(
+        event: any,
+        spell: CombatSpell,
+        spellType: CombatSpellBook
+    ) {
         const selected = this.player.getSpellFromType(spellType);
         if (selected === spell) {
             this.disableSpell(spellType, spell);
@@ -2983,7 +2710,11 @@ class App {
         this.updateCombatStats();
     }
 
-    disableSpell(spellType: CombatSpellBook, spell?: CombatSpell, message?: string) {
+    disableSpell(
+        spellType: CombatSpellBook,
+        spell?: CombatSpell,
+        message?: string
+    ) {
         // do nothing
         if (
             spell === undefined ||
@@ -3003,7 +2734,11 @@ class App {
         }
     }
 
-    enableSpell(spellType: CombatSpellBook, spell: CombatSpell, message?: string) {
+    enableSpell(
+        spellType: CombatSpellBook,
+        spell: CombatSpell,
+        message?: string
+    ) {
         // do nothing
         if (spell === undefined) {
             return;
@@ -3899,7 +3634,10 @@ class App {
     checkForSpellLevel() {
         const magicLevel =
             this.micsr.game.skills.getObjectByID("melvorD:Magic")?.level || 0;
-        const setSpellsPerLevel = (spell: CombatSpell, spellType: CombatSpellBook) => {
+        const setSpellsPerLevel = (
+            spell: CombatSpell,
+            spellType: CombatSpellBook
+        ) => {
             const id = `MCS ${spell.id} Button Image`;
             const elt = document.getElementById(id);
             if (magicLevel < spell.level) {
