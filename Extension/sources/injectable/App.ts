@@ -1981,7 +1981,12 @@ class App {
         if (item.modifiers === undefined) {
             return false;
         }
+        const equipmentStatBonuses = item.equipmentStats
+            .filter((x: any) => x.key === 'magicAttackBonus' || x.key === 'magicDamageBonus')
+            .map((x: any) => x.value)
+            .filter((x: any) => x > 0);
         return (
+            equipmentStatBonuses.length > 0 ||
             item.modifiers.increasedMinAirSpellDmg > 0 ||
             item.modifiers.increasedMinEarthSpellDmg > 0 ||
             item.modifiers.increasedMinFireSpellDmg > 0 ||
