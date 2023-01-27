@@ -1900,19 +1900,12 @@ class App {
             return item.summoningLevel | 0;
         }
         let req = 0;
-        if (item.equipRequirements === undefined) {
+        if (item.equipRequirements === undefined || item.equipRequirements.length === 0) {
             return req;
         }
-        const levelReqs = item.equipRequirements
-            .filter((x: any) => x.type === "Level")
-            .map((x: any) => x.levels)
-            .reduce((a: any, b: any) => [...a, ...b], []);
-        for (let levelReq of levelReqs) {
-            if (levelReq.skill === skillID) {
-                req = Math.max(req, levelReq.level);
-            }
-        }
-        return req;
+        return item.equipRequirements
+            .filter((x: AnyRequirement) => x.type === 'SkillLevel' && x.skill.id === skillID)
+            .map((x: SkillLevelRequirementData) => x.level)[0];
     }
 
     /**
