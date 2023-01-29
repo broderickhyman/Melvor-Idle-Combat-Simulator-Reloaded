@@ -1,8 +1,8 @@
 # Melvor Idle Combat Simulator Reloaded
 
-A browser extension for the game [Melvor Idle](http://www.melvoridle.com/).
+A [mod.io](https://mod.io/g/melvoridle/m/combat-simulator-reloaded) extension for the game [Melvor Idle](http://www.melvoridle.com/).
 
-A fork of the great but no longer maintained [Melvor Idle Combat Simulator](https://github.com/coolrox95/Melvor-Idle-Combat-Simulator) by Coolrox95.
+The latest fork in a line of great but no longer maintained [Melvor Idle Combat Simulator](https://github.com/coolrox95/Melvor-Idle-Combat-Simulator) forks by Coolrox95, and [visua0](https://github.com/visua0/Melvor-Idle-Combat-Simulator-Reloaded).
 
 ## Before you start
 - Create a backup of your save file before using this extension, in particular after a recent game or extension update.
@@ -15,7 +15,7 @@ When reporting bugs please include:
 
 ## Installation
 ### Mod Manager:
-Url TBD
+Install via the in-game mod manager or by going to the [mod.io](https://mod.io/g/melvoridle/m/combat-simulator-reloaded) mod page and subscribing.
 
 ## Quick Guide
 The combat simulator allows you to configure a combat setup and simulate monsters, dungeons, and auto-slayer.
