@@ -80,7 +80,6 @@ class MICSR {
     bannedSkills: string[];
 
     constructor(isDev = false) {
-        // TODO: Change to a setting
         this.isDev = isDev;
         this.isVerbose = false;
         this.wrongVersion = false;
@@ -138,11 +137,11 @@ class MICSR {
     }
 
     tryLoad() {
+        this.wrongVersion = gameVersion !== this.gameVersion;
         if (
-            gameVersion !== this.gameVersion &&
+            this.wrongVersion &&
             gameVersion !== localStorage.getItem("MICSR-gameVersion")
         ) {
-            this.wrongVersion = true;
             return window.confirm(
                 `${this.name} ${this.version}\n` +
                     `A different game version was detected (expected: ${this.gameVersion}).\n` +

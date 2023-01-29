@@ -394,6 +394,14 @@ class App {
             onlyUndiscovered: false,
         };
 
+        const feedbackDiv = document.createElement("div");
+        let message = `<div>`;
+        if (this.micsr.wrongVersion) {
+            message += `<span style="color:red">These values are for reference only! Since you are using a beta version they are not guaranteed to be accurate and you may experience different results in the actual game.&nbsp;</span>`;
+        }
+        message += `Please submit any issues/feedback using <a href="https://github.com/broderickhyman/Melvor-Idle-Combat-Simulator-Reloaded/issues" target="_blank">GitHub issues</a>.</div>`;
+        feedbackDiv.innerHTML = message;
+
         // Create the top container for the sim
         this.topContent = document.createElement("div");
         this.topContent.className = "mcsTabContent";
@@ -482,7 +490,7 @@ class App {
         Menu.addModal(
             `${this.micsr.name} ${this.micsr.version}`,
             this.modalID,
-            [this.topContent, this.botContent]
+            [feedbackDiv, this.topContent, this.botContent]
         );
         this.menuItemId = "mcsButton";
         Menu.addMenuItem(
@@ -1407,8 +1415,16 @@ class App {
                     );
                     cc.appendChild(constellationImage);
                     card.container.appendChild(cc);
-                    this.createAstrologyModifiers(card, constellation, "standard");
-                    this.createAstrologyModifiers(card, constellation, "unique");
+                    this.createAstrologyModifiers(
+                        card,
+                        constellation,
+                        "standard"
+                    );
+                    this.createAstrologyModifiers(
+                        card,
+                        constellation,
+                        "unique"
+                    );
                 }
             }
         );
@@ -1900,11 +1916,17 @@ class App {
             return item.summoningLevel | 0;
         }
         let req = 0;
-        if (item.equipRequirements === undefined || item.equipRequirements.length === 0) {
+        if (
+            item.equipRequirements === undefined ||
+            item.equipRequirements.length === 0
+        ) {
             return req;
         }
         return item.equipRequirements
-            .filter((x: AnyRequirement) => x.type === 'SkillLevel' && x.skill.id === skillID)
+            .filter(
+                (x: AnyRequirement) =>
+                    x.type === "SkillLevel" && x.skill.id === skillID
+            )
             .map((x: SkillLevelRequirementData) => x.level)[0];
     }
 
@@ -1982,7 +2004,10 @@ class App {
             return false;
         }
         const equipmentStatBonuses = item.equipmentStats
-            .filter((x: any) => x.key === 'magicAttackBonus' || x.key === 'magicDamageBonus')
+            .filter(
+                (x: any) =>
+                    x.key === "magicAttackBonus" || x.key === "magicDamageBonus"
+            )
             .map((x: any) => x.value)
             .filter((x: any) => x > 0);
         return (
