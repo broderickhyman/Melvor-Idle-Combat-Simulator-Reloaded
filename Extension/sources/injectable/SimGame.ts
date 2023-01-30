@@ -469,6 +469,13 @@ class SimGame extends Game {
         this.combat.player.setPotion(undefined);
         this.shop.upgradesPurchased.clear();
 
+        this.astrology.actions.allObjects.forEach((constellation) => {
+            constellation.standardModsBought.fill(0);
+            constellation.uniqueModsBought.fill(0);
+        });
+        // @ts-expect-error
+        this.astrology.computeProvidedStats(false);
+
         // @ts-expect-error
         this.potions.computeProvidedStats(false);
         this.shop.computeProvidedStats(false);
