@@ -489,6 +489,7 @@ class Simulator {
 
             // Main
             MasteryAction,
+            DummyMasteryAction,
             Lore,
             EventManager,
             CombatArea,

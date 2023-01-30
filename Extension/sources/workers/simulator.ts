@@ -48,6 +48,12 @@
 
     self.addModalToQueue = () => undefined;
 
+    // Hard to copy functions
+    const levelUnlockSum = (skill: Skill<BaseSkillData>) => (previous: number, current: Skill<BaseSkillData>) => {
+        if (skill.level >= current.level) previous++;
+        return previous;
+      };
+
     let combatSimulator: CombatSimulator;
 
     onmessage = async (event) => {
@@ -129,7 +135,6 @@
                     // logging.log('constant', name)
                     self[name] = event.data.constants[name];
                 });
-
                 // functions
                 event.data.functionNames.forEach((name: any) => {
                     // this.micsr.log('function', name, event.data.functions[name])

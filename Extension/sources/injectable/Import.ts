@@ -62,10 +62,15 @@ interface IImportSpells {
     standard: string;
 }
 
+interface IImportAstrology {
+    standardModsBought: number[];
+    uniqueModsBought: number[];
+}
+
 interface IImportSettings {
     version: string;
     // lists
-    astrologyModifiers: {}[];
+    astrologyModifiers: Map<string, IImportAstrology>;
     course: number[];
     courseMastery: boolean[];
     equipment: string[];
@@ -150,45 +155,8 @@ class Import {
             ).length;
 
         // get the active astrology modifiers
-        const astrologyModifiers: {}[] = [];
-        // for (const constellation of actualGame.astrology.actions.allObjects) {
-
-        //     const modifiers = {};
-        //         for (const m of [
-        //             ...constellation.standardModifiers,
-        //             ...constellation.uniqueModifiers,
-        //         ]) {
-        //             if (m.value === undefined) {
-        //                 if (m.values.length === 0) {
-        //                     continue;
-        //                 }
-        //                 const skillID = m.values[0][0];
-        //                 const value = m.values[0][1];
-        //                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        //                 modifiers[m.key] = modifiers[m.key] ?? [];
-        //                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        //                 const index = modifiers[m.key].findIndex(
-        //                     (x: any) => x[0] === skillID
-        //                 );
-        //                 if (index === -1) {
-        //                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        //                     modifiers[m.key] = modifiers[m.key] ?? [];
-        //                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        //                     modifiers[m.key].push([skillID, value]);
-        //                 } else {
-        //                     // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        //                     modifiers[m.key][index][1] += value;
-        //                 }
-        //             } else {
-        //                 if (m.value === 0) {
-        //                     continue;
-        //                 }
-        //                 // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
-        //                 modifiers[m.key] = (modifiers[m.key] ?? 0) + m.value;
-        //             }
-        //         }
-        //     astrologyModifiers.push(modifiers);
-        // }
+        const astrologyModifiers: Map<string, IImportAstrology> =
+            this.getAstrologyFromGame(actualGame);
 
         // get the chosen agility obstacles
         const chosenAgilityObstacles = new Array(
@@ -279,7 +247,7 @@ class Import {
         return {
             version: this.micsr.version,
             // lists
-            astrologyModifiers: [],
+            astrologyModifiers: this.getAstrologyFromGame(simGame),
             course: this.simPlayer.course,
             courseMastery: courseMastery,
             equipment: this.simPlayer.equipment.slotArray.map(
@@ -359,7 +327,7 @@ class Import {
             settings.pillarID,
             settings.pillarEliteID
         );
-        // this.importAstrology(settings.astrologyModifiers);
+        this.importAstrology(settings.astrologyModifiers);
 
         // update and compute values
         this.app.updateUi();
@@ -579,61 +547,56 @@ class Import {
         pillarID: string,
         elitePillarID: string
     ) {
-        this.app.agilityCourse.importAgilityCourse(course, masteries, pillarID, elitePillarID);
+        this.app.agilityCourse.importAgilityCourse(
+            course,
+            masteries,
+            pillarID,
+            elitePillarID
+        );
     }
 
-    importAstrology(astrologyModifiers: any) {
-        this.simPlayer.activeAstrologyModifiers.forEach(
-            (constellationModifiers: any, idx) => {
-                const constellation =
-                    this.app.game.astrology.actions.allObjects.find(
-                        (_, i) => i === idx
-                    )!;
-                for (const modifier in constellationModifiers) {
-                    // import values and set rest to 0
-                    if (
-                        astrologyModifiers[idx] !== undefined &&
-                        astrologyModifiers[idx][modifier] !== undefined
-                    ) {
-                        constellationModifiers[modifier] =
-                            astrologyModifiers[idx][modifier];
-                        if (constellationModifiers[modifier].push) {
-                            // filter non combat skill modifiers
-                            constellationModifiers[modifier] =
-                                constellationModifiers[modifier].filter(
-                                    (x: any) =>
-                                        this.micsr.showModifiersInstance.relevantModifiers.combat.skillIDs.includes(
-                                            x[0]
-                                        )
-                                );
-                        }
-                    } else if (constellationModifiers[modifier].push) {
-                        // keep entries per skill, but set value to 0
-                        constellationModifiers[modifier] =
-                            constellationModifiers[modifier].map((x: any) => [
-                                x[0],
-                                0,
-                            ]);
-                    } else {
-                        constellationModifiers[modifier] = 0;
-                    }
-                    // update input fields
-                    if (constellationModifiers[modifier].push) {
-                        constellationModifiers[modifier].forEach((x: any) => {
-                            this.document.getElementById(
-                                `MCS ${constellation.name}-${
-                                    Skills[x[0]]
-                                }-${modifier} Input`
-                            ).value = x[1];
-                        });
-                    } else {
-                        this.document.getElementById(
-                            `MCS ${constellation.name}-${modifier} Input`
-                        ).value = constellationModifiers[modifier];
-                    }
+    importAstrology(astrologyModifiers: Map<string, IImportAstrology>) {
+        const updateApp = (
+            constellation: AstrologyRecipe,
+            type: "standard" | "unique",
+            values: number[]
+        ) => {
+            values.forEach((val, i) => {
+                var input = document.getElementById(
+                    `MCS_${constellation.id}_${type}_${i}_Input`
+                );
+                if (input) {
+                    (input as HTMLInputElement).value = val.toString();
                 }
-            }
-        );
+            });
+        };
+
+        astrologyModifiers.forEach((value, key) => {
+            const constellation =
+                this.app.game.astrology.actions.getObjectByID(key)!;
+            constellation.standardModsBought = value.standardModsBought;
+            updateApp(
+                constellation,
+                "standard",
+                constellation.standardModsBought
+            );
+            constellation.uniqueModsBought = value.uniqueModsBought;
+            updateApp(constellation, "unique", constellation.uniqueModsBought);
+        });
+        // @ts-expect-error
+        this.app.game.astrology.computeProvidedStats(false);
+    }
+
+    getAstrologyFromGame(game: Game | SimGame) {
+        const astrologyModifiers: Map<string, IImportAstrology> = new Map();
+        for (const constellation of game.astrology.actions.allObjects) {
+            // Make sure to not copy the array reference or the real game will be updated
+            astrologyModifiers.set(constellation.id, {
+                standardModsBought: JSON.parse(JSON.stringify(constellation.standardModsBought)),
+                uniqueModsBought: JSON.parse(JSON.stringify(constellation.uniqueModsBought)),
+            });
+        }
+        return astrologyModifiers;
     }
 
     convertObjectToJson(settings: IImportSettings): string {

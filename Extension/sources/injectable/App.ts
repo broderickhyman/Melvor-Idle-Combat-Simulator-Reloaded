@@ -434,7 +434,7 @@ class App {
         this.createPotionSelectCard();
         this.createPetSelectCard();
         this.createAgilitySelectCard();
-        // this.createAstrologySelectCard();
+        this.createAstrologySelectCard();
         this.createLootOptionsCard();
         this.createSimulationAndExportCard();
         this.createCompareCard();
@@ -525,7 +525,6 @@ class App {
         )!.textContent =
             this.loot.petSkill + " Pet (%)/" + this.selectedTimeShorthand;
         this.updateUi();
-        // TODO this.toggleAstrologySelectCard();
         // slayer sim is off by default, so toggle auto slayer off
         this.toggleSlayerSims(!this.slayerToggleState, false);
         // load from local storage
@@ -1395,8 +1394,9 @@ class App {
             this.astrologySelectCard.clearContainer();
         }
         this.astrologySelectCard.addSectionTitle("Astrology");
+        this.astrologySelectCard.addSectionTitle("(Improvements coming soon™)");
         const card = this.astrologySelectCard;
-        this.actualGame.astrology.actions.allObjects.forEach(
+        this.game.astrology.actions.allObjects.forEach(
             (constellation, index) => {
                 // create constellation container
                 if (this.skipConstellations.includes(index)) {
@@ -1434,13 +1434,16 @@ class App {
     }
 
     clearAstrology() {
-        // set UI to 0
-        // this.constellationModifierContainers.forEach((containers: any) =>
-        //     containers.forEach(
-        //         (x: any) => ((document.getElementById(x) as any).value = 0)
-        //     )
-        // );
-        // update stats
+        // Set UI to 0
+        $("input.astrology-modifier").val(0);
+        // Update Game
+        this.game.astrology.actions.allObjects.forEach((constellation) => {
+            constellation.standardModsBought.fill(0);
+            constellation.uniqueModsBought.fill(0);
+        });
+        // Update stats
+        // @ts-expect-error
+        this.game.astrology.computeProvidedStats(false);
         this.updateCombatStats();
     }
 
@@ -1463,25 +1466,59 @@ class App {
                 modifiers = constellation.uniqueModifiers;
                 maxValue = Astrology.uniqueModifierCosts.length;
                 break;
+            default:
+                throw new Error(`Unexpected type: ${type}`);
         }
 
-        for (let i = 0; i < modifiers.length; i++) {
-            const mod = modifiers[i];
+        for (let modID = 0; modID < modifiers.length; modID++) {
+            const mod = modifiers[modID];
             if (
-                mod.modifiers.some((v) => {
-                    return "skill" in v && v.skill.isCombat;
-                })
+                true
+                // TODO: Filter modifiers
+                // mod.modifiers.some((v) => {
+                //     return "skill" in v && v.skill.isCombat;
+                // })
             ) {
                 const input = card.addNumberInput(
-                    `${title}: ${i + 1}`,
+                    `${title}: ${modID + 1}`,
                     0,
                     0,
                     maxValue,
-                    (event) => {}
+                    (event) => {
+                        this.constellationModifierOnChange(
+                            event,
+                            constellation,
+                            modID,
+                            type
+                        );
+                    }
                 );
-                input.id = `MCS_${constellation.id}_${i}_Input`;
+                input.classList.add("astrology-modifier");
+                input.id = `MCS_${constellation.id}_${type}_${modID}_Input`;
             }
         }
+    }
+
+    private constellationModifierOnChange(
+        event: Event,
+        constellation: AstrologyRecipe,
+        modID: number,
+        type: "standard" | "unique"
+    ) {
+        let bought: number[];
+        if (type === "standard") {
+            bought = constellation.standardModsBought;
+        } else if (type === "unique") {
+            bought = constellation.uniqueModsBought;
+        } else {
+            throw new Error(`Unexpected type: ${type}`);
+        }
+        bought[modID] = parseInt(
+            (event.currentTarget as HTMLInputElement).value
+        );
+        // @ts-expect-error
+        this.game.astrology.computeProvidedStats(false);
+        this.updateCombatStats();
     }
 
     createLootOptionsCard() {

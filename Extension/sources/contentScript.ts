@@ -130,14 +130,14 @@ export function setup(setupContext: Modding.ModContext) {
                     localStorage.setItem("MICSR-gameVersion", gameVersion);
                 } else {
                     micsr.log(`${micsr.name} ${micsr.version} loaded.`);
-                    // @ts-expect-error
-                    window.micsr_app = app;
                 }
+                // @ts-expect-error
+                window.micsr_app = app;
                 if (micsr.isDev) {
                     // Auto open the combat sim menu
                     $("#mcsButton").children().first().trigger("click");
                     // Import set
-                    // $("[id='MCS 1 Button']").trigger("click");
+                    $("[id='MCS 1 Button']").trigger("click");
                     // $("[id='MCS 2 Button']").trigger("click");
 
                     // Select Agility tab
@@ -296,14 +296,17 @@ export function setup(setupContext: Modding.ModContext) {
                     micsr.trials = 2e4;
                     $("[id='MCS # Trials Input'").val(micsr.trials);
                     // Click monster
+                    // const imageID = app.barMonsterIDs.findIndex(
+                    //     (v) => v === "melvorD:Plant"
+                    // );
                     const imageID = app.barMonsterIDs.findIndex(
-                        (v) => v === "melvorD:Plant"
+                        (v) => v === "melvorD:GiantCrab"
                     );
                     // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorD:BlackDragon");
                     // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorTotH:IceHydra");
                     $($(".mcs-bar-container")[imageID]).trigger("click");
                     // Start sim selected
-                    // $("[id='MCS Simulate Selected Button']").trigger("click");
+                    $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");
                 }
             } catch (error) {

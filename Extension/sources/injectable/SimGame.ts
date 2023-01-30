@@ -424,6 +424,13 @@ class SimGame extends Game {
     }
 
     onLoad() {
+        // These skill onLoad functions have a lot of UI calls
+        // this.skills.forEach((skill) => {
+        //     skill.onLoad();
+        //   });
+        // @ts-expect-error
+        this.astrology.computeProvidedStats(false);
+
         // this.completion.onLoad();
         // this.bank.onLoad();
         // @ts-expect-error
@@ -625,8 +632,10 @@ class SimGame extends Game {
             const skill = reader.getNamespacedObject(this.skills);
             const skillDataSize = reader.getUint32();
             if (typeof skill === "string")
-                reader.getFixedLengthBuffer(skillDataSize);
-            else skill.decode(reader, version);
+            reader.getFixedLengthBuffer(skillDataSize);
+            else {
+                skill.decode(reader, version);
+            }
         }
         // mod.decode(reader, version);
         // if (version >= 26) this.completion.decode(reader, version);
