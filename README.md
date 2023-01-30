@@ -2,13 +2,13 @@
 
 A [mod.io](https://mod.io/g/melvoridle/m/combat-simulator-reloaded) extension for the game [Melvor Idle](http://www.melvoridle.com/).
 
-The latest fork in a line of great but no longer maintained [Melvor Idle Combat Simulator](https://github.com/coolrox95/Melvor-Idle-Combat-Simulator) forks by Coolrox95, and [visua0](https://github.com/visua0/Melvor-Idle-Combat-Simulator-Reloaded).
+The latest fork in a line of great but no longer maintained forks by [coolrox95](https://github.com/coolrox95/Melvor-Idle-Combat-Simulator), and [visua0](https://github.com/visua0/Melvor-Idle-Combat-Simulator-Reloaded).
 
 ## Before you start
 - Create a backup of your save file before using this extension, in particular after a recent game or extension update.
 
 ## Bug reports
-Raise an [issue](/../../issues) here on GitHub, or visit the #scripting-and-extensions channel on the [official Melvor Idle Discord](https://discord.gg/melvoridle).  
+Raise an [issue](/../../issues) here on GitHub, or visit the [#mod-bug-reports](https://discord.com/channels/625838709203271680/1029950790254731334) channel on the [official Melvor Idle Discord](https://discord.gg/melvoridle).  
 When reporting bugs please include:
 - any required reproduction steps (e.g. a settings export, the monster you simulated, etc.)
 - any console errors
