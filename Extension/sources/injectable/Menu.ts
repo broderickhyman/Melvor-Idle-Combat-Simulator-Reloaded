@@ -20,9 +20,7 @@
 */
 
 class Menu {
-    // TODO: Use the built in sidebar
-
-    static addModal(title: any, id: any, content: any) {
+    static addModal(title: string, id: string) {
         // create modal
         const modal = document.createElement("div");
         modal.id = id;
@@ -46,114 +44,10 @@ class Menu {
         <i class="fa fa-fw fa-times"></i></button></div></div></div>`);
         $(modalContent).append(modalHeader);
 
-        // add content
-        content.forEach((x: any) => modalContent.appendChild(x));
-
         // insert modal
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
-        document.getElementById("page-container").appendChild(modal);
+        document.getElementById("page-container")!.appendChild(modal);
 
         // return modal
         return modal;
-    }
-
-    static createMenu(title: any, menuID: any, eyeID: any) {
-        // check if tools menu already exists
-        let oldMenu = document.getElementById(menuID);
-        if (oldMenu !== null) {
-            return oldMenu;
-        }
-
-        // Create new tools menu
-        const menu = document.createElement("li");
-        menu.id = menuID;
-        menu.className = "nav-main-heading mcsNoSelect";
-        menu.textContent = title;
-
-        // Create heading eye
-        const headingEye = document.createElement("i");
-        headingEye.className = "far fa-eye text-muted ml-1";
-        headingEye.id = eyeID;
-        headingEye.style.cursor = "pointer";
-        menu.appendChild(headingEye);
-
-        // insert menu before Minigames
-        (document.getElementsByClassName("nav-main-heading") as any).forEach(
-            (heading: any) => {
-                if (
-                    heading.textContent === getLangString("PAGE_NAME_MISC", "1")
-                ) {
-                    heading.parentElement.insertBefore(menu, heading);
-                }
-            }
-        );
-    }
-
-    static addMenuItem(
-        itemTitle: any,
-        iconSrc: any,
-        accessID: any,
-        modalID: any,
-        menuTitle = "Tools",
-        menuID = "mcsToolsMenu",
-        eyeID = "mcsHeadingEye"
-    ) {
-        Menu.createMenu(menuTitle, menuID, eyeID);
-        if ((window as any).MICSR_menuTabs === undefined) {
-            (window as any).MICSR_menuTabs = [];
-        }
-
-        const tabDiv = document.createElement("li");
-        (window as any).MICSR_menuTabs.push(tabDiv);
-        tabDiv.id = accessID;
-        tabDiv.style.cursor = "pointer";
-        tabDiv.className = "nav-main-item mcsNoSelect";
-
-        const menuButton = document.createElement("div");
-        menuButton.className = "nav-main-link nav-compact";
-        menuButton.dataset.toggle = "modal";
-        menuButton.dataset.target = "#" + modalID;
-        tabDiv.appendChild(menuButton);
-
-        const icon = document.createElement("img");
-        icon.className = "nav-img";
-        icon.src = iconSrc;
-        menuButton.appendChild(icon);
-
-        const menuText = document.createElement("span");
-        menuText.className = "nav-main-link-name";
-        menuText.textContent = itemTitle;
-        menuButton.appendChild(menuText);
-
-        // @ts-expect-error TS(2531): Object is possibly 'null'.
-        document.getElementById(menuID).after(tabDiv);
-
-        // return access point
-        return tabDiv;
-    }
-
-    static destroyMenu(menuItemId: any, modalID: any, menuID = "mcsToolsMenu") {
-        // remove the MICSR tab access point
-        const tab = document.getElementById(menuItemId);
-        if (tab !== null) {
-            (window as any).MICSR_menuTabs = (
-                window as any
-            ).MICSR_menuTabs.filter((x: any) => x !== tab);
-            tab.remove();
-        }
-        // remove the tools menu if it is empty
-        const menu = document.getElementById(menuID);
-        if (menu !== null && (menu as any).length === 0) {
-            menu.remove();
-        }
-        // hide and remove the modal
-        const modal = document.getElementById(modalID);
-        if (modal !== null) {
-            // @ts-expect-error
-            $(modal).modal("hide");
-            // @ts-expect-error
-            $(modal).modal("dispose");
-            modal.remove();
-        }
     }
 }

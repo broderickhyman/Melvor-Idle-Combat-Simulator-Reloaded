@@ -61,8 +61,6 @@ class App {
     lootSelectCard!: Card;
     mainTabCard!: TabCard;
     media: any;
-    menuItemId: any;
-    modalID: any;
     monsterToggleState: any;
     petSelectCard!: Card;
     plotTypes: any;
@@ -377,7 +375,7 @@ class App {
         ];
     }
 
-    async initialize(urls: any) {
+    async initialize(urls: any, modal: HTMLDivElement) {
         // Simulation Object
         this.simulator = new Simulator(this, urls.simulationWorker);
         await this.simulator.createWorkers();
@@ -485,20 +483,10 @@ class App {
         this.viewedDungeonID = undefined;
 
         // Now that everything is done we add the menu and modal to the document
-
-        this.modalID = "mcsModal";
-        Menu.addModal(
-            `${this.micsr.name} ${this.micsr.version}`,
-            this.modalID,
-            [feedbackDiv, this.topContent, this.botContent]
-        );
-        this.menuItemId = "mcsButton";
-        Menu.addMenuItem(
-            this.micsr.shortName,
-            this.media.combat,
-            this.menuItemId,
-            this.modalID
-        );
+        const modalContent = $(modal).find(".modal-content");
+        modalContent.append(feedbackDiv);
+        modalContent.append(this.topContent);
+        modalContent.append(this.botContent);
 
         // Finalize tooltips
         // @ts-expect-error TS(2304): Cannot find name 'tippy'.
@@ -4040,7 +4028,5 @@ class App {
         this.tippyNoSingletonInstances.forEach((instance: any) =>
             instance.destroy()
         );
-        // remove the interface
-        Menu.destroyMenu(this.menuItemId, this.modalID);
     }
 }

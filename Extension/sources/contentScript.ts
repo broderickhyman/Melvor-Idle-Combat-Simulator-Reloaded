@@ -56,12 +56,14 @@ async function loadScripts(ctx: Modding.ModContext) {
 
 export function setup(setupContext: Modding.ModContext) {
     const isDeveloper =
-        false &&
+        true &&
         // @ts-expect-error
         cloudManager.accountInfo.TitleInfo.DisplayName === "MyPickle";
     loadScripts(setupContext);
-    const general = setupContext.settings.section("General");
+    let general: any = null;
+    // Hide settings for now until we have some real settings
     if (isDeveloper) {
+        general = setupContext.settings.section("General");
         general.add({
             type: "switch",
             name: "development-mode",
@@ -87,6 +89,16 @@ export function setup(setupContext: Modding.ModContext) {
     });
 
     setupContext.onInterfaceReady(async (characterContext) => {
+        sidebar.category("").item("Combat Simulator", {
+            icon: "assets/media/skills/combat/combat.png",
+            itemClass: "micsr-open-button",
+            onRender: (elements) => {
+                const itemElement = $(elements.itemEl);
+                itemElement.attr("data-toggle", "modal");
+                itemElement.attr("data-target", "#mcsModal");
+            },
+        });
+
         const urls = {
             crossedOut: characterContext.getResourceUrl("icons/crossedOut.svg"),
             simulationWorker: characterContext.getResourceUrl(
@@ -94,7 +106,7 @@ export function setup(setupContext: Modding.ModContext) {
             ),
         };
         let isDev = false;
-        if (isDeveloper) {
+        if (general && isDeveloper) {
             isDev = general.get("development-mode") as boolean;
         }
         const micsr = new MICSR(isDev);
@@ -102,6 +114,9 @@ export function setup(setupContext: Modding.ModContext) {
             localStorage.setItem("MICSR-gameVersion", gameVersion);
         }
         // localStorage.removeItem("MICSR-gameVersion");
+
+        const modalID = "mcsModal";
+        const modal = Menu.addModal(`${micsr.name} ${micsr.version}`, modalID);
 
         // micsr.log('Loading sim with provided URLS');
         let tryLoad = micsr.tryLoad();
@@ -120,7 +135,7 @@ export function setup(setupContext: Modding.ModContext) {
                 simGame.resetToBlankState();
 
                 const app = new App(game, simGame);
-                await app.initialize(urls);
+                await app.initialize(urls, modal);
                 if (micsr.wrongVersion) {
                     micsr.log(
                         `${micsr.name} ${micsr.version} loaded, but simulation results may be inaccurate due to game version incompatibility.`
@@ -136,7 +151,7 @@ export function setup(setupContext: Modding.ModContext) {
                 window.micsr_app = app;
                 if (micsr.isDev) {
                     // Auto open the combat sim menu
-                    $("#mcsButton").children().first().trigger("click");
+                    $(".micsr-open-button").trigger("click");
                     // Import set
                     $("[id='MCS 1 Button']").trigger("click");
                     // $("[id='MCS 2 Button']").trigger("click");
@@ -144,7 +159,7 @@ export function setup(setupContext: Modding.ModContext) {
                     // Select Agility tab
                     // $("#mcs-mcsmaintab-agility-tab").trigger("click");
                     // Select Astrology tab
-                    $("#mcs-mcsmaintab-astrology-tab-image").trigger("click");
+                    // $("#mcs-mcsmaintab-astrology-tab-image").trigger("click");
 
                     // Specific test
                     // const settings = app.import.exportSettings();
@@ -307,14 +322,22 @@ export function setup(setupContext: Modding.ModContext) {
                     // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorTotH:IceHydra");
                     $($(".mcs-bar-container")[imageID]).trigger("click");
                     // Start sim selected
-                    $("[id='MCS Simulate Selected Button']").trigger("click");
+                    // $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");
                 }
-            } catch (error) {
-                micsr.warn(
-                    `${micsr.name} ${micsr.version} was not loaded due to the following error:`
-                );
+            } catch (error: any) {
+                let baseString = `${micsr.name} ${micsr.version} was not loaded due to the following error:`;
+                micsr.warn(baseString);
                 micsr.error(error);
+                const modalContent = $(modal).find(".modal-content");
+                modalContent.append(
+                    `${baseString} ${error}`
+                );
+                if(error.stack){
+                    modalContent.append(
+                        `Stacktrace: ${(error as Error).stack?.replace("\n", "<br />")}`
+                    );
+                }
             }
         } else {
             micsr.warn(
