@@ -435,9 +435,11 @@ class SimManager extends CombatManager {
                 }
             }
         }
-        else {
-            failMessage = `Failed one of the following requirements: ${areaData.entryRequirements.map(r => r.type).join(", ")}.`;
-        }
+        // TODO: Show the requirements necessary for a monster
+        // However make sure that partial slayer tasks don't show the error
+        // else {
+        //     failMessage = `Failed one of the following requirements: ${areaData.entryRequirements.map(r => r.type).join(", ")}.`;
+        // }
         this.stopCombat();
         const processingTime = performance.now() - startTimeStamp;
         const simStats = this.getSimStats(monsterID, dungeonID, success, failMessage);
