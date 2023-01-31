@@ -304,9 +304,9 @@ class MICSR {
         this.skillNames = [];
         this.skillNamesLC = {};
         this.game.skills.allObjects.forEach((x, i) => {
-            this.skillIDs[x.name] = x.id;
-            this.skillNames.push(x.name);
-            this.skillNamesLC[x.id] = x.name.toLowerCase();
+            this.skillIDs[x.localID] = x.id;
+            this.skillNames.push(x.localID);
+            this.skillNamesLC[x.id] = x.localID.toLowerCase();
         });
         // pets array
         this.pets = this.actualGame.pets;
