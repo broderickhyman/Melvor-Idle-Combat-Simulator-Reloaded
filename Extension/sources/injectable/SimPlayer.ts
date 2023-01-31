@@ -273,7 +273,6 @@ class SimPlayer extends Player {
             };
         });
 
-        this.currentGamemodeID = this.micsr.game.currentGamemode.id;
         this.combinations = this.game.runecrafting.actions
             .filter((x) => x.category.localID === "CombinationRunes")
             .map((x) => x.product.id);
