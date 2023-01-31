@@ -322,7 +322,7 @@ export function setup(setupContext: Modding.ModContext) {
                     // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorTotH:IceHydra");
                     $($(".mcs-bar-container")[imageID]).trigger("click");
                     // Start sim selected
-                    // $("[id='MCS Simulate Selected Button']").trigger("click");
+                    $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");
                 }
             } catch (error: any) {

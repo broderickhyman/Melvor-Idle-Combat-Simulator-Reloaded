@@ -316,6 +316,7 @@ class Simulator {
             "getRandomArrayElement",
             "sortRecipesByCategoryAndLevel",
             "checkBooleanCondition",
+            "checkValueCondition"
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
@@ -575,6 +576,7 @@ class Simulator {
             FoodEatenEvent,
             PotionUsedEvent,
             RuneConsumptionEvent,
+            PrayerPointConsumptionEvent,
             SummonTabletUsedEvent,
 
             // Matchers
