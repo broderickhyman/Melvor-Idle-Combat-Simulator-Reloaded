@@ -1244,7 +1244,9 @@ class App {
         const prayerNames: any = [];
         const prayerCallbacks: any = [];
         const tooltips: any = [];
-        this.micsr.prayers.forEach((prayer) => {
+        this.micsr.prayers.allObjects
+            .sort((a, b) => a.level - b.level)
+            .forEach((prayer) => {
             prayerSources.push(prayer.media);
             prayerNames.push(this.getPrayerName(prayer));
             prayerCallbacks.push((e: any) =>
