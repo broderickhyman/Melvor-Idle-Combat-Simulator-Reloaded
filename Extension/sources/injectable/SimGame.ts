@@ -377,6 +377,11 @@ class SimGame extends Game {
             // Store sc on the SimPlayer
             this.combat.player.slayercoins += amount;
         };
+        this.skills.allObjects.forEach((skill) => {
+            // Make sure nothing gets called on skill level ups, it tends to try rendering
+            // @ts-expect-error
+            skill.levelUp = () => null;
+        });
     }
 
     postDataRegistration() {
