@@ -56,7 +56,7 @@ async function loadScripts(ctx: Modding.ModContext) {
 
 export function setup(setupContext: Modding.ModContext) {
     const isDeveloper =
-        true &&
+        false &&
         // @ts-expect-error
         cloudManager.accountInfo.TitleInfo.DisplayName === "MyPickle";
     loadScripts(setupContext);
