@@ -56,7 +56,7 @@ async function loadScripts(ctx: Modding.ModContext) {
 
 export function setup(setupContext: Modding.ModContext) {
     const isDeveloper =
-        false &&
+        true &&
         // @ts-expect-error
         cloudManager.accountInfo.TitleInfo.DisplayName === "MyPickle";
     loadScripts(setupContext);
@@ -302,6 +302,12 @@ export function setup(setupContext: Modding.ModContext) {
                     );
                     // app.import.importSettings(settings);
 
+                    // var slayer = true;
+                    // if (slayer) {
+                    // Enable slayer
+                    $("[id='MCS Slayer Task Radio Yes']").trigger("click");
+                    // }
+
                     // Start sim all
                     // Low trial count for fast simulate all
                     // micsr.trials = 1e2;
@@ -309,20 +315,28 @@ export function setup(setupContext: Modding.ModContext) {
                     // $("[id='MCS Simulate All Button']").trigger("click");
 
                     // High trial count for development for consistent numbers
-                    micsr.trials = 2e4;
-                    $("[id='MCS # Trials Input'").val(micsr.trials);
+                    // micsr.trials = 2e4;
+                    // $("[id='MCS # Trials Input'").val(micsr.trials);
                     // Click monster
                     // const imageID = app.barMonsterIDs.findIndex(
                     //     (v) => v === "melvorD:Plant"
                     // );
+                    // const imageID = app.barMonsterIDs.findIndex(
+                    //     (v) => v === "melvorD:GiantCrab"
+                    // );
                     const imageID = app.barMonsterIDs.findIndex(
-                        (v) => v === "melvorD:GiantCrab"
+                        (v) => v === "Easy"
                     );
                     // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorD:BlackDragon");
                     // const imageID = app.barMonsterIDs.findIndex((v) => v === "melvorTotH:IceHydra");
+                    // if (slayer) {
+                    // Filter slayer
+                    $($(".mcsXAxisImageContainer")[imageID]).trigger("click");
+                    // }
+
                     $($(".mcs-bar-container")[imageID]).trigger("click");
                     // Start sim selected
-                    $("[id='MCS Simulate Selected Button']").trigger("click");
+                    // $("[id='MCS Simulate Selected Button']").trigger("click");
                     // $("[id='MCS Simulate BLOCKING Button']").trigger("click");
                 }
             } catch (error: any) {
@@ -330,12 +344,13 @@ export function setup(setupContext: Modding.ModContext) {
                 micsr.warn(baseString);
                 micsr.error(error);
                 const modalContent = $(modal).find(".modal-content");
-                modalContent.append(
-                    `${baseString} ${error}`
-                );
-                if(error.stack){
+                modalContent.append(`${baseString} ${error}`);
+                if (error.stack) {
                     modalContent.append(
-                        `Stacktrace: ${(error as Error).stack?.replace("\n", "<br />")}`
+                        `Stacktrace: ${(error as Error).stack?.replace(
+                            "\n",
+                            "<br />"
+                        )}`
                     );
                 }
             }

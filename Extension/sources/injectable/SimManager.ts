@@ -21,11 +21,13 @@
 
 interface ISimGains {
     gp: number;
-    skillXP: {[index: string]: number};
-    petRolls: {};
+    skillXP: { [index: string]: number };
+    petRolls: {
+        other: any[];
+    };
     slayercoins: number;
     usedAmmo: number;
-    usedRunesBreakdown: {[index: string]: number};
+    usedRunesBreakdown: { [index: string]: number };
     usedRunes: number;
     usedCombinationRunes: number;
     usedFood: number;
@@ -47,6 +49,45 @@ interface ISimStats {
     };
     gainsPerSecond: ISimGains;
     failMessage: string;
+}
+
+interface ISimResult {
+    [index: string]: any;
+    // success
+    simSuccess: boolean;
+    reason: string;
+    tickCount: number;
+    // xp rates
+    xpPerSecond: number;
+    hpXpPerSecond: number;
+    slayerXpPerSecond: number;
+    prayerXpPerSecond: number;
+    summoningXpPerSecond: number;
+    // consumables
+    ppConsumedPerSecond: number;
+    ammoUsedPerSecond: number;
+    runesUsedPerSecond: number;
+    usedRunesBreakdown: any;
+    combinationRunesUsedPerSecond: number;
+    potionsUsedPerSecond: number;
+    tabletsUsedPerSecond: number;
+    atePerSecond: number;
+    // survivability
+    deathRate: number;
+    highestDamageTaken: number;
+    lowestHitpoints: number;
+    // kill time
+    killTimeS: number;
+    killsPerSecond: number;
+    // loot gains
+    baseGpPerSecond: number;
+    dropChance: number;
+    signetChance: number;
+    petChance: number;
+    petRolls: {};
+    slayerCoinsPerSecond: number;
+    // not displayed -> TODO: remove?
+    simulationTime: number;
 }
 
 /**
@@ -195,7 +236,12 @@ class SimManager extends CombatManager {
         this.player.resetGains();
     }
 
-    getSimStats(monsterID: string, dungeonID: string, success: boolean, failMesage: string): ISimStats {
+    getSimStats(
+        monsterID: string,
+        dungeonID: string,
+        success: boolean,
+        failMesage: string
+    ): ISimStats {
         return {
             success: success,
             monsterID: monsterID,
@@ -203,24 +249,34 @@ class SimManager extends CombatManager {
             tickCount: this.tickCount,
             simStats: this.simStats,
             gainsPerSecond: this.player.getGainsPerSecond(this.tickCount),
-            failMessage: failMesage
+            failMessage: failMesage,
         };
     }
 
-    convertSlowSimToResult(simResult: ISimStats, targetTrials: any) {
+    convertSlowSimToResult(
+        simResult: ISimStats,
+        targetTrials: any
+    ): ISimResult {
         const gps = simResult.gainsPerSecond;
         const ticksPerSecond = 1000 / TICK_INTERVAL;
         const trials =
             simResult.simStats.killCount + simResult.simStats.deathCount;
+
+        // if (!simResult.success || targetTrials - trials > 0) {
+        //     debugger;
+        // }
+
         let reason = "";
-        if(!simResult.success && simResult.failMessage){
+        if (!simResult.success && simResult.failMessage) {
             reason += simResult.failMessage + " ";
         }
         if (targetTrials - trials > 0) {
             reason += `Simulated ${trials}/${targetTrials} trials.`;
         }
-        const killTimeS =
+        let killTimeS =
             simResult.tickCount / ticksPerSecond / simResult.simStats.killCount;
+        let killsPerSecond = 1 / killTimeS;
+        let deathRate = simResult.simStats.deathCount / trials;
 
         return {
             // success
@@ -248,12 +304,12 @@ class SimManager extends CombatManager {
             tabletsUsedPerSecond: gps.usedSummoningCharges,
             atePerSecond: gps.usedFood,
             // survivability
-            deathRate: simResult.simStats.deathCount / trials,
+            deathRate: deathRate,
             highestDamageTaken: gps.highestDamageTaken,
             lowestHitpoints: gps.lowestHitpoints,
             // kill time
             killTimeS: killTimeS,
-            killsPerSecond: 1 / killTimeS,
+            killsPerSecond: killsPerSecond,
             // loot gains
             baseGpPerSecond: gps.gp, // gpPerSecond is computed from this
             dropChance: NaN,
@@ -407,7 +463,7 @@ class SimManager extends CombatManager {
         }
         const totalTickLimit = trials * tickLimit;
         // debugger;
-        const success = this.game.checkRequirements(
+        let success = this.game.checkRequirements(
             areaData.entryRequirements,
             true
         );
@@ -442,7 +498,12 @@ class SimManager extends CombatManager {
         // }
         this.stopCombat();
         const processingTime = performance.now() - startTimeStamp;
-        const simStats = this.getSimStats(monsterID, dungeonID, success, failMessage);
+        const simStats = this.getSimStats(
+            monsterID,
+            dungeonID,
+            success,
+            failMessage
+        );
         if (verbose) {
             this.micsr.log(
                 `Processed ${this.simStats.killCount} / ${
