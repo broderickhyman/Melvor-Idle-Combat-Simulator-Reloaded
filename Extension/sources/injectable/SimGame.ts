@@ -373,6 +373,10 @@ class SimGame extends Game {
             // Store gp on the SimPlayer
             this.combat.player.gp += amount;
         };
+        this.slayerCoins.add = (amount) => {
+            // Store sc on the SimPlayer
+            this.combat.player.slayercoins += amount;
+        };
     }
 
     postDataRegistration() {

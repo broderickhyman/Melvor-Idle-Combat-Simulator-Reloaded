@@ -23,7 +23,6 @@
  * SimPlayer class, allows creation of a functional Player object without affecting the game
  */
 class SimPlayer extends Player {
-    _slayercoins: any;
     combinations: string[];
     cookingMastery: boolean;
     cookingPool: boolean;
@@ -43,7 +42,7 @@ class SimPlayer extends Player {
     healAfterDeath: boolean;
     highestDamageTaken: any;
     isManualEating: any;
-    isSlayerTask: any;
+    isSlayerTask: boolean;
     lowestHitpoints: any;
     petRolls: any;
     petUnlocked: Pet[];
@@ -51,7 +50,7 @@ class SimPlayer extends Player {
     pillarEliteID: string;
     skillLevel!: Map<string, number>;
     skillXP!: Map<string, number>;
-    slayercoins: any;
+    slayercoins: number;
     useCombinationRunesFlag: boolean;
     usedAmmo: number;
     usedFood: number;
@@ -98,8 +97,8 @@ class SimPlayer extends Player {
 
         this.usedFood = 0;
         this.gp = 0;
+        this.slayercoins = 0;
         this.petRolls = {};
-        this._slayercoins = 0;
         this.usedAmmo = 0;
         this.usedFood = 0;
         this.usedRunes = {};
@@ -290,11 +289,11 @@ class SimPlayer extends Player {
 
     resetGains() {
         this.gp = 0;
+        this.slayercoins = 0;
         this.skillXP = new Map(
             this.game.skills.allObjects.map((skill) => [skill.id, skill.xp])
         );
         this.petRolls = {};
-        this._slayercoins = 0;
         this.usedAmmo = 0;
         this.usedFood = 0;
         this.usedRunes = {};
@@ -316,9 +315,8 @@ class SimPlayer extends Player {
         this.hitpoints = this.stats.maxHitpoints;
     }
 
-    getGainsPerSecond(ticks: any): ISimGains {
-        // debugger;
-        const seconds = ticks / 20;
+    getGainsPerSecond(ticks: number): ISimGains {
+        let seconds = ticks / 20;
         const usedRunesBreakdown: { [index: string]: number } = {};
         let usedRunes = 0;
         let usedCombinationRunes = 0;
@@ -331,9 +329,8 @@ class SimPlayer extends Player {
                 usedRunes += amt;
             }
         }
-        const petRolls = {};
+        const petRolls: any = {};
         for (const interval in this.petRolls) {
-            // @ts-expect-error TS(7053): Element implicitly has an 'any' type because expre... Remove this comment to see the full error message
             petRolls[interval] = this.petRolls[interval] / seconds;
         }
         let usedSummoningCharges =
@@ -721,7 +718,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 this.micsr.logVerbose("encode boolean array", x, this[x]);
                 writer.writeArray(
-                    this[x] as any[],
+                    this[x] as unknown as any[],
                     (object: any, writer: any) => writer.writeBoolean(object)
                 );
             } else {
@@ -732,7 +729,7 @@ class SimPlayer extends Player {
             if (this.hasKey(this, x)) {
                 this.micsr.logVerbose("encode number array", x, this[x]);
                 writer.writeArray(
-                    this[x] as any[],
+                    this[x] as unknown as any[],
                     (object: any, writer: any) => writer.writeInt32(object)
                 );
             } else {
@@ -742,7 +739,7 @@ class SimPlayer extends Player {
         this.dataNames.booleans.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
                 this.micsr.logVerbose("encode boolean", x, this[x]);
-                writer.writeBoolean(this[x] as boolean);
+                writer.writeBoolean(this[x] as unknown as boolean);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -750,7 +747,7 @@ class SimPlayer extends Player {
         this.dataNames.numbers.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
                 this.micsr.logVerbose("encode number", x, this[x]);
-                writer.writeInt32(this[x] as number);
+                writer.writeInt32(this[x] as unknown as number);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }
@@ -758,7 +755,7 @@ class SimPlayer extends Player {
         this.dataNames.strings.forEach((x: PropertyKey) => {
             if (this.hasKey(this, x)) {
                 this.micsr.logVerbose("encode string", x, this[x]);
-                writer.writeString(this[x] as string);
+                writer.writeString(this[x] as unknown as string);
             } else {
                 throw new Error(`Missing key: ${x.toString()}`);
             }

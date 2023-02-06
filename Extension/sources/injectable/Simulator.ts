@@ -19,13 +19,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-interface ISimData {
-    simSuccess: boolean;
-    reason: string;
+interface ISimData extends ISimStats, ISimResult {
     inQueue?: boolean;
-    petRolls?: {
-        other: any[];
-    };
     adjustedRates: any;
 }
 
@@ -127,7 +122,7 @@ class Simulator {
     }
 
     newSimData(isMonster: boolean): ISimData {
-        const data: ISimData = {
+        const data: any = {
             simSuccess: false,
             reason: this.notSimulatedReason,
             adjustedRates: {},
@@ -316,7 +311,7 @@ class Simulator {
             "getRandomArrayElement",
             "sortRecipesByCategoryAndLevel",
             "checkBooleanCondition",
-            "checkValueCondition"
+            "checkValueCondition",
         ].forEach((func: any) => {
             if (window[func] === undefined) {
                 this.micsr.error(`window[${func}] is undefined`);
@@ -930,62 +925,77 @@ class Simulator {
     }
 
     computeAverageSimData(
-        filter: any,
-        data: any,
-        monsters: any,
-        dungeonID: any
+        filter: boolean,
+        averageData: ISimData,
+        monsters: Monster[],
+        isSlayerTask: boolean,
+        dungeonID?: string
     ) {
         // check filter
         if (!filter) {
-            data.simSuccess = false;
-            data.reason = "entity filtered";
+            averageData.simSuccess = false;
+            averageData.reason = "entity filtered";
             return;
         }
         // combine failure reasons, if any
-        this.combineReasons(data, monsters, dungeonID);
-        data.simSuccess = true;
-        data.tickCount = 0;
+        if (isSlayerTask) {
+            averageData.reason = "";
+        } else {
+            this.combineReasons(averageData, monsters, dungeonID);
+        }
+        averageData.simSuccess = true;
+        averageData.tickCount = 0;
 
         // not time-weighted averages
-        data.deathRate = 0;
-        data.highestDamageTaken = 0;
-        data.lowestHitpoints = Number.MAX_SAFE_INTEGER;
-        data.killTimeS = 0;
-        data.simulationTime = 0;
-        monsters.forEach((monster: any) => {
+        averageData.deathRate = 0;
+        averageData.highestDamageTaken = 0;
+        averageData.lowestHitpoints = Number.MAX_SAFE_INTEGER;
+        averageData.killTimeS = 0;
+        averageData.simulationTime = 0;
+        monsters.forEach((monster) => {
             const simID = this.simID(monster.id, dungeonID);
-            const mData = this.monsterSimData[simID];
-            data.simSuccess &&= mData.simSuccess;
-            data.deathRate = 1 - (1 - data.deathRate) * (1 - mData.deathRate);
-            data.highestDamageTaken = Math.max(
-                data.highestDamageTaken,
-                mData.highestDamageTaken
-            );
-            data.lowestHitpoints = Math.min(
-                data.lowestHitpoints,
-                mData.lowestHitpoints
-            );
-            data.killTimeS += mData.killTimeS;
-            data.simulationTime += mData.simulationTime;
-            data.tickCount = Math.max(data.tickCount, mData.tickCount);
+            const monsterData = this.monsterSimData[simID];
+            if (monsterData.simSuccess) {
+                if (!isSlayerTask) {
+                    averageData.simSuccess &&= monsterData.simSuccess;
+                }
+                averageData.deathRate =
+                    1 -
+                    (1 - averageData.deathRate) * (1 - monsterData.deathRate);
+                averageData.highestDamageTaken = Math.max(
+                    averageData.highestDamageTaken,
+                    monsterData.highestDamageTaken
+                );
+                averageData.lowestHitpoints = Math.min(
+                    averageData.lowestHitpoints,
+                    monsterData.lowestHitpoints
+                );
+                averageData.killTimeS += monsterData.killTimeS;
+                averageData.simulationTime += monsterData.simulationTime;
+                averageData.tickCount = Math.max(
+                    averageData.tickCount,
+                    monsterData.tickCount
+                );
+            }
         });
-        data.killsPerSecond = 1 / data.killTimeS;
+        averageData.killsPerSecond = 1 / averageData.killTimeS;
 
         // time-weighted averages
-        const computeAvg = (tag: any) => {
-            data[tag] =
+        const computeAvg = (tag: string) => {
+            averageData[tag] =
                 monsters
                     .map(
-                        (monster: any) =>
+                        (monster) =>
                             this.monsterSimData[
                                 this.simID(monster.id, dungeonID)
                             ]
                     )
-                    .reduce(
-                        (avgData: any, mData: any) =>
-                            avgData + mData[tag] * mData.killTimeS,
-                        0
-                    ) / data.killTimeS;
+                    .reduce((avgData, mData) => {
+                        if (!mData.simSuccess) {
+                            return avgData;
+                        }
+                        return avgData + mData[tag] * mData.killTimeS;
+                    }, 0) / averageData.killTimeS;
         };
         [
             // xp rates
@@ -1023,20 +1033,20 @@ class Simulator {
         ].forEach((tag) => computeAvg(tag));
 
         // average rune breakdown
-        data.usedRunesBreakdown = {};
+        averageData.usedRunesBreakdown = {};
         monsters
             .map(
-                (monster: any) =>
+                (monster) =>
                     this.monsterSimData[this.simID(monster.id, dungeonID)]
             )
-            .forEach((mData: any) => {
+            .forEach((mData) => {
                 for (const runeID in mData.usedRunesBreakdown) {
-                    if (data.usedRunesBreakdown[runeID] === undefined) {
-                        data.usedRunesBreakdown[runeID] = 0;
+                    if (averageData.usedRunesBreakdown[runeID] === undefined) {
+                        averageData.usedRunesBreakdown[runeID] = 0;
                     }
-                    data.usedRunesBreakdown[runeID] +=
+                    averageData.usedRunesBreakdown[runeID] +=
                         (mData.usedRunesBreakdown[runeID] * mData.killTimeS) /
-                        data.killTimeS;
+                        averageData.killTimeS;
                 }
             });
     }
@@ -1044,34 +1054,23 @@ class Simulator {
     /** Performs all data analysis post queue completion */
     performPostSimAnalysis(isNewRun = false) {
         // Perform calculation of dungeon stats
-        this.micsr.dungeons.forEach((dungeon: any) => {
+        this.micsr.dungeons.allObjects.forEach((dungeon: Dungeon) => {
             this.computeAverageSimData(
                 this.dungeonSimFilter[dungeon.id],
                 this.dungeonSimData[dungeon.id],
                 dungeon.monsters,
+                false,
                 dungeon.id
             );
         });
-        this.micsr.slayerTaskData.forEach((task: any) => {
+        this.micsr.slayerTaskData.forEach((task: SlayerTaskData) => {
             this.computeAverageSimData(
                 this.slayerSimFilter[task.display],
                 this.slayerSimData[task.display],
                 this.slayerTaskMonsters[task.display],
-                undefined
+                true
             );
-            // correct average kps for auto slayer
-            this.slayerSimData[task.display].killsPerSecond *=
-                this.slayerTaskMonsters[task.display].length;
         });
-        // correct average kill time for auto slayer
-        for (
-            let slayerTaskID = 0;
-            slayerTaskID < this.slayerTaskMonsters.length;
-            slayerTaskID++
-        ) {
-            this.slayerSimData[slayerTaskID].killTimeS /=
-                this.slayerTaskMonsters[slayerTaskID].length;
-        }
         // Update other data
         this.parent.loot.update();
         // scale

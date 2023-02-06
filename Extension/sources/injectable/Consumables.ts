@@ -283,7 +283,7 @@ class Consumables {
         }
     }
 
-    updateSingleResult(data: any) {
+    updateSingleResult(data: ISimData) {
         if(!data.simSuccess){
             return;
         }
@@ -299,7 +299,7 @@ class Consumables {
             'gpPerSecond',
             'dropChance',
             'slayerCoinsPerSecond',
-        ].forEach(tag => data.adjustedRates[tag] = data[tag] / factor);
+        ].forEach(tag => data.adjustedRates[tag] = data[tag] as number / factor);
         // gp per second
         const gpFactor = (data.killTimeS + data.alchTimeS) / (data.killTimeS * factor + data.alchTimeS);
         data.adjustedRates.gpPerSecond = data.gpPerSecond * gpFactor;

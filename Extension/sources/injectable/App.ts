@@ -2851,6 +2851,7 @@ class App {
         const spellSelection = this.player.spellSelection;
         // can we even use magic?
         this.player.checkMagicUsage();
+        // @ts-expect-error
         if (!this.player.canAurora) {
             this.disableSpell(
                 "aurora",
@@ -2858,6 +2859,7 @@ class App {
                 `Disabled aurora, can't use auroras!`
             );
         }
+        // @ts-expect-error
         if (!this.player.canCurse) {
             this.disableSpell(
                 "curse",
