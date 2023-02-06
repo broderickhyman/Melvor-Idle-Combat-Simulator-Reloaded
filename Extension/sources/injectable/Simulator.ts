@@ -822,7 +822,7 @@ class Simulator {
             }
             // check if the area is accessible, this only works for auto slayer
             // without auto slayer you can get some tasks for which you don't wear/own the gear
-            let area = this.micsr.actualGame.getMonsterArea(monster.id);
+            let area = this.micsr.game.getMonsterArea(monster.id);
             if (!this.parent.game.checkRequirements(area.entryRequirements)) {
                 return;
             }

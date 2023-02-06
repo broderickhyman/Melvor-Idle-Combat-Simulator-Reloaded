@@ -2638,7 +2638,7 @@ class App {
         }
         this.player.setAttackStyle(
             combatType,
-            this.micsr.actualGame.attackStyles.allObjects[idx]
+            this.micsr.game.attackStyles.allObjects[idx]
         );
         this.updateCombatStats();
     }
