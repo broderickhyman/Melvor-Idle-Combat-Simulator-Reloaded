@@ -281,7 +281,7 @@ class SimPlayer extends Player {
     resetToBlankState() {
         this.changeEquipmentSet(0);
         this.equipment.unequipAll();
-        this.unequipFood();
+        this.unequipFoodAll();
         this.activePrayers.clear();
     }
 
@@ -437,6 +437,16 @@ class SimPlayer extends Player {
 
     unequipFood() {
         this.food.unequipSelected();
+    }
+
+    unequipFoodAll() {
+        // Clear all slots
+        this.food.slots.forEach((_, index) => {
+            this.food.setSlot(index);
+            this.food.unequipSelected();
+        });
+        // Select first slot
+        this.food.setSlot(0);
     }
 
     getFoodHealingBonus(item: FoodItem): number {
