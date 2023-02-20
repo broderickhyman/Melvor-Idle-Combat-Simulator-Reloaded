@@ -89,7 +89,7 @@ export function setup(setupContext: Modding.ModContext) {
     });
 
     setupContext.onInterfaceReady(async (characterContext) => {
-        sidebar.category("").item("Combat Simulator", {
+        sidebar.category("Modding").item("Combat Simulator", {
             icon: "assets/media/skills/combat/combat.png",
             itemClass: "micsr-open-button",
             onRender: (elements) => {
