@@ -399,8 +399,12 @@ class Simulator {
         ].forEach((clas: any) =>
             classNames.push({ name: clas.name, data: emptyClass })
         );
+        
         // these classes are copied from the game
         [
+            // @ts-expect-error
+            Telemetry,
+
             Bank,
             BankItem,
 
