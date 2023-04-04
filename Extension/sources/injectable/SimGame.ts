@@ -22,6 +22,7 @@ class SimGame extends Game {
     combat: SimManager;
     isWebWorker: boolean;
     autoEatTiers: string[];
+    telemetry: any;
 
     // @ts-expect-error Force shop type
     shop: {
@@ -74,6 +75,8 @@ class SimGame extends Game {
         this.completion = new Completion(this as any);
         this.lore = new Lore(this as any);
         this.eventManager = new EventManager();
+        // @ts-expect-error
+        this.telemetry = new Telemetry();
         // @ts-expect-error
         this.dropWeightCache = new Map();
         this.refundedAstrology = false;
@@ -333,6 +336,7 @@ class SimGame extends Game {
     }
 
     detachGlobals() {
+        this.telemetry.ENABLE_TELEMETRY = false;
         this.township.tasks.updateMonsterTasks = () => null;
         this.completion.updatePet = () => null;
         this.completion.updateSkill = (_: AnySkill) => null;
