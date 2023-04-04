@@ -399,6 +399,9 @@ class Simulator {
         ].forEach((clas: any) =>
             classNames.push({ name: clas.name, data: emptyClass })
         );
+        // Force in an empty Telemetry class for now
+        classNames.push({ name: "Telemetry", data: emptyClass });
+        
         // these classes are copied from the game
         [
             Bank,
