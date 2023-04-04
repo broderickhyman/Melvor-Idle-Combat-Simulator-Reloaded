@@ -146,6 +146,109 @@
                     // logging.log('class', name)
                     eval(event.data.classes[name]);
                 });
+                
+                // just eval telemetry class
+                eval(`
+                    self['Telemetry'] = class {
+                        constructor() {
+                            this.ENABLE_TELEMETRY = false;
+                            this.telemetryPayloadsToProcess = new Map();
+                        }
+                        get isTelemetryEnabled() { return this.ENABLE_TELEMETRY && PlayFabClientSDK.IsClientLoggedIn(); }
+                        createMonsterKillEvent(monster, count = 1) {
+                            if (!this.isTelemetryEnabled)
+                                return; const existingEvent = this.getExistingTelemetryEvent('monster_killed', monster.id); const eventData = existingEvent !== undefined ? existingEvent : new MonsterKilledTelemetryEvent(monster, count); if (existingEvent !== undefined && existingEvent instanceof MonsterKilledTelemetryEvent && eventData instanceof MonsterKilledTelemetryEvent) { eventData.count += count; }
+                            if (DEBUGENABLED)
+                                console.log('Creating monster kill telemetry event', eventData); this.scheduleTelemetryEvent('monster_killed', monster.id, eventData);
+                        }
+                        createPlayerDeathEvent(cause = 'Unknown', itemLost = 'None') {
+                            if (!this.isTelemetryEnabled)
+                                return; const existingEvent = this.getExistingTelemetryEvent('player_death', 'player_death'); const eventData = existingEvent !== undefined ? existingEvent : new PlayerDeathTelemetryEvent(cause, itemLost); if (DEBUGENABLED)
+                                console.log('Creating player death telemetry event', eventData); this.scheduleTelemetryEvent('player_death', 'player_death', eventData);
+                        }
+                        updatePlayerDeathEventItemLost(itemLost, count = 0) {
+                            const deathEvent = this.getExistingTelemetryEvent('player_death', 'player_death'); if (deathEvent === undefined)
+                                return; if (deathEvent instanceof PlayerDeathTelemetryEvent) { deathEvent.setItemLost(itemLost, count); this.scheduleTelemetryEvent('player_death', 'player_death', deathEvent); }
+                        }
+                        updatePlayerDeathEventCause(cause) {
+                            const deathEvent = this.getExistingTelemetryEvent('player_death', 'player_death'); if (deathEvent === undefined)
+                                return; if (deathEvent instanceof PlayerDeathTelemetryEvent) { deathEvent.setCause(cause); this.scheduleTelemetryEvent('player_death', 'player_death', deathEvent); }
+                        }
+                        createOfflineXPGainEvent(skill, offlineTime) {
+                            if (!this.isTelemetryEnabled)
+                                return; const existingEvent = this.getExistingTelemetryEvent('offline_xp_gain', skill.id); const eventData = existingEvent !== undefined ? existingEvent : new OfflineXPGainTelemetryEvent(skill, skill.level, skill.xp, offlineTime); if (DEBUGENABLED)
+                                console.log('Creating offline skill XP telemetry event', eventData); this.scheduleTelemetryEvent('offline_xp_gain', skill.id, eventData);
+                        }
+                        updateOfflineXPGainAfterValues(skill) {
+                            if (!this.isTelemetryEnabled)
+                                return; const event = this.getExistingTelemetryEvent('offline_xp_gain', skill.id); if (event === undefined)
+                                return; if (event instanceof OfflineXPGainTelemetryEvent) { event.updateValues(skill.level, skill.xp); this.scheduleTelemetryEvent('offline_xp_gain', skill.id, event); }
+                        }
+                        purgeOfflineXPGainEvents(skill) {
+                            if (!this.isTelemetryEnabled)
+                                return; const event = this.getExistingTelemetryEvent('offline_xp_gain', skill.id); if (event === undefined)
+                                return; if (event instanceof OfflineXPGainTelemetryEvent) {
+                                    if (event.requiresPurge)
+                                        this.removeTelemetryEvent('offline_xp_gain', skill.id);
+                                }
+                        }
+                        createItemGainedEvent(item, volume, source) {
+                            if (!this.isTelemetryEnabled)
+                                return; const eventID = \`\${item.id}.\${source}\`; const existingEvent = this.getExistingTelemetryEvent('item_gained', eventID); const eventData = existingEvent !== undefined ? existingEvent : new ItemGainedTelemetryEvent(item, volume, source); if (existingEvent !== undefined && existingEvent instanceof ItemGainedTelemetryEvent && eventData instanceof ItemGainedTelemetryEvent) { eventData.itemVolume += volume; }
+                            this.scheduleTelemetryEvent('item_gained', eventID, eventData);
+                        }
+                        removeTelemetryEvent(eventType, eventID) {
+                            const events = this.telemetryPayloadsToProcess.get(eventType); if (events === undefined)
+                                return; events.delete(eventID); console.log(\`Removed Telemetry Event: \${eventType} - \${eventID}\`);
+                        }
+                        getExistingTelemetryEvent(eventType, eventID) {
+                            const events = this.telemetryPayloadsToProcess.get(eventType); if (events === undefined)
+                                return undefined; return events.get(eventID);
+                        }
+                        getTelemetryEventBody(event) { return { EventNamespace: 'custom', Name: event.type, Payload: event.payload, }; }
+                        fireSingle(event) {
+                            if (!this.isTelemetryEnabled)
+                                return; if (DEBUGENABLED)
+                                console.log(\`Firing Single Telemetry event (\${event.type}): \${JSON.stringify(event.payload)}\`); const eventBody = this.getTelemetryEventBody(event); this.fireTelemetryEvents([eventBody]);
+                        }
+                        fireEventType(eventType) {
+                            if (!this.isTelemetryEnabled)
+                                return; const events = this.telemetryPayloadsToProcess.get(eventType); if (events === undefined)
+                                return; this.processTelemetryPayload(eventType, events); this.telemetryPayloadsToProcess.delete(eventType);
+                        }
+                        scheduleTelemetryEvent(eventType, eventID, event) {
+                            if (!this.isTelemetryEnabled)
+                                return; const currentEvents = this.telemetryPayloadsToProcess.get(eventType); const eventData = currentEvents !== undefined ? currentEvents : new Map(); eventData.set(eventID, event); this.telemetryPayloadsToProcess.set(eventType, eventData); this.onTelemetryEventCreation();
+                        }
+                        onTelemetryEventCreation() { this.fireEventsIfLimitsReached(); }
+                        fireEventsIfLimitsReached() {
+                            if (!this.isTelemetryEnabled)
+                                return; if (this.getTelemetryEventSize() >= 100) { this.processScheduledTelemetryData(); }
+                        }
+                        getTelemetryEventSize() { let count = 0; this.telemetryPayloadsToProcess.forEach((event) => (count += event.size)); return count; }
+                        processScheduledTelemetryData() {
+                            if (!this.isTelemetryEnabled)
+                                return; const events = []; this.telemetryPayloadsToProcess.forEach((event, eventType) => { events.concat(this.processTelemetryPayload(eventType, event)); }); this.fireTelemetryEvents(events);
+                        }
+                        processTelemetryPayload(eventType, event) {
+                            if (!this.isTelemetryEnabled)
+                                return []; const events = []; event.forEach((eventData) => {
+                                    if (DEBUGENABLED)
+                                        console.log(\`Prepairing to fire Telemetry Event (\${eventType}): \${JSON.stringify(eventData.payload)}\`); const eventBody = this.getTelemetryEventBody(eventData); events.push(eventBody);
+                                }); return events;
+                        }
+                        fireTelemetryEvents(events) {
+                            if (!this.isTelemetryEnabled)
+                                return; const eventBody = { Events: events, }; cloudManager.playfabEventAPI('WriteTelemetryEvents', eventBody).then((result) => {
+                                    if (result.code === 200) {
+                                        if (DEBUGENABLED)
+                                            console.log(\`Telemetry Event(s) fired successfully.\`); this.telemetryPayloadsToProcess.clear();
+                                    }
+                                    else { console.error(\`Telemetry Event(s) failed to fire. Error: \${result.errorMessage}\`); }
+                                }).catch((error) => { console.error(error); });
+                        }
+                }`);
+
 
                 // create instances
                 // restore data
