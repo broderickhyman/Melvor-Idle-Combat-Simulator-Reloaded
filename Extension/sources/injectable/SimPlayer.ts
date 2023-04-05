@@ -638,8 +638,8 @@ class SimPlayer extends Player {
             this.attackType === "magic" ||
             this.modifiers.allowAttackAugmentingMagic > 0;
         this.canAurora = allowMagic;
-        this.canCurse = allowMagic && !this.usingAncient;
-    }
+        this.canCurse = (allowMagic && !this.usingAncient) || this.equipment.checkForItemID("melvorTotH:Voodoo_Trinket");
+}
 
     damage(amount: number, source: SplashType, thieving?: boolean): void {
         super.damage(amount, source);
