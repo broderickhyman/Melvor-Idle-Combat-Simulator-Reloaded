@@ -396,6 +396,9 @@ class Simulator {
             SkillMasteryMilestone,
             AgilityObstacleMilestone,
             EquipItemMilestone,
+
+            // @ts-expect-error
+            NotificationsManager,
         ].forEach((clas: any) =>
             classNames.push({ name: clas.name, data: emptyClass })
         );
@@ -494,7 +497,6 @@ class Simulator {
             EventManager,
             CombatArea,
             Dungeon,
-            TownshipMap,
             Currency,
             DataReader,
             Equipment,
@@ -531,7 +533,8 @@ class Simulator {
             GolbinRaidBank,
             RaidManager,
             TownshipWorship,
-            TownshipJob,
+            // @ts-expect-error
+            TownshipCasualTasks,
             CombatPassive,
             Pet,
             AttackStyle,

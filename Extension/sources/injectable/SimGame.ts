@@ -76,6 +76,8 @@ class SimGame extends Game {
         this.lore = new Lore(this as any);
         this.eventManager = new EventManager();
         // @ts-expect-error
+        this.notifications = new NotificationsManager();
+        // @ts-expect-error
         this.telemetry = new Telemetry();
         // @ts-expect-error
         this.dropWeightCache = new Map();
@@ -324,7 +326,6 @@ class SimGame extends Game {
         this.summoning = this.registerSkill(demoNamespace, Summoning);
         this.astrology = this.registerSkill(demoNamespace, Astrology);
         this.township = this.registerSkill(demoNamespace, Township);
-        this.actions.registerObject(this.township as any);
         // Fix SimPlayer object to match replaced Player object
         // TODO: Re-enable this when we manage pets directly
         // this.combat.player.registerStatProvider(this.petManager);
