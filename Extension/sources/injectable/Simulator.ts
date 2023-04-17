@@ -180,67 +180,67 @@ class Simulator {
             name: string;
             data: any;
         }[] = [
-            // modified objects
-            { name: "CDNDIR", data: "" },
-            { name: "currentSaveVersion", data: currentSaveVersion },
-            { name: "gameVersion", data: gameVersion },
-            { name: "enemyNoun", data: enemyNoun },
-            // We need loadedLangJson for skill names (used with XP tracking)
-            { name: "loadedLangJson", data: loadedLangJson },
-            { name: "MAX_QUICK_EQUIP_ITEMS", data: MAX_QUICK_EQUIP_ITEMS },
-            { name: "TICK_INTERVAL", data: TICK_INTERVAL },
-            { name: "youNoun", data: youNoun },
-            { name: "TODO_REPLACE_MEDIA", data: TODO_REPLACE_MEDIA },
-            { name: "DEBUGENABLED", data: false },
-            {
-                name: "cloudManager",
-                data: {
-                    ...cloudManager,
-                    formElements: undefined,
-                    formInnerHTML: undefined,
+                // modified objects
+                { name: "CDNDIR", data: "" },
+                { name: "currentSaveVersion", data: currentSaveVersion },
+                { name: "gameVersion", data: gameVersion },
+                { name: "enemyNoun", data: enemyNoun },
+                // We need loadedLangJson for skill names (used with XP tracking)
+                { name: "loadedLangJson", data: loadedLangJson },
+                { name: "MAX_QUICK_EQUIP_ITEMS", data: MAX_QUICK_EQUIP_ITEMS },
+                { name: "TICK_INTERVAL", data: TICK_INTERVAL },
+                { name: "youNoun", data: youNoun },
+                { name: "TODO_REPLACE_MEDIA", data: TODO_REPLACE_MEDIA },
+                { name: "DEBUGENABLED", data: false },
+                {
+                    name: "cloudManager",
+                    data: {
+                        ...cloudManager,
+                        formElements: undefined,
+                        formInnerHTML: undefined,
+                    },
                 },
-            },
-            { name: "COMBAT_TRIANGLE_IDS", data: COMBAT_TRIANGLE_IDS },
-            { name: "combatTriangle", data: combatTriangle },
-            { name: "numberMultiplier", data: numberMultiplier },
+                { name: "COMBAT_TRIANGLE_IDS", data: COMBAT_TRIANGLE_IDS },
+                { name: "combatTriangle", data: combatTriangle },
+                { name: "numberMultiplier", data: numberMultiplier },
 
-            { name: "burnEffect", data: burnEffect },
-            { name: "poisonEffect", data: poisonEffect },
-            { name: "rageEffect", data: rageEffect },
-            { name: "shockEffect", data: shockEffect },
-            { name: "dualityEffect", data: dualityEffect },
-            { name: "deadlyPoisonEffect", data: deadlyPoisonEffect },
-            { name: "afflictionEffect", data: afflictionEffect },
-            { name: "frostBurnEffect", data: frostBurnEffect },
-            { name: "bleedReflectEffect", data: bleedReflectEffect },
-            {
-                name: "decreasedEvasionStackingEffect",
-                data: decreasedEvasionStackingEffect,
-            },
-            { name: "absorbingSkinEffect", data: absorbingSkinEffect },
-            { name: "darkBladeEffect", data: darkBladeEffect },
-            { name: "assassinEffect", data: assassinEffect },
-            { name: "growingMadnessEffect", data: growingMadnessEffect },
-            { name: "momentInTimeEffect", data: momentInTimeEffect },
-            { name: "reignOverTimeEffect", data: reignOverTimeEffect },
-            { name: "shadowCloakEffect", data: shadowCloakEffect },
-            { name: "increased5DROnHitEffect", data: increased5DROnHitEffect },
-            { name: "elementalEffects", data: elementalEffects },
+                { name: "burnEffect", data: burnEffect },
+                { name: "poisonEffect", data: poisonEffect },
+                { name: "rageEffect", data: rageEffect },
+                { name: "shockEffect", data: shockEffect },
+                { name: "dualityEffect", data: dualityEffect },
+                { name: "deadlyPoisonEffect", data: deadlyPoisonEffect },
+                { name: "afflictionEffect", data: afflictionEffect },
+                { name: "frostBurnEffect", data: frostBurnEffect },
+                { name: "bleedReflectEffect", data: bleedReflectEffect },
+                {
+                    name: "decreasedEvasionStackingEffect",
+                    data: decreasedEvasionStackingEffect,
+                },
+                { name: "absorbingSkinEffect", data: absorbingSkinEffect },
+                { name: "darkBladeEffect", data: darkBladeEffect },
+                { name: "assassinEffect", data: assassinEffect },
+                { name: "growingMadnessEffect", data: growingMadnessEffect },
+                { name: "momentInTimeEffect", data: momentInTimeEffect },
+                { name: "reignOverTimeEffect", data: reignOverTimeEffect },
+                { name: "shadowCloakEffect", data: shadowCloakEffect },
+                { name: "increased5DROnHitEffect", data: increased5DROnHitEffect },
+                { name: "elementalEffects", data: elementalEffects },
 
-            { name: "effectMedia", data: {} },
-            { name: "combatMenus", data: {} },
-            { name: "loadingOfflineProgress", data: undefined },
-            { name: "DATA_VERSION", data: DATA_VERSION },
-            {
-                name: "equipmentSlotData",
-                data: this.cloner.equipmentSlotData(),
-            },
-            { name: "modifierData", data: this.cloner.modifierData() },
-            { name: "SlayerTierID", data: SlayerTierID },
-            { name: "AttackTypeID", data: AttackTypeID },
-            { name: "ArchaicSpellTypeID", data: ArchaicSpellTypeID },
-            { name: "RaidStats", data: RaidStats },
-        ];
+                { name: "effectMedia", data: {} },
+                { name: "combatMenus", data: {} },
+                { name: "loadingOfflineProgress", data: undefined },
+                { name: "DATA_VERSION", data: DATA_VERSION },
+                {
+                    name: "equipmentSlotData",
+                    data: this.cloner.equipmentSlotData(),
+                },
+                { name: "modifierData", data: this.cloner.modifierData() },
+                { name: "SlayerTierID", data: SlayerTierID },
+                { name: "AttackTypeID", data: AttackTypeID },
+                { name: "ArchaicSpellTypeID", data: ArchaicSpellTypeID },
+                { name: "RaidStats", data: RaidStats },
+            ];
         [
             // these objects are copied from the game
             "CombatAreaType",
@@ -283,7 +283,7 @@ class Simulator {
         }[] = [];
         // these functions are spoofed
         [
-            ["createElement", () => {}],
+            ["createElement", () => { }],
             ["tippy", () => undefined],
         ].forEach((func: any) =>
             functionNames.push({ name: func[0], data: func[1] })
@@ -343,17 +343,17 @@ class Simulator {
                 this.rootItems = [];
             }
 
-            addDummyItemOnLoad() {}
+            addDummyItemOnLoad() { }
 
-            registerSortOrder() {}
+            registerSortOrder() { }
 
-            registerItemUpgrades() {}
+            registerItemUpgrades() { }
 
             getQty() {
                 return 0;
             }
 
-            setLevel() {}
+            setLevel() { }
         };
         [
             CombatQuickEquipMenu,
@@ -402,7 +402,7 @@ class Simulator {
         ].forEach((clas: any) =>
             classNames.push({ name: clas.name, data: emptyClass })
         );
-        
+
         // these classes are copied from the game
         [
             // @ts-expect-error
@@ -657,6 +657,28 @@ class Simulator {
                 .replace("combatManager", "this.manager");
             classes[clas.name] = `self['${clas.name}'] = ${s}`;
         });
+
+        // Stringify and store both namespaces and gamemodes to pass to the webWorkers
+        const namespaces: { [key: string]: string } = {}
+        const gamemodes: { [key: string]: string } = {}
+
+        game.registeredNamespaces.forEach((ns: DataNamespace) => {
+            if (ns.isModded) {
+                namespaces[ns.name] = JSON.stringify(ns)
+            }
+        })
+
+        game.gamemodes.forEach((gm: Gamemode) => {
+            if (gm.isModded) {
+                const gmNamespace: string = gm.namespace
+                const gmName: string = gm.name
+                const gmIsModded: boolean = gm.isModded
+                const gmData: GamemodeData = this.micsr.gamemodeToData(gm)
+
+                gamemodes[gm.id] = JSON.stringify([{ name: gmNamespace, displayName: gmName, isModded: gmIsModded }, gmData])
+            }
+        })
+
         // worker
         worker.onmessage = (event: any) => this.processWorkerMessage(event, i);
         worker.onerror = (event: any) => {
@@ -679,6 +701,9 @@ class Simulator {
             slayerTaskData: SlayerTask.data,
             dataPackage: this.micsr.dataPackage,
             SummoningMarkLevels: Summoning.markLevels,
+            // Extra gamemode stuff
+            namespaces: namespaces,
+            gamemodes: gamemodes,
         });
     }
 
@@ -994,7 +1019,7 @@ class Simulator {
                     .map(
                         (monster) =>
                             this.monsterSimData[
-                                this.simID(monster.id, dungeonID)
+                            this.simID(monster.id, dungeonID)
                             ]
                     )
                     .reduce((avgData, mData) => {
@@ -1085,9 +1110,7 @@ class Simulator {
         // log time and save result
         if (isNewRun) {
             this.micsr.log(
-                `Elapsed Simulation Time: ${
-                    performance.now() - this.simStartTime
-                }ms`
+                `Elapsed Simulation Time: ${performance.now() - this.simStartTime}ms`
             );
             if (this.parent.trackHistory) {
                 this.saveResult();
@@ -1212,8 +1235,7 @@ class Simulator {
                 // @ts-expect-error TS(2531): Object is possibly 'null'.
                 document.getElementById(
                     "MCS Simulate All Button"
-                ).textContent = `Cancel (${this.currentJob - 1}/${
-                    this.simulationQueue.length
+                ).textContent = `Cancel (${this.currentJob - 1}/${this.simulationQueue.length
                 })`;
                 // this.micsr.log(event.data.simResult);
                 // Attempt to add another job to the worker

@@ -35,7 +35,7 @@ class SimGame extends Game {
         decode(reader: SaveWriter, version: number): void;
     };
 
-    constructor(micsr: MICSR, isWebWorker: boolean) {
+    constructor(micsr: MICSR, isWebWorker: boolean, game: Game) {
         super();
         this.micsr = micsr;
         this.isWebWorker = isWebWorker;
@@ -161,6 +161,17 @@ class SimGame extends Game {
                 "Throne of the Herald",
                 false
             );
+
+        game.registeredNamespaces.forEach((ns: DataNamespace) => {
+            if (ns.isModded && this.registeredNamespaces.getNamespace(ns.name) === undefined) // Only register modded namespaces that aren't already registered
+                this.registeredNamespaces.registerNamespace(ns.name, ns.displayName, ns.isModded)
+        })
+
+        game.gamemodes.forEach(gm => {
+            if (gm.isModded)
+                this.gamemodes.registerObject(new Gamemode({ name: gm.namespace, displayName: gm.name, isModded: gm.isModded }, micsr.gamemodeToData(gm), game))
+        })
+
         this.normalAttack = new SpecialAttack(
             demoNamespace,
             {
@@ -653,7 +664,7 @@ class SimGame extends Game {
             const skill = reader.getNamespacedObject(this.skills);
             const skillDataSize = reader.getUint32();
             if (typeof skill === "string")
-            reader.getFixedLengthBuffer(skillDataSize);
+                reader.getFixedLengthBuffer(skillDataSize);
             else {
                 skill.decode(reader, version);
             }
@@ -666,7 +677,7 @@ class SimGame extends Game {
     }
 
     // Don't render
-    render() {}
+    render() { }
 }
 
 class CustomEventMatcher extends GameEventMatcher {
