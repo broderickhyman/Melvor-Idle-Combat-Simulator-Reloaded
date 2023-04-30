@@ -448,19 +448,36 @@
 }
 
 .mcsPopup {
-    position: absolute;
-    top: 0;
-    left: 100%;
     background-color: #ececec;
     color: #575757;
     border-color: #6c757d;
     border-style: solid;
     border-width: thick;
     border-radius: 0.5rem;
-    width: 614px;
     padding: 0 0.5rem 0.5rem 0.5rem;
     z-index: 999;
     cursor: default;
+}
+
+@media (min-width: 983px) {
+    .mcsPopup {
+        position: absolute;
+        top: 0;
+        left: 100%;
+        width: 614px;
+    }
+}
+
+/* Prevent popups from rendering off-screen on mobile */
+@media (max-width: 982px) {
+    .mcsPopup {
+        position: fixed;
+        top: 10%;
+        left: 10%;
+        max-width: 80%;
+        height: 80%;
+        overflow-y: scroll;
+    }
 }
 
 .tooltip-icon {
