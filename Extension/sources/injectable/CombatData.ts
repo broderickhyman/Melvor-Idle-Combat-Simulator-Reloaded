@@ -199,9 +199,7 @@ class CombatData {
     }
 
     playerAttackSpeed() {
-        let attackSpeed = this.combatStats.attackSpeed;
-        attackSpeed -= this.decreasedAttackSpeed();
-        return attackSpeed;
+        return this.combatStats.attackSpeed - this.decreasedAttackSpeed();
     }
 
     getSummoningXP() {
