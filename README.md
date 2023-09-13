@@ -1,3 +1,7 @@
+# ARCHIVED
+
+Please see [[Myth] Combat Simulator](https://github.com/mythridium/combat-simulator) for the most up-to-date version of this mod.
+
 # Melvor Idle Combat Simulator Reloaded
 
 A [mod.io](https://mod.io/g/melvoridle/m/combat-simulator-reloaded) extension for the game [Melvor Idle](http://www.melvoridle.com/).
